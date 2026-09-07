@@ -28,19 +28,98 @@
                     <div class="menu-sub menu-sub-accordion">
 
                         <div class="menu-item">
-                            <a class="menu-link {{ Route::currentRouteName() == 'categoria.listado' ? 'active' : '' }}"
-                                href="#">
+                                <a class="menu-link {{ Route::currentRouteName() == 'categoria.listado' ? 'active' : '' }}"
+                                    href="{{ route('categoria.listado') }}">
 
-                                <span class="menu-bullet">
-                                    <span class="bullet bullet-dot"></span>
-                                </span>
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
 
-                                <span class="menu-title text-white">
-                                    Sub menu
-                                </span>
-                            </a>
+                                    <span class="menu-title text-white">
+                                        Categorias
+                                    </span>
+                                </a>
+                            </div>
+
+                        <div class="menu-item">
+                                <a class="menu-link {{ Route::currentRouteName() == 'cliente.listado' ? 'active' : '' }}"
+                                    href="{{ route('cliente.listado') }}">
+
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+
+                                    <span class="menu-title text-white">
+                                        Clientes
+                                    </span>
+                                </a>
                         </div>
+                        <div class="menu-item">
+                                <a class="menu-link {{ Route::currentRouteName() == 'marca.listado' ? 'active' : '' }}"
+                                    href="{{ route('marca.listado') }}">
 
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+
+                                    <span class="menu-title text-white">
+                                        Marcas
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="menu-item">
+                                <a class="menu-link {{ Route::currentRouteName() == 'producto.listado' ? 'active' : '' }}"
+                                    href="{{ route('producto.listado') }}">
+
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+
+                                    <span class="menu-title text-white">
+                                        Productos
+                                    </span>
+                                </a>
+                            </div>
+
+                        <div class="menu-item">
+                                <a class="menu-link {{ Route::currentRouteName() == 'rol.listado' ? 'active' : '' }}"
+                                    href="{{ route('rol.listado') }}">
+
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+
+                                    <span class="menu-title text-white">
+                                        Roles
+                                    </span>
+                                </a>
+                            </div>
+
+                            <div class="menu-item">
+                                <a class="menu-link {{ Route::currentRouteName() == 'sucursal.listado' ? 'active' : '' }}"
+                                    href="{{ route('sucursal.listado') }}">
+
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+
+                                    <span class="menu-title text-white">
+                                        Sucursales
+                                    </span>
+                                </a>
+                            </div>
+
+                            <div class="menu-item">
+                                <a class="menu-link {{ Route::currentRouteName() == 'user.listado' ? 'active' : '' }}"
+                                    href="{{ route('user.listado') }}">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title text-white">
+                                        Usuarios
+                                    </span>
+                                </a>
+                            </div>
                     </div>
                 </div>
 
