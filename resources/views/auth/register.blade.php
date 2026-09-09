@@ -21,7 +21,7 @@
                             <!-- Nombre -->
                             <div class="mb-3">
                                 <label for="name" class="form-label">Nombre</label>
-                                <input type="text" name="name" id="name" class="form-control" value="{{ old('name') }}"
+                                <input type="text" name="nombres" id="name" class="form-control" value="{{ old('name') }}"
                                     required autofocus>
                                 @error('name')
                                 <small class="text-danger">{{ $message }}</small>
