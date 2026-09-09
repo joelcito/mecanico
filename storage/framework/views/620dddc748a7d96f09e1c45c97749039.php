@@ -28,19 +28,98 @@
                     <div class="menu-sub menu-sub-accordion">
 
                         <div class="menu-item">
-                            <a class="menu-link <?php echo e(Route::currentRouteName() == 'categoria.listado' ? 'active' : ''); ?>"
-                                href="#">
+                                <a class="menu-link <?php echo e(Route::currentRouteName() == 'categoria.listado' ? 'active' : ''); ?>"
+                                    href="<?php echo e(route('categoria.listado')); ?>">
 
-                                <span class="menu-bullet">
-                                    <span class="bullet bullet-dot"></span>
-                                </span>
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
 
-                                <span class="menu-title text-white">
-                                    Sub menu
-                                </span>
-                            </a>
+                                    <span class="menu-title text-white">
+                                        Categorias
+                                    </span>
+                                </a>
+                            </div>
+
+                        <div class="menu-item">
+                                <a class="menu-link <?php echo e(Route::currentRouteName() == 'cliente.listado' ? 'active' : ''); ?>"
+                                    href="<?php echo e(route('cliente.listado')); ?>">
+
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+
+                                    <span class="menu-title text-white">
+                                        Clientes
+                                    </span>
+                                </a>
                         </div>
+                        <div class="menu-item">
+                                <a class="menu-link <?php echo e(Route::currentRouteName() == 'marca.listado' ? 'active' : ''); ?>"
+                                    href="<?php echo e(route('marca.listado')); ?>">
 
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+
+                                    <span class="menu-title text-white">
+                                        Marcas
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="menu-item">
+                                <a class="menu-link <?php echo e(Route::currentRouteName() == 'producto.listado' ? 'active' : ''); ?>"
+                                    href="<?php echo e(route('producto.listado')); ?>">
+
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+
+                                    <span class="menu-title text-white">
+                                        Productos
+                                    </span>
+                                </a>
+                            </div>
+
+                        <div class="menu-item">
+                                <a class="menu-link <?php echo e(Route::currentRouteName() == 'rol.listado' ? 'active' : ''); ?>"
+                                    href="<?php echo e(route('rol.listado')); ?>">
+
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+
+                                    <span class="menu-title text-white">
+                                        Roles
+                                    </span>
+                                </a>
+                            </div>
+
+                            <div class="menu-item">
+                                <a class="menu-link <?php echo e(Route::currentRouteName() == 'sucursal.listado' ? 'active' : ''); ?>"
+                                    href="<?php echo e(route('sucursal.listado')); ?>">
+
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+
+                                    <span class="menu-title text-white">
+                                        Sucursales
+                                    </span>
+                                </a>
+                            </div>
+
+                            <div class="menu-item">
+                                <a class="menu-link <?php echo e(Route::currentRouteName() == 'user.listado' ? 'active' : ''); ?>"
+                                    href="<?php echo e(route('user.listado')); ?>">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title text-white">
+                                        Usuarios
+                                    </span>
+                                </a>
+                            </div>
                     </div>
                 </div>
 
