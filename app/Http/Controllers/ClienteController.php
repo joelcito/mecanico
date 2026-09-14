@@ -68,23 +68,14 @@ class ClienteController extends Controller
         try {
 
             $clienteId = $request->input('id');
-
-            /*
-             * CREAR
-             */
             if ($clienteId == '0') {
-
                 $user = new User();
-
-                $user->name = $request->input('cedula')
-                    ?: 'cliente_' . time();
+                
 
                 $user->email = $request->input('email');
-
                 $user->password = Hash::make(
                     $request->input('password', '12345678')
                 );
-
                 $user->nombres = $request->input('nombres');
                 $user->ap_paterno = $request->input('ap_paterno');
                 $user->ap_materno = $request->input('ap_materno');

@@ -10,6 +10,8 @@ use App\Http\Controllers\SucursalController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\VehiculoController;
+use App\Http\Controllers\OrdenServicioController;
 
 Route::get('/', function () {
     // return view('welcome');
@@ -84,9 +86,21 @@ Route::middleware('auth')->group(function () {
             Route::post('/eliminar', [ProductoController::class, 'eliminarProducto'])->name('producto.eliminar');
         });
 
+        Route::prefix('vehiculo')->group(function () {
 
+            Route::get('/listado', [VehiculoController::class, 'listado'])->name('vehiculo.listado');
+            Route::post('/ajaxListado', [VehiculoController::class, 'ajaxListado'])->name('vehiculo.ajaxListado');
+            Route::post('/guardar', [VehiculoController::class, 'guardarVehiculo'])->name('vehiculo.guardar');
+            Route::post('/eliminar', [VehiculoController::class, 'eliminarVehiculo'])->name('vehiculo.eliminar');
+        });
 
-        
+        Route::prefix('ordenServicio')->group(function () {
+            Route::get( '/listado', [OrdenServicioController::class, 'listado'] )->name('ordenServicio.listado');
+            Route::post( '/ajax-listado', [OrdenServicioController::class, 'ajaxListado'])->name('ordenServicio.ajaxListado');
+            Route::get( '/nuevo', [OrdenServicioController::class, 'nuevo'])->name('ordenServicio.nuevo');
+            Route::post( '/guardar',[OrdenServicioController::class, 'guardar'])->name('ordenServicio.guardar');
+            Route::get( '/{id}', [OrdenServicioController::class, 'detalle']) ->name('detalle');
+        });
 
 
 

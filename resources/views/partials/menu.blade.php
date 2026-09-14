@@ -81,6 +81,18 @@
                                 </a>
                             </div>
 
+                            <div class="menu-item">
+                                <a class="menu-link {{ Route::currentRouteName() == 'ordenesServicio.listado' ? 'active' : '' }}"
+                                    href="{{ route('ordenServicio.listado') }}">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title text-white">
+                                        Recepciòn
+                                    </span>
+                                </a>
+                            </div>
+
                         <div class="menu-item">
                                 <a class="menu-link {{ Route::currentRouteName() == 'rol.listado' ? 'active' : '' }}"
                                     href="{{ route('rol.listado') }}">
@@ -105,6 +117,20 @@
 
                                     <span class="menu-title text-white">
                                         Sucursales
+                                    </span>
+                                </a>
+                            </div>
+
+                            <div class="menu-item">
+                                <a class="menu-link {{ Route::currentRouteName() == 'vehiculo.listado' ? 'active' : '' }}"
+                                    href="{{ route('vehiculo.listado') }}">
+
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+
+                                    <span class="menu-title text-white">
+                                        Vehiculos
                                     </span>
                                 </a>
                             </div>

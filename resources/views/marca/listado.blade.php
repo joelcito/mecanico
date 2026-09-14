@@ -70,11 +70,7 @@
                                     Estado
                                 </label>
 
-                                <select
-                                    class="form-select form-select-sm"
-                                    id="estado"
-                                    name="estado"
-                                >
+                                <select class="form-select form-select-sm" id="estado" name="estado">
                                     <option value="ACTIVO">
                                         Activo
                                     </option>
@@ -94,80 +90,45 @@
             <div class="modal-footer">
                 <div class="row w-100">
                     <div class="col-md-12">
-                        <button
-                            type="button"
-                            class="btn btn-sm w-100 btn-success"
-                            onclick="guardarMarca()"
-                        >
+                        <button type="button" class="btn btn-sm w-100 btn-success" onclick="guardarMarca()">
                             Guardar
                         </button>
                     </div>
                 </div>
             </div>
-
         </div>
-
     </div>
-
 </div>
 
-
-{{-- LISTADO --}}
 <div class="d-flex flex-column flex-column-fluid">
-
-    <div
-        id="kt_app_content"
-        class="app-content flex-column-fluid"
-    >
-
-        <div
-            id="kt_app_content_container"
-            class="app-container container-xxlg"
-        >
-
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container"
+            class="app-container container-xxlg" >
             <div class="card shadow-sm">
-
-                <div
-                    class="card-header bg-light-info py-4 d-flex align-items-center justify-content-between"
-                >
-
+                <div class="card-header bg-light-info py-4 d-flex align-items-center justify-content-between" >
                     <h3 class="card-title fw-bold">
                         Listado de Marcas
                     </h3>
-
-
                     <div class="card-toolbar">
-
                         <button
                             type="button"
                             class="btn btn-primary btn-sm"
                             onclick="modalNuevaMarca()"
                         >
-
                             <i class="fa fa-plus"></i>
-
                             Nueva Marca
-
                         </button>
-
                     </div>
-
                 </div>
-
 
                 <div
                     class="card-body py-4"
                     id="table_listado"
                 >
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
 
 @stop()
@@ -178,7 +139,6 @@
 
         $.ajaxSetup({
             headers: {
-
                 'X-CSRF-TOKEN':
                     $('meta[name="csrf-token"]').attr('content')
 
@@ -190,10 +150,8 @@
         });
 
         function ajaxListado() {
-
             let datos = {};
             $.ajax({
-
                 url: "{{ route('marca.ajaxListado') }}",
                 method: "POST",
                 data: datos,
@@ -235,25 +193,17 @@
             limpiarErrores();
             let datos =
                 $('#formularioMarca').serializeArray();
-
-
             $.ajax({
-
                 url: "{{ route('marca.guardar') }}",
                 method: "POST",
                 data: datos,
-
                 success: function (resultado) {
-
                     if (resultado.estado) {
-
                         Swal.fire({
-
                             title: "EL REGISTRO FUE EXITOSO.",
                             icon: "success",
                             timer: 3000,
                             showConfirmButton: false
-
                         });
 
                         ajaxListado();
@@ -268,38 +218,24 @@
                                 'No se pudo guardar la marca.'
 
                         });
-
                     }
-
                 },
 
-
                 error: function (xhr) {
-
                     limpiarErrores();
                     if (xhr.status === 422) {
-
-                        let errores =
-                            xhr.responseJSON.errors;
-
-
+                        let errores = xhr.responseJSON.errors;
                         for (let campo in errores) {
-
-                            let mensaje =
-                                errores[campo][0];
-                            let input =
-                                $(`[name="${campo}"]`);
+                            let mensaje =  errores[campo][0];
+                            let input = $(`[name="${campo}"]`);
                             input.addClass('is-invalid');
                             input.after(
                                 `<div class="invalid-feedback">
                                     ${mensaje}
                                 </div>`
                             );
-
                         }
-
                     } else {
-
                         console.log(xhr);
                         Swal.fire({
                             icon: 'error',
@@ -307,13 +243,9 @@
                             text: 'Ocurrió un error inesperado.'
 
                         });
-
                     }
-
                 }
-
             });
-
         }
 
 
@@ -357,7 +289,6 @@
                         url: "{{ route('marca.eliminar') }}",
                         method: "POST",
                         data: {
-
                             id: id
                         },
 
@@ -374,39 +305,23 @@
                             } else {
 
                                 Swal.fire(
-
                                     'Error',
-
                                     resultado.message ||
                                     'No se pudo eliminar la marca.',
-
                                     'error'
-
                                 );
-
                             }
-
                         },
 
-
                         error: function (xhr) {
-
                             console.log(xhr);
-
                             Swal.fire({
-
                                 icon: 'error',
-
                                 title: 'Error',
-
                                 text: 'Ocurrió un error inesperado.'
-
                             });
-
                         }
-
                     });
-
                 }
 
                 else if (
@@ -415,33 +330,18 @@
                 ) {
 
                     Swal.fire(
-
                         'Cancelado',
-
                         'La operación fue cancelada',
-
                         'info'
-
                     );
-
                 }
-
             });
-
         }
-
-
 
         function limpiarErrores() {
-
-            $('.is-invalid')
-                .removeClass('is-invalid');
-
-            $('.invalid-feedback')
-                .remove();
-
+            $('.is-invalid').removeClass('is-invalid');
+            $('.invalid-feedback').remove();
         }
-
     </script>
 
 @endsection

@@ -2,34 +2,49 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\OrdenServicio;
 
-class Cliente extends Model
+class Vehiculo extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'clientes';
+    protected $table = 'vehiculos';
 
     protected $fillable = [
-        'user_id',
-        'nit',
-        'razon_social',
-        'direccion',
+        'cliente_id',
+        'marca_id',
+        'modelo',
+        'anio',
+        'placa',
+        'color',
+        'tipo_vehiculo',
+        'vin',
+        'numero_motor',
+        'observaciones',
         'estado',
+
         'usuario_creador_id',
         'usuario_modificador_id',
         'usuario_eliminador_id',
     ];
 
     protected $casts = [
+        'anio' => 'integer',
+        'estado' => 'boolean',
         'deleted_at' => 'datetime',
     ];
 
-    public function user()
+    public function cliente()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(Cliente::class, 'cliente_id');
+    }
+
+    public function marca()
+    {
+        return $this->belongsTo(Marca::class, 'marca_id');
     }
 
     public function usuarioCreador()
@@ -47,9 +62,9 @@ class Cliente extends Model
         return $this->belongsTo(User::class, 'usuario_eliminador_id');
     }
 
-    public function vehiculos()
-    {
-        return $this->hasMany(Vehiculo::class, 'cliente_id');
-    }
 
+    public function ordenesServicio()
+    {
+        return $this->hasMany(OrdenServicio::class, 'vehiculo_id');
+    }
 }
