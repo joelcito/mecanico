@@ -16,6 +16,7 @@ class VehiculoController extends Controller
 {
     $marcas = Marca::whereNull('deleted_at')
         ->where('estado', 'ACTIVO')
+        ->where('tipo', 'AUTO')
         ->orderBy('nombre', 'asc')
         ->get();
 
@@ -81,7 +82,7 @@ class VehiculoController extends Controller
             ],
 
             'anio' => [
-                'nullable', 'integer', 'min:1900', 'max:' . (date('Y') + 1)
+                'nullable', 'integer', 'min:1900'
             ],
 
             'placa' => [
@@ -115,6 +116,26 @@ class VehiculoController extends Controller
             'estado' => [
                 'nullable', 'string', 'max:50'
             ],
+        ], [
+            'required' => 'El campo :attribute es obligatorio.',
+            'exists' => 'El :attribute seleccionado no es válido.',
+            'string' => 'El campo :attribute debe ser texto.',
+            'max' => 'El campo :attribute no debe superar los :max caracteres.',
+            'integer' => 'El campo :attribute debe ser un número entero.',
+            'min' => 'El campo :attribute debe ser mayor o igual a :min.',
+            'in' => 'El valor seleccionado para :attribute no es válido.',
+        ], [
+            'cliente_id' => 'cliente',
+            'marca_id' => 'marca',
+            'modelo' => 'modelo',
+            'anio' => 'año',
+            'placa' => 'placa',
+            'color' => 'color',
+            'tipo_vehiculo' => 'tipo de vehículo',
+            'vin' => 'VIN',
+            'numero_motor' => 'número de motor',
+            'observaciones' => 'observaciones',
+            'estado' => 'estado',
         ]);
 
         // Normalizar datos

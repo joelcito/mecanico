@@ -52,10 +52,11 @@ class MarcaController extends Controller
     public function guardarMarca(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'estado' => 'nullable|string|max:50',
-        ]);
+    'nombre' => 'required|string|max:255',
+    'descripcion' => 'nullable|string',
+    'tipo' => 'required|in:AUTO,HERRAMIENTA',
+    'estado' => 'nullable|string|max:50',
+]);
 
         
 
@@ -66,6 +67,7 @@ class MarcaController extends Controller
 
             $marca->nombre = $request->nombre;
             $marca->descripcion = $request->descripcion;
+            $marca->tipo = $request->tipo;
 
             if ($request->has('estado')) {
                 $marca->estado = $request->estado;
@@ -88,6 +90,7 @@ class MarcaController extends Controller
 
         $marca->nombre = $request->nombre;
         $marca->descripcion = $request->descripcion;
+        $marca->tipo = $request->tipo;
         $marca->estado = $request->estado ?? 'ACTIVO';
         $marca->usuario_creador_id = Auth::id();
 

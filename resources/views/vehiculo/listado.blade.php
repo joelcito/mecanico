@@ -38,6 +38,9 @@
                                     class="form-select form-select-sm"
                                     id="cliente_id"
                                     name="cliente_id"
+                                    required
+                                    oninvalid="this.setCustomValidity('Este campo es obligatorio.')"
+                                    oninput="this.setCustomValidity('')"
                                 >
                                     <option value="">
                                         Seleccione un cliente
@@ -67,6 +70,9 @@
                                     class="form-select form-select-sm"
                                     id="marca_id"
                                     name="marca_id"
+                                    required
+                                    oninvalid="this.setCustomValidity('Este campo es obligatorio.')"
+                                    oninput="this.setCustomValidity('')"
                                 >
                                     <option value="">
                                         Seleccione una marca
@@ -90,6 +96,9 @@
                                     class="form-control form-control-sm"
                                     id="modelo"
                                     name="modelo"
+                                    required
+                                    oninvalid="this.setCustomValidity('Este campo es obligatorio.')"
+                                    oninput="this.setCustomValidity('')"
                                 >
 
                             </div>
@@ -109,7 +118,6 @@
                                     id="anio"
                                     name="anio"
                                     min="1900"
-                                    max="{{ date('Y') + 1 }}"
                                 >
 
                             </div>
@@ -124,6 +132,9 @@
                                     class="form-control form-control-sm text-uppercase"
                                     id="placa"
                                     name="placa"
+                                    required
+                                    oninvalid="this.setCustomValidity('Este campo es obligatorio.')"
+                                    oninput="this.setCustomValidity('')"
                                 >
                             </div>
                         </div>
@@ -156,6 +167,9 @@
                                     class="form-select form-select-sm"
                                     id="tipo_vehiculo"
                                     name="tipo_vehiculo"
+                                    required
+                                    oninvalid="this.setCustomValidity('Este campo es obligatorio.')"
+                                    oninput="this.setCustomValidity('')"
                                 >
                                     <option value="AUTOMOVIL">
                                         Automóvil

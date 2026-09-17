@@ -48,7 +48,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-12">
+                        <div class="mb-3">
                             <div class="fv-row mb-7">
                                 <label class="fw-semibold fs-6 mb-2">
                                     Descripción
@@ -60,6 +60,14 @@
                                     rows="3"
                                 ></textarea>
                             </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tipo</label>
+
+                            <select name="tipo" id="tipo" class="form-select">
+                                <option value="AUTO">Auto</option>
+                                <option value="HERRAMIENTA">Herramienta</option>
+                            </select>
                         </div>
                     </div>
 

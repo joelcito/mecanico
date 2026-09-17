@@ -48,16 +48,13 @@ public function ajaxListado(Request $request)
     public function guardarCategoria(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'estado' => 'nullable|string|max:50',
-        ]);
+    'nombre' => 'required|string|max:255',
+    'descripcion' => 'nullable|string',
+    'tipo' => 'required|in:AUTO,HERRAMIENTA',
+    'estado' => 'nullable|string|max:50',
+]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Actualizar
-        |--------------------------------------------------------------------------
-        */
+        
 
         if ($request->id) {
 
@@ -66,6 +63,7 @@ public function ajaxListado(Request $request)
 
             $categoria->nombre = $request->nombre;
             $categoria->descripcion = $request->descripcion;
+            $categoria->tipo = $request->tipo;
 
             if ($request->has('estado')) {
                 $categoria->estado = $request->estado;
@@ -82,16 +80,13 @@ public function ajaxListado(Request $request)
             ]);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Registrar
-        |--------------------------------------------------------------------------
-        */
+        
 
         $categoria = new Categoria();
 
         $categoria->nombre = $request->nombre;
         $categoria->descripcion = $request->descripcion;
+        $categoria->tipo = $request->tipo;
         $categoria->estado = $request->estado ?? 'ACTIVO';
         $categoria->usuario_creador_id = Auth::id();
 

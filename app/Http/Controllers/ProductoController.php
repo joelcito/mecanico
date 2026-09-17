@@ -7,6 +7,7 @@ use App\Models\Categoria;
 use App\Models\Marca;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Utils\Respuesta;
 
 class ProductoController extends Controller
@@ -15,22 +16,23 @@ class ProductoController extends Controller
      * Listar productos.
      */
     public function listado()
-    {
-        $categorias = Categoria::whereNull('deleted_at')
-            ->where('estado', 'ACTIVO')
-            ->orderBy('nombre')
-            ->get();
+{
+    $categorias = Categoria::whereNull('deleted_at')
+        ->where('estado', 'ACTIVO')
+        ->orderBy('nombre')
+        ->get();
 
-        $marcas = Marca::whereNull('deleted_at')
-            ->where('estado', 'ACTIVO')
-            ->orderBy('nombre')
-            ->get();
+    $marcas = Marca::whereNull('deleted_at')
+    ->where('estado', 'ACTIVO')
+    ->where('tipo', 'HERRAMIENTA')
+    ->orderBy('nombre')
+    ->get();
 
-        return view('producto.listado', compact(
-            'categorias',
-            'marcas'
-        ));
-    }
+    return view('producto.listado', compact(
+        'categorias',
+        'marcas'
+    ));
+}
 
     /**
      * Listado AJAX.
@@ -107,19 +109,24 @@ class ProductoController extends Controller
 
            
 
-            if ($request->hasFile('imagen')) {
+            if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
 
-                $imagen = $request->file('imagen');
+    $imagen = $request->file('imagen');
 
-                $nombreImagen = time() . '_' . $imagen->getClientOriginalName();
+    $nombreImagen = uniqid() . '_' . preg_replace(
+        '/[^A-Za-z0-9._-]/',
+        '_',
+        $imagen->getClientOriginalName()
+    );
 
-                $imagen->move(
-                    public_path('uploads/productos'),
-                    $nombreImagen
-                );
+    Storage::disk('public')->putFileAs(
+        'uploads/productos',
+        $imagen,
+        $nombreImagen
+    );
 
-                $producto->imagen = 'uploads/productos/' . $nombreImagen;
-            }
+    $producto->imagen = 'storage/uploads/productos/' . $nombreImagen;
+}
 
             $producto->usuario_modificador_id = Auth::id();
 
@@ -150,16 +157,24 @@ class ProductoController extends Controller
 
      
 
-        if ($request->hasFile('imagen')) {
-            $imagen = $request->file('imagen');
-            $nombreImagen = time() . '_' . $imagen->getClientOriginalName();
-            $imagen->move(
-                public_path('uploads/productos'),
-                $nombreImagen
-            );
+        if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
 
-            $producto->imagen = 'uploads/productos/' . $nombreImagen;
-        }
+    $imagen = $request->file('imagen');
+
+    $nombreImagen = uniqid() . '_' . preg_replace(
+        '/[^A-Za-z0-9._-]/',
+        '_',
+        $imagen->getClientOriginalName()
+    );
+
+    Storage::disk('public')->putFileAs(
+        'uploads/productos',
+        $imagen,
+        $nombreImagen
+    );
+
+    $producto->imagen = 'storage/uploads/productos/' . $nombreImagen;
+}
 
         $producto->save();
 

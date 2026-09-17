@@ -4,6 +4,7 @@
             <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
                 <th>Nombre</th>
                 <th>Descripción</th>
+                <th>Tipo</th>
                 <th>Estado</th>
                 <th>Actions</th>
             </tr>
@@ -16,6 +17,10 @@
 
                     <td>
                         {{ $marca->descripcion ?? '-' }}
+                    </td>
+
+                    <td>
+                        {{ $marca->tipo ?? '-' }}
                     </td>
 
                     <td>
