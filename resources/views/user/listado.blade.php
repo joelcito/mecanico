@@ -94,7 +94,7 @@
                         <div class="col-md-4">
                             <div class="fv-row mb-7">
                                 <label class="required fw-semibold fs-6 mb-2">Nombre Usuario</label>
-                                <input type="text" class="form-control form-control-sm" id="name" name="name">
+                                <input type="text" class="form-control form-control-sm" id="name" name="nombre">
                             </div>
                         </div>
                         <div class="col-md-4">

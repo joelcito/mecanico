@@ -180,6 +180,37 @@
                                 </select>
                             </div>
                         </div>
+
+                        <div class="col-md-6 mb-5">
+                            <label class="form-label fw-bold">
+                                Tipo de propulsión
+                            </label>
+
+                            <select
+                                name="tipo_propulsion"
+                                id="tipo_propulsion"
+                                class="form-select">
+
+                                <option value="">
+                                    Seleccione
+                                </option>
+
+                                <option value="COMBUSTION">
+                                    Combustión
+                                </option>
+
+                                <option value="ELECTRICO">
+                                    Eléctrico
+                                </option>
+
+                                <option value="HIBRIDO">
+                                    Híbrido
+                                </option>
+
+                            </select>
+                        </div>
+
+
                     </div>
 
                     <div class="row">

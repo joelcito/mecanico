@@ -25,7 +25,7 @@
                     </td>
                     <td>{{ $user->cedula }}</td>
                     <td>{{ $user->celular }}</td>
-                    <td>{{ $user->name }}</td>
+                    <td>{{ $user->nombres }}</td>
                     <td>
                         <button class="btn btn-icon btn-sm btn-warning btn-circle" title="Editar user"
                             onclick="editarUser({{ json_encode($user) }})"><i class="fa fa-edit"></i></button>

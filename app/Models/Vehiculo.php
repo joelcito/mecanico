@@ -21,6 +21,7 @@ class Vehiculo extends Model
         'placa',
         'color',
         'tipo_vehiculo',
+        'tipo_propulsion',
         'vin',
         'numero_motor',
         'observaciones',

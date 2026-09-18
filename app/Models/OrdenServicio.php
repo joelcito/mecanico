@@ -5,6 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\OrdenInspeccion;
+use App\Models\OrdenFoto;
+use App\Models\OrdenCotizacion;
+use App\Models\OrdenDiagnostico;
 
 class OrdenServicio extends Model
 {
@@ -59,4 +63,64 @@ class OrdenServicio extends Model
     {
         return $this->belongsTo(User::class, 'usuario_eliminador_id');
     }
-}
+
+
+    public function inspecciones()
+    {
+        return $this->hasMany(
+            OrdenInspeccion::class,
+            'orden_servicio_id'
+        );
+    }
+
+    public function fotos()
+    {
+        return $this->hasMany(
+            OrdenFoto::class,
+            'orden_servicio_id'
+        );
+    }
+
+    public function inspeccionActual()
+    {
+        return $this->hasOne(
+            OrdenInspeccion::class,
+            'orden_servicio_id'
+        )->latestOfMany();
+    }
+
+    public function diagnosticos()
+    {
+        return $this->hasMany(
+            OrdenDiagnostico::class,
+            'orden_servicio_id'
+        );
+    }
+
+    public function diagnosticoActual()
+    {
+        return $this->hasOne(
+            OrdenDiagnostico::class,
+            'orden_servicio_id'
+        )->latestOfMany();
+    }
+
+
+
+    public function cotizaciones()
+    {
+        return $this->hasMany(
+            OrdenCotizacion::class,
+            'orden_servicio_id'
+        );
+    }
+
+    public function cotizacionActual()
+    {
+        return $this->hasOne(
+            OrdenCotizacion::class,
+            'orden_servicio_id'
+        )->latestOfMany();
+    }
+
+    }

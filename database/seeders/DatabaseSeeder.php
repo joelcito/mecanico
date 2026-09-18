@@ -15,11 +15,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+
         // User::factory(10)->create();
+       
 
         User::factory()->create([
             'nombres' => 'Test User',
             'email' => 'test@example.com',
+        ]);
+
+         $this->call([
+            ChecklistItemSeeder::class,
         ]);
     }
 }

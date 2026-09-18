@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\VehiculoController;
 use App\Http\Controllers\OrdenServicioController;
+use App\Http\Controllers\OrdenInspeccionController;
+use App\Http\Controllers\OrdenDiagnosticoController;
+use App\Http\Controllers\OrdenCotizacionController;
 
 Route::get('/', function () {
     // return view('welcome');
@@ -95,12 +98,22 @@ Route::middleware('auth')->group(function () {
         });
 
         Route::prefix('ordenServicio')->group(function () {
-            Route::get( '/listado', [OrdenServicioController::class, 'listado'] )->name('ordenServicio.listado');
-            Route::post( '/ajax-listado', [OrdenServicioController::class, 'ajaxListado'])->name('ordenServicio.ajaxListado');
-            Route::get( '/nuevo', [OrdenServicioController::class, 'nuevo'])->name('ordenServicio.nuevo');
-            Route::post( '/guardar',[OrdenServicioController::class, 'guardar'])->name('ordenServicio.guardar');
-            Route::get( '/{id}', [OrdenServicioController::class, 'detalle']) ->name('detalle');
+            Route::get('/listado', [OrdenServicioController::class, 'listado'] )->name('ordenServicio.listado');
+            Route::post('/ajax-listado', [OrdenServicioController::class, 'ajaxListado'])->name('ordenServicio.ajaxListado');
+            Route::get('/nuevo',[OrdenServicioController::class, 'nuevo'])->name('ordenServicio.nuevo');
+            Route::post(  '/guardar', [OrdenServicioController::class, 'guardar'])->name('ordenServicio.guardar');
+            Route::get('/{id}/inspeccion',[OrdenInspeccionController::class, 'crear'])->name('ordenServicio.inspeccion');
+            Route::post('/{id}/inspeccion', [OrdenInspeccionController::class, 'guardar'])->name('ordenServicio.inspeccion.guardar');
+            Route::get('/{id}', [OrdenServicioController::class, 'detalle'])->name('ordenServicio.detalle');
+
+            Route::get('/{id}/diagnostico', [OrdenDiagnosticoController::class, 'crear'])->name('ordenServicio.diagnostico');
+            Route::post('/{id}/diagnostico', [OrdenDiagnosticoController::class, 'guardar'])->name('ordenServicio.diagnostico.guardar');
+
+            Route::get('/{id}/cotizacion',[OrdenCotizacionController::class, 'crear'])->name('ordenServicio.cotizacion');
+            Route::post('/{id}/cotizacion',[OrdenCotizacionController::class, 'guardar'])->name('ordenServicio.cotizacion.guardar');
         });
+
+
 
 
 

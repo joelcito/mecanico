@@ -33,10 +33,10 @@ class UserController extends Controller
         return $data;
     }
 
-    public function guardarUser(Request $request)
+   public function guardarUser(Request $request)
     {
-
         if ($request->ajax()) {
+
             $user_id = $request->input('id');
             $sucursal_id = $request->input('sucursal_id');
             $rol_id = $request->input('rol_id');
@@ -45,20 +45,28 @@ class UserController extends Controller
             $ap_materno = $request->input('ap_materno');
             $cedula = $request->input('cedula');
             $celular = $request->input('celular');
-            $name = $request->input('name');
             $email = $request->input('email');
-            $password = Hash::make($request->input('password'));
             $usuario = Auth::user();
 
             if ($user_id == '0') {
+
                 $user = new User();
+
                 $user->usuario_creador_id = $usuario->id;
-                $user->password = Hash::make($request->input('password'));
+                $user->password = Hash::make(
+                    $request->input('password')
+                );
+
             } else {
+
                 $user = User::find($user_id);
+
                 $user->usuario_modificador_id = $usuario->id;
+
                 if ($request->filled('password')) {
-                    $user->password = Hash::make($request->input('password'));
+                    $user->password = Hash::make(
+                        $request->input('password')
+                    );
                 }
             }
 
@@ -69,15 +77,23 @@ class UserController extends Controller
             $user->ap_materno = $ap_materno;
             $user->cedula = $cedula;
             $user->celular = $celular;
-            $user->name = $name;
             $user->email = $email;
 
             $user->save();
 
-            $data = Respuesta::success(null, "Datos Obtenidos correctamente");
+            $data = Respuesta::success(
+                null,
+                "Usuario guardado correctamente"
+            );
+
         } else {
-            $data = Respuesta::error(null, "Error al obtener los datos");
+
+            $data = Respuesta::error(
+                null,
+                "Error al obtener los datos"
+            );
         }
+
         return $data;
     }
 

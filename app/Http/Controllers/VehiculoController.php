@@ -69,53 +69,22 @@ class VehiculoController extends Controller
     public function guardarVehiculo(Request $request)
     {
         $request->validate([
-            'cliente_id' => [
-                'required', 'exists:clientes,id'
-            ],
-
-            'marca_id' => [
-                'required', 'exists:marcas,id'
-            ],
-
-            'modelo' => [
-                'required', 'string', 'max:100'
-            ],
-
-            'anio' => [
-                'nullable', 'integer', 'min:1900'
-            ],
-
-            'placa' => [
-                'required', 'string', 'max:20'
-            ],
-
-            'color' => [
-                'nullable', 'string', 'max:50'
-            ],
-
+            'cliente_id' => ['required', 'exists:clientes,id'],
+            'marca_id' => ['required', 'exists:marcas,id'],
+            'modelo' => ['required', 'string', 'max:100'],
+            'anio' => ['nullable', 'integer', 'min:1900'],
+            'placa' => ['required', 'string', 'max:20'],
+            'color' => ['nullable', 'string', 'max:50'],
             'tipo_vehiculo' => [
                 'required',
-                Rule::in([
-                    'AUTOMOVIL',
-                    'MOTOCICLETA'
-                ])
+                Rule::in(['AUTOMOVIL', 'MOTOCICLETA'])
             ],
 
-            'vin' => [
-                'nullable', 'string', 'max:50'
-            ],
-
-            'numero_motor' => [
-                'nullable', 'string', 'max:50'
-            ],
-
-            'observaciones' => [
-                'nullable', 'string'
-            ],
-
-            'estado' => [
-                'nullable', 'string', 'max:50'
-            ],
+            'tipo_propulsion' => 'required|in:COMBUSTION,ELECTRICO,HIBRIDO',
+            'vin' => [ 'nullable', 'string', 'max:50'],
+            'numero_motor' => ['nullable', 'string', 'max:50'],
+            'observaciones' => ['nullable', 'string'],
+            'estado' => ['nullable', 'string', 'max:50'],
         ], [
             'required' => 'El campo :attribute es obligatorio.',
             'exists' => 'El :attribute seleccionado no es válido.',
@@ -196,8 +165,10 @@ class VehiculoController extends Controller
             $vehiculo->placa = $placa;
             $vehiculo->color = $request->color;
             $vehiculo->tipo_vehiculo = $request->tipo_vehiculo;
+          
             $vehiculo->vin = $vin;
             $vehiculo->numero_motor = $request->numero_motor;
+            $vehiculo->tipo_propulsion = $request->tipo_propulsion;
             $vehiculo->observaciones = $request->observaciones;
 
             if ($request->has('estado')) {

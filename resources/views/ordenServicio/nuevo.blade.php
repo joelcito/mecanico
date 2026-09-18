@@ -165,10 +165,14 @@
                                         data-tipo="{{ $vehiculo->tipo_vehiculo }}"
                                     >
 
+                                        
                                         {{ $vehiculo->placa }}
                                         -
                                         {{ $vehiculo->marca?->nombre ?? '' }}
                                         {{ $vehiculo->modelo }}
+                                         -
+                {{ $usuario ? trim($usuario->nombres . ' ' . $usuario->ap_paterno . ' ' . $usuario->ap_materno) : '-' }}
+
 
                                     </option>
 

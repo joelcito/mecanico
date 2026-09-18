@@ -95,446 +95,488 @@
 </style>
 
 @endsection
-
 @section('content')
-
 <div class="d-flex flex-column flex-column-fluid">
 <div id="kt_app_content" class="app-content flex-column-fluid">
-    <div
-        id="kt_app_content_container"
-        class="app-container container-xxlg"
-    >
-
-        {{-- ENCABEZADO --}}
+    <div id="kt_app_content_container"
+        class="app-container container-xxlg">
         <div class="card shadow-sm mb-5 orden-header">
-
             <div class="card-body">
-
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
-
                     <div>
-
                         <div class="d-flex align-items-center mb-2">
-
                             <h2 class="fw-bold mb-0 me-3">
                                 {{ $orden->numero_orden }}
                             </h2>
-
                             <span class="badge badge-light-primary">
                                 {{ $orden->estado }}
                             </span>
-
                         </div>
-
                         <div class="text-muted">
-
                             <i class="fa fa-car me-1"></i>
-
                             {{ $orden->vehiculo?->marca?->nombre ?? '-' }}
-
                             {{ $orden->vehiculo?->modelo ?? '-' }}
-
                             <span class="mx-2">•</span>
-
                             {{ $orden->vehiculo?->placa ?? '-' }}
-
                             <span class="mx-2">•</span>
-
                             {{ $orden->vehiculo?->cliente?->user?->nombres ?? '-' }}
                             {{ $orden->vehiculo?->cliente?->user?->ap_paterno ?? '' }}
-
                         </div>
-
                     </div>
-
-
                     <div>
-
-                        <a
-                            href="{{ route('ordenServicio.listado') }}"
-                            class="btn btn-light btn-sm"
-                        >
+                        <a href="{{ route('ordenServicio.listado') }}"
+                            class="btn btn-light btn-sm">
                             <i class="fa fa-arrow-left"></i>
                             Volver al listado
                         </a>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
 
-
-        {{-- FLUJO --}}
+        
         <div class="card shadow-sm mb-5">
-
             <div class="card-body">
+                @php
+                    $estado = $orden->estado;
+                    $etapas = [
+                        [
+                            'nombre' => 'Recepción',
+                            'estado' => ['RECIBIDO'],
+                        ],
+                        [
+                            'nombre' => 'Inspección',
+                            'estado' => ['EN_INSPECCION'],
+                        ],
+                        [
+                            'nombre' => 'Diagnóstico',
+                            'estado' => ['EN_DIAGNOSTICO'],
+                        ],
+                        [
+                            'nombre' => 'Cotización',
+                            'estado' => ['EN_COTIZACION'],
+                        ],
+                        [
+                            'nombre' => 'Reparación',
+                            'estado' => ['AUTORIZADO', 'EN_REPARACION', 'LISTO'],
+                        ],
+                        [
+                            'nombre' => 'Entrega',
+                            'estado' => ['ENTREGADO'],
+                        ],
+                    ];
 
+                    // Determinamos en qué etapa está la orden
+                    if (in_array($estado, ['RECIBIDO'])) {
+                        $etapaActual = 0;
+                    } elseif (in_array($estado, ['EN_INSPECCION'])) {
+                        $etapaActual = 1;
+                    } elseif (in_array($estado, ['EN_DIAGNOSTICO'])) {
+                        $etapaActual = 2;
+                    } elseif (in_array($estado, ['EN_COTIZACION'])) {
+                        $etapaActual = 3;
+                    } elseif (in_array($estado, ['AUTORIZADO', 'EN_REPARACION', 'LISTO'])) {
+                        $etapaActual = 4;
+                    } elseif (in_array($estado, ['ENTREGADO'])) {
+                        $etapaActual = 5;
+                    } else {
+                        $etapaActual = 0;
+                    }
+                @endphp
                 <div class="step-container">
+                    @foreach($etapas as $index => $etapa)
+                        @if($index < $etapaActual)
+                            <div class="step step-completed">
+                                <div class="step-circle">
+                                    <i class="fa fa-check"></i>
+                                </div>
+                                <div class="step-title">
+                                    {{ $etapa['nombre'] }}
+                                </div>
+                                <div class="step-subtitle">
+                                    Completado
+                                </div>
+                            </div>
 
-                    {{-- RECEPCIÓN --}}
-                    <div class="step step-completed">
+                        @elseif($index === $etapaActual)
+                            <div class="step step-active">
+                                <div class="step-circle">
+                                    {{ $index + 1 }}
+                                </div>
 
-                        <div class="step-circle">
+                                <div class="step-title">
+                                    {{ $etapa['nombre'] }}
+                                </div>
 
-                            <i class="fa fa-check"></i>
+                                <div class="step-subtitle">
+                                    Siguiente paso
+                                </div>
+                            </div>
 
-                        </div>
+                        @else
 
-                        <div class="step-title">
-                            Recepción
-                        </div>
+                            <div class="step step-locked">
+                                <div class="step-circle">
+                                    {{ $index + 1 }}
+                                </div>
 
-                        <div class="step-subtitle">
-                            Completado
-                        </div>
-
-                    </div>
-
-
-                    {{-- INSPECCIÓN --}}
-                    <div class="step step-active">
-
-                        <div class="step-circle">
-                            2
-                        </div>
-
-                        <div class="step-title">
-                            Inspección
-                        </div>
-
-                        <div class="step-subtitle">
-                            Siguiente paso
-                        </div>
-
-                    </div>
-
-
-                    {{-- DIAGNÓSTICO --}}
-                    <div class="step step-locked">
-
-                        <div class="step-circle">
-                            3
-                        </div>
-
-                        <div class="step-title">
-                            Diagnóstico
-                        </div>
-
-                        <div class="step-subtitle">
-                            Bloqueado
-                        </div>
-
-                    </div>
-
-
-                    {{-- COTIZACIÓN --}}
-                    <div class="step step-locked">
-
-                        <div class="step-circle">
-                            4
-                        </div>
-
-                        <div class="step-title">
-                            Cotización
-                        </div>
-
-                        <div class="step-subtitle">
-                            Bloqueado
-                        </div>
-
-                    </div>
-
-
-                    {{-- REPARACIÓN --}}
-                    <div class="step step-locked">
-
-                        <div class="step-circle">
-                            5
-                        </div>
-
-                        <div class="step-title">
-                            Reparación
-                        </div>
-
-                        <div class="step-subtitle">
-                            Bloqueado
-                        </div>
-
-                    </div>
-
-
-                    {{-- ENTREGA --}}
-                    <div class="step step-locked">
-
-                        <div class="step-circle">
-                            6
-                        </div>
-
-                        <div class="step-title">
-                            Entrega
-                        </div>
-
-                        <div class="step-subtitle">
-                            Bloqueado
-                        </div>
-
-                    </div>
-
+                                <div class="step-title">
+                                    {{ $etapa['nombre'] }}
+                                </div>
+                                <div class="step-subtitle">
+                                    Bloqueado
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
                 </div>
-
             </div>
-
         </div>
 
 
-        {{-- INFORMACIÓN DE LA ORDEN --}}
         <div class="card shadow-sm mb-5">
-
             <div class="card-header">
-
                 <h3 class="card-title fw-bold">
-
                     <i class="fa fa-info-circle text-primary me-2"></i>
-
                     Información de la orden
-
                 </h3>
-
             </div>
-
             <div class="card-body">
-
                 <div class="row">
-
-                    {{-- CLIENTE --}}
                     <div class="col-md-4 mb-4">
-
                         <div class="info-box">
-
                             <div class="info-box-title">
                                 Cliente
                             </div>
-
                             <div class="info-box-value">
-
                                 {{ $orden->vehiculo?->cliente?->user?->nombres ?? '-' }}
-
                                 {{ $orden->vehiculo?->cliente?->user?->ap_paterno ?? '' }}
-
                                 {{ $orden->vehiculo?->cliente?->user?->ap_materno ?? '' }}
-
                             </div>
-
                         </div>
-
                     </div>
 
-
-                    {{-- VEHÍCULO --}}
                     <div class="col-md-4 mb-4">
-
                         <div class="info-box">
-
                             <div class="info-box-title">
                                 Vehículo
                             </div>
-
                             <div class="info-box-value">
-
                                 {{ $orden->vehiculo?->marca?->nombre ?? '-' }}
-
                                 {{ $orden->vehiculo?->modelo ?? '-' }}
-
                             </div>
-
                         </div>
-
                     </div>
 
-
-                    {{-- PLACA --}}
                     <div class="col-md-4 mb-4">
-
                         <div class="info-box">
-
                             <div class="info-box-title">
                                 Placa
                             </div>
-
                             <div class="info-box-value">
-
                                 {{ $orden->vehiculo?->placa ?? '-' }}
-
                             </div>
-
                         </div>
-
                     </div>
 
-
-                    {{-- FECHA --}}
                     <div class="col-md-3 mb-4">
-
                         <div class="info-box">
-
                             <div class="info-box-title">
                                 Recepción
                             </div>
-
                             <div class="info-box-value">
-
                                 {{ $orden->fecha_recepcion
                                     ? $orden->fecha_recepcion->format('d/m/Y H:i')
                                     : '-' }}
-
                             </div>
-
                         </div>
-
                     </div>
 
-
-                    {{-- KILOMETRAJE --}}
                     <div class="col-md-3 mb-4">
-
                         <div class="info-box">
-
                             <div class="info-box-title">
                                 Kilometraje
                             </div>
-
                             <div class="info-box-value">
-
                                 {{ $orden->kilometraje !== null
                                     ? number_format($orden->kilometraje, 0, ',', '.')
                                     : '-' }}
-
                             </div>
-
                         </div>
-
                     </div>
 
 
-                    {{-- COMBUSTIBLE --}}
                     <div class="col-md-3 mb-4">
-
                         <div class="info-box">
-
                             <div class="info-box-title">
                                 Combustible
                             </div>
-
                             <div class="info-box-value">
-
                                 {{ $orden->nivel_combustible !== null
                                     ? $orden->nivel_combustible . ' %'
                                     : '-' }}
 
                             </div>
-
                         </div>
-
                     </div>
 
-
-                    {{-- MOTIVO --}}
                     <div class="col-md-3 mb-4">
-
                         <div class="info-box">
-
                             <div class="info-box-title">
                                 Motivo de ingreso
                             </div>
-
                             <div class="info-box-value">
-
                                 {{ $orden->motivo_ingreso ?? '-' }}
-
                             </div>
-
                         </div>
-
                     </div>
-
                 </div>
 
-
-                {{-- OBSERVACIONES --}}
                 @if ($orden->observaciones)
-
                     <div class="separator separator-dashed my-5"></div>
-
                     <div>
-
                         <div class="info-box-title">
                             Observaciones
                         </div>
-
                         <div class="text-gray-700">
-
                             {{ $orden->observaciones }}
-
                         </div>
-
                     </div>
-
                 @endif
-
             </div>
-
         </div>
 
+         @if($orden->cotizacionActual)
+            <div class="card shadow-sm mb-5">
+                <div class="card-header">
+                    <h3 class="card-title fw-bold">
+                        <i class="fa fa-file-invoice-dollar text-primary me-2"></i>
+                        Cotización
+                    </h3>
+                    <div class="card-toolbar">
+                        <span class="badge badge-light-warning">
 
-        {{-- SIGUIENTE PASO --}}
-        <div class="card shadow-sm">
-
-            <div class="card-body">
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <div>
-
-                        <h4 class="fw-bold mb-1">
-
-                            Siguiente paso: Inspección
-
-                        </h4>
-
-                        <span class="text-muted">
-
-                            Registre el estado actual del vehículo antes de iniciar el diagnóstico.
+                            {{ $orden->cotizacionActual->estado }}
 
                         </span>
+                    </div>
+                </div>
 
+
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-row-dashed align-middle">
+                            <thead>
+                                <tr>
+                                 <th>
+                                        Tipo
+                                    </th>
+
+                                    <th>
+                                        Descripción
+                                    </th>
+
+                                    <th class="text-end">
+                                        Cantidad
+                                    </th>
+
+                                    <th class="text-end">
+                                        Precio unitario
+                                    </th>
+
+                                    <th class="text-end">
+                                        Subtotal
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach($orden->cotizacionActual->detalles as $detalle)
+                                    <tr>
+                                        <td>
+                                            <span class="badge badge-light-info">
+                                                {{ $detalle->tipo }}
+                                            </span>
+                                        </td>
+
+                                        <td>
+
+                                            {{ $detalle->descripcion }}
+
+                                        </td>
+
+                                        <td class="text-end">
+
+                                            {{ number_format(
+                                                $detalle->cantidad,
+                                                2
+                                            ) }}
+
+                                        </td>
+
+                                        <td class="text-end">
+
+                                            Bs.
+                                            {{ number_format(
+                                                $detalle->precio_unitario,
+                                                2
+                                            ) }}
+
+                                        </td>
+
+                                        <td class="text-end fw-bold">
+
+                                            Bs.
+                                            {{ number_format(
+                                                $detalle->subtotal,
+                                                2
+                                            ) }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
 
 
-                    <button
-                        type="button"
-                        class="btn btn-primary"
-                        disabled
-                    >
+                
 
-                        <i class="fa fa-clipboard-check"></i>
+                    <div class="row justify-content-end mt-5">
 
-                        Realizar inspección
+                        <div class="col-md-4">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span>
+                                    Subtotal
+                                </span>
+                                <strong>
 
-                    </button>
+                                    Bs.
+                                    {{ number_format(
+                                        $orden->cotizacionActual->subtotal,
+                                        2
+                                    ) }}
+                                </strong>
+                            </div>
 
+                            <div class="d-flex justify-content-between mb-3">
+                                <span>
+                                    Descuento
+                                </span>
+                                <strong>
+
+                                    Bs.
+                                    {{ number_format(
+                                        $orden->cotizacionActual->descuento,
+                                        2
+                                    ) }}
+
+                                </strong>
+                            </div>
+                            <div class="separator my-4"></div>
+                            <div class="d-flex justify-content-between">
+                                <span class="fs-3 fw-bold">
+                                    TOTAL
+                                </span>
+                                <strong class="fs-3">
+
+                                    Bs.
+                                    {{ number_format(
+                                        $orden->cotizacionActual->total,
+                                        2
+                                    ) }}
+
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if($orden->cotizacionActual->observaciones)
+                        <div class="separator separator-dashed my-5"></div>
+                        <div>
+                            <div class="info-box-title">
+                                Observaciones de la cotización
+                            </div>
+                            <div class="text-gray-700">
+                                {{ $orden->cotizacionActual->observaciones }}
+                            </div>
+                        </div>
+                    @endif
                 </div>
-
             </div>
+        @endif
 
+        
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        @if(in_array($orden->estado, ['RECIBIDO', 'EN_INSPECCION']))
+                            <h4 class="fw-bold mb-1">
+                                Siguiente paso: Inspección
+                            </h4>
+                            <span class="text-muted">
+                                Registre el estado actual del vehículo antes de iniciar el diagnóstico.
+                            </span>
+
+                        @elseif($orden->estado === 'EN_DIAGNOSTICO')
+                            <h4 class="fw-bold mb-1">
+                                Siguiente paso: Diagnóstico
+                            </h4>
+                            <span class="text-muted">
+                                Analice los hallazgos de la inspección y registre el diagnóstico del vehículo.
+                            </span>
+
+                        @elseif($orden->estado === 'EN_COTIZACION')
+
+                            <h4 class="fw-bold mb-1">
+                                Siguiente paso: Cotización
+                            </h4>
+                            <span class="text-muted">
+                                Prepare la cotización de los trabajos y repuestos necesarios.
+                            </span>
+
+                        @else
+
+                            <h4 class="fw-bold mb-1">
+                                Estado de la orden
+                            </h4>
+                            <span class="text-muted">
+                                La orden se encuentra en estado:
+                                <strong>{{ $orden->estado }}</strong>
+                            </span>
+
+                        @endif
+                    </div>
+
+                    <div>
+                        @if(in_array($orden->estado, ['RECIBIDO', 'EN_INSPECCION']))
+                            <a href="{{ route('ordenServicio.inspeccion', $orden->id) }}"
+                                class="btn btn-primary">
+                                <i class="fa fa-clipboard-check me-2"></i>
+                                Realizar inspección
+                            </a>
+
+                        @elseif($orden->estado === 'EN_DIAGNOSTICO')
+
+                            <a href="{{ route('ordenServicio.diagnostico', $orden->id) }}"
+                                class="btn btn-primary">
+                                <i class="fa fa-stethoscope me-2"></i>
+                                Realizar diagnóstico
+                            </a>
+
+                        @elseif($orden->estado === 'EN_COTIZACION')
+
+                            <a href="{{ route('ordenServicio.cotizacion', $orden->id) }}"
+                                class="btn btn-primary">
+                                <i class="fa fa-file-invoice-dollar me-2"></i>
+                                Preparar cotización
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
-
     </div>
-
 </div>
-
 </div>
-
 @endsection

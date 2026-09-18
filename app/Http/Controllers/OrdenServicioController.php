@@ -9,6 +9,7 @@ use App\Utils\Respuesta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\OrdenCotizacion;
 
 class OrdenServicioController extends Controller
 {
@@ -148,6 +149,16 @@ class OrdenServicioController extends Controller
     $orden = OrdenServicio::with([
         'vehiculo.cliente.user',
         'vehiculo.marca',
+
+        // Inspección
+        'inspeccionActual.detalles',
+        'inspeccionActual.fotos',
+
+        // Diagnóstico
+        'diagnosticoActual.detalles',
+
+        // Cotización
+        'cotizacionActual.detalles.producto',
     ])->findOrFail($id);
 
     return view(
