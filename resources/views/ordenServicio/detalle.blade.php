@@ -501,6 +501,42 @@
                             </div>
                         </div>
                     @endif
+
+                    @if($orden->cotizacionActual->estado === 'PENDIENTE')
+                    <div class="separator separator-dashed my-5"></div>
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h4 class="fw-bold mb-1">
+                                Autorización de cotización
+                            </h4>
+
+                            <span class="text-muted">
+                                Revise el detalle y determine si la cotización será aprobada o rechazada.
+                            </span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+
+                            <button type="button"
+                                    class="btn btn-light-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalRechazarCotizacion">
+                                <i class="fa fa-times me-2"></i>
+                                Rechazar
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-success"
+                                    id="btnAprobarCotizacion">
+                                <i class="fa fa-check me-2"></i>
+                                Aprobar cotización
+                            </button>
+
+                        </div>
+                    </div>
+                @endif
+
                 </div>
             </div>
         @endif
@@ -510,46 +546,70 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
+
                         @if(in_array($orden->estado, ['RECIBIDO', 'EN_INSPECCION']))
+
                             <h4 class="fw-bold mb-1">
                                 Siguiente paso: Inspección
                             </h4>
+
                             <span class="text-muted">
                                 Registre el estado actual del vehículo antes de iniciar el diagnóstico.
                             </span>
 
                         @elseif($orden->estado === 'EN_DIAGNOSTICO')
+
                             <h4 class="fw-bold mb-1">
                                 Siguiente paso: Diagnóstico
                             </h4>
+
                             <span class="text-muted">
                                 Analice los hallazgos de la inspección y registre el diagnóstico del vehículo.
                             </span>
 
                         @elseif($orden->estado === 'EN_COTIZACION')
 
-                            <h4 class="fw-bold mb-1">
-                                Siguiente paso: Cotización
-                            </h4>
-                            <span class="text-muted">
-                                Prepare la cotización de los trabajos y repuestos necesarios.
-                            </span>
+                            @if($orden->cotizacionActual?->estado === 'PENDIENTE')
+
+                                <h4 class="fw-bold mb-1">
+                                    Siguiente paso: Autorizar cotización
+                                </h4>
+
+                                <span class="text-muted">
+                                    Revise la cotización y apruebe o rechace los trabajos y repuestos propuestos.
+                                </span>
+
+                            @else
+
+                                <h4 class="fw-bold mb-1">
+                                    Siguiente paso: Cotización
+                                </h4>
+
+                                <span class="text-muted">
+                                    Prepare la cotización de los trabajos y repuestos necesarios.
+                                </span>
+
+                            @endif
 
                         @else
 
                             <h4 class="fw-bold mb-1">
                                 Estado de la orden
                             </h4>
+
                             <span class="text-muted">
                                 La orden se encuentra en estado:
                                 <strong>{{ $orden->estado }}</strong>
                             </span>
 
                         @endif
+
                     </div>
 
                     <div>
+
                         @if(in_array($orden->estado, ['RECIBIDO', 'EN_INSPECCION']))
+
                             <a href="{{ route('ordenServicio.inspeccion', $orden->id) }}"
                                 class="btn btn-primary">
                                 <i class="fa fa-clipboard-check me-2"></i>
@@ -566,12 +626,25 @@
 
                         @elseif($orden->estado === 'EN_COTIZACION')
 
-                            <a href="{{ route('ordenServicio.cotizacion', $orden->id) }}"
-                                class="btn btn-primary">
-                                <i class="fa fa-file-invoice-dollar me-2"></i>
-                                Preparar cotización
-                            </a>
+                            @if($orden->cotizacionActual?->estado === 'PENDIENTE')
+
+                                <span class="badge badge-light-warning fs-6">
+                                    <i class="fa fa-clock me-2"></i>
+                                    Pendiente de autorización
+                                </span>
+
+                            @else
+
+                                <a href="{{ route('ordenServicio.cotizacion', $orden->id) }}"
+                                    class="btn btn-primary">
+                                    <i class="fa fa-file-invoice-dollar me-2"></i>
+                                    Preparar cotización
+                                </a>
+
+                            @endif
+
                         @endif
+
                     </div>
                 </div>
             </div>
@@ -579,4 +652,234 @@
     </div>
 </div>
 </div>
+
+
+@if($orden->cotizacionActual && $orden->cotizacionActual->estado === 'PENDIENTE')
+
+<div class="modal fade"
+     id="modalRechazarCotizacion"
+     tabindex="-1"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h3 class="modal-title fw-bold">
+                    Rechazar cotización
+                </h3>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Cerrar">
+                </button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">
+                        Motivo del rechazo
+                    </label>
+
+                    <textarea
+                        id="observacionRechazo"
+                        class="form-control"
+                        rows="4"
+                        placeholder="Ingrese el motivo por el cual se rechaza la cotización..."></textarea>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button"
+                        class="btn btn-light"
+                        data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="btn btn-danger"
+                        id="btnRechazarCotizacion">
+                    <i class="fa fa-times me-2"></i>
+                    Rechazar cotización
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@endif
+
+
+@if($orden->cotizacionActual && $orden->cotizacionActual->estado === 'PENDIENTE')
+
+<script>
+
+    const btnAprobarCotizacion = document.getElementById('btnAprobarCotizacion');
+
+    if (btnAprobarCotizacion) {
+
+        btnAprobarCotizacion.addEventListener('click', function () {
+
+            Swal.fire({
+                title: '¿Aprobar cotización?',
+                text: 'La orden pasará al estado AUTORIZADO.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, aprobar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                btnAprobarCotizacion.disabled = true;
+
+                fetch(
+                    "{{ route('ordenServicio.cotizacion.aprobar', $orden->id) }}",
+                    {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                )
+                .then(response => response.json())
+                .then(data => {
+
+                    if (data.success) {
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Cotización aprobada',
+                            text: 'La orden ha sido autorizada correctamente.',
+                            confirmButtonText: 'Continuar'
+                        }).then(() => {
+                            location.reload();
+                        });
+
+                    } else {
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message ?? 'No se pudo aprobar la cotización.'
+                        });
+
+                        btnAprobarCotizacion.disabled = false;
+                    }
+
+                })
+                .catch(error => {
+
+                    console.error(error);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ocurrió un error al aprobar la cotización.'
+                    });
+
+                    btnAprobarCotizacion.disabled = false;
+                });
+
+            });
+
+        });
+    }
+
+
+    const btnRechazarCotizacion =
+        document.getElementById('btnRechazarCotizacion');
+
+    if (btnRechazarCotizacion) {
+
+        btnRechazarCotizacion.addEventListener('click', function () {
+
+            const observacion =
+                document.getElementById('observacionRechazo').value.trim();
+
+            if (!observacion) {
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Motivo requerido',
+                    text: 'Debe ingresar el motivo del rechazo.'
+                });
+
+                return;
+            }
+
+            btnRechazarCotizacion.disabled = true;
+
+            fetch(
+                "{{ route('ordenServicio.cotizacion.rechazar', $orden->id) }}",
+                {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        observacion_respuesta: observacion
+                    })
+                }
+            )
+            .then(response => response.json())
+            .then(data => {
+
+                if (data.success) {
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Cotización rechazada',
+                        text: 'La cotización ha sido rechazada.',
+                        confirmButtonText: 'Continuar'
+                    }).then(() => {
+                        location.reload();
+                    });
+
+                } else {
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message ?? 'No se pudo rechazar la cotización.'
+                    });
+
+                    btnRechazarCotizacion.disabled = false;
+                }
+
+            })
+            .catch(error => {
+
+                console.error(error);
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Ocurrió un error al rechazar la cotización.'
+                });
+
+                btnRechazarCotizacion.disabled = false;
+            });
+
+        });
+    }
+
+</script>
+
+@endif
 @endsection

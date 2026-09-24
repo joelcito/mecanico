@@ -6,38 +6,37 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class OrdenCotizacion extends Model
+class Pago extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'orden_cotizaciones';
+    protected $table = 'pagos';
 
     protected $fillable = [
-        'orden_servicio_id',
-        'usuario_cotizador_id',
-        'fecha',
-        'subtotal',
-        'descuento',
-        'total',
-        'estado',
-        'observaciones',
         'usuario_creador_id',
         'usuario_modificador_id',
         'usuario_eliminador_id',
-        'deleted_at',
-        'fecha_respuesta',
-        'usuario_respuesta_id',
-        'observacion_respuesta',
 
+        'orden_servicio_id',
+        'caja_id',
+        'sucursal_id',
+
+        'monto',
+        'cambio',
+
+        'fecha',
+        'descripcion',
+        'tipo_pago',
+
+        'estado',
+        'deleted_at',
     ];
 
     protected $casts = [
+        'monto' => 'decimal:2',
+        'cambio' => 'decimal:2',
         'fecha' => 'datetime',
-        'subtotal' => 'decimal:2',
-        'descuento' => 'decimal:2',
-        'total' => 'decimal:2',
         'deleted_at' => 'datetime',
-        'fecha_respuesta' => 'datetime',
     ];
 
     public function ordenServicio()
@@ -48,30 +47,20 @@ class OrdenCotizacion extends Model
         );
     }
 
-    public function detalles()
+    public function caja()
     {
-        return $this->hasMany(
-            OrdenCotizacionDetalle::class,
-            'orden_cotizacion_id'
-        );
+        return $this->belongsTo(Caja::class);
     }
 
-    public function cotizador()
+    public function sucursal()
     {
-        return $this->belongsTo(
-            User::class,
-            'usuario_cotizador_id'
-        );
+        return $this->belongsTo(Sucursal::class);
     }
 
-    public function usuarioRespuesta()
-{
-    return $this->belongsTo(
-        User::class,
-        'usuario_respuesta_id'
-    );
-}
-
+    public function movimientoCaja()
+    {
+        return $this->hasOne(MovimientoCaja::class);
+    }
 
     public function usuarioCreador()
     {
@@ -96,4 +85,6 @@ class OrdenCotizacion extends Model
             'usuario_eliminador_id'
         );
     }
+
+    
 }

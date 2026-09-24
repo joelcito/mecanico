@@ -9,6 +9,7 @@ use App\Models\OrdenInspeccion;
 use App\Models\OrdenFoto;
 use App\Models\OrdenCotizacion;
 use App\Models\OrdenDiagnostico;
+use App\Models\Pago;
 
 class OrdenServicio extends Model
 {
@@ -123,4 +124,36 @@ class OrdenServicio extends Model
         )->latestOfMany();
     }
 
+    public function pagos()
+    {
+        return $this->hasMany(Pago::class, 'orden_servicio_id');
+    }
+
+    public function getTotalPagadoAttribute()
+    {
+        return $this->pagos()
+            ->where('estado', 'ACTIVO')
+            ->sum('monto');
+    }
+    public function getSaldoPendienteAttribute()
+    {
+        $total = $this->cotizacionActual?->total ?? 0;
+        return max(
+            0,
+            $total - $this->total_pagado
+        );
+    }
+    public function getEstadoPagoAttribute()
+    {
+        $total = $this->cotizacionActual?->total ?? 0;
+        $pagado = $this->total_pagado;
+        if ($pagado <= 0) {
+            return 'SIN_PAGO';
+        }
+        if ($pagado < $total) {
+            return 'PARCIAL';
+        }
+        return 'PAGADO';
+    }
+        
     }

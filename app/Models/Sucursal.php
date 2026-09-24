@@ -23,5 +23,14 @@ class Sucursal extends Model
         'deleted_at',
     ];
 
+    public function cajas()
+{
+    return $this->hasMany(Caja::class);
+}
+
+public function pagos()
+{
+    return $this->hasMany(Pago::class);
+}
     
 }

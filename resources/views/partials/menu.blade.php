@@ -26,6 +26,19 @@
                     </span>
 
                     <div class="menu-sub menu-sub-accordion">
+                        <div class="menu-item">
+                                <a class="menu-link {{ Route::currentRouteName() == 'cajas.listado' ? 'active' : '' }}"
+                                    href="{{ route('cajas.listado') }}">
+
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+
+                                    <span class="menu-title text-white">
+                                        Caja
+                                    </span>
+                                </a>
+                        </div>
 
                         <div class="menu-item">
                                 <a class="menu-link {{ Route::currentRouteName() == 'categoria.listado' ? 'active' : '' }}"
@@ -54,6 +67,9 @@
                                     </span>
                                 </a>
                         </div>
+
+
+
                         <div class="menu-item">
                                 <a class="menu-link {{ Route::currentRouteName() == 'marca.listado' ? 'active' : '' }}"
                                     href="{{ route('marca.listado') }}">
@@ -67,6 +83,32 @@
                                     </span>
                                 </a>
                             </div>
+
+                            <div class="menu-item">
+                              <a class="menu-link {{ Route::currentRouteName() == 'movimientosCaja.listado' ? 'active' : '' }}"
+                                    href="{{ route('movimientosCaja.listado') }}"
+                                >
+                                    <span class="menu-icon">
+                                        <i class="fa fa-exchange-alt"></i>
+                                    </span>
+                                    <span class="menu-title">
+                                        Movimientos de Caja
+                                    </span>
+                                </a>                            
+                            </div>
+                            <div class="menu-item">
+                              <a class="menu-link {{ Route::currentRouteName() == 'pagos.listado' ? 'active' : '' }}"
+                                    href="{{ route('pagos.listado') }}"
+                                >
+                                    <span class="menu-icon">
+                                        <i class="fa fa-exchange-alt"></i>
+                                    </span>
+                                    <span class="menu-title">
+                                        Pagos
+                                    </span>
+                                </a>                            
+                            </div>
+
                             <div class="menu-item">
                                 <a class="menu-link {{ Route::currentRouteName() == 'producto.listado' ? 'active' : '' }}"
                                     href="{{ route('producto.listado') }}">

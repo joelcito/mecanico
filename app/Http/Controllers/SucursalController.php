@@ -51,7 +51,7 @@ class SucursalController extends Controller
             $sucursal->nombre = $nombre;
             $sucursal->direccion = $direccion;
             $sucursal->telefono = $telefono;
-            $sucursal->estado = 1;
+            $sucursal->estado = $request->estado ?? 'ACTIVO';
             $sucursal->save();
             $data = Respuesta::success(null, "Datos Obtenidos correctamente");
         } else {

@@ -107,31 +107,25 @@ class ProductoController extends Controller
                 $producto->estado = $request->estado;
             }
 
-           
-
             if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
+                $imagen = $request->file('imagen');
 
-    $imagen = $request->file('imagen');
+                $nombreImagen = uniqid() . '_' . preg_replace(
+                    '/[^A-Za-z0-9._-]/',
+                    '_',
+                    $imagen->getClientOriginalName()
+                );
 
-    $nombreImagen = uniqid() . '_' . preg_replace(
-        '/[^A-Za-z0-9._-]/',
-        '_',
-        $imagen->getClientOriginalName()
-    );
+                Storage::disk('public')->putFileAs(
+                    'uploads/productos',
+                    $imagen,
+                    $nombreImagen
+                );
 
-    Storage::disk('public')->putFileAs(
-        'uploads/productos',
-        $imagen,
-        $nombreImagen
-    );
-
-    $producto->imagen = 'storage/uploads/productos/' . $nombreImagen;
-}
-
+                $producto->imagen = 'storage/uploads/productos/' . $nombreImagen;
+            }
             $producto->usuario_modificador_id = Auth::id();
-
             $producto->save();
-
             return response()->json([
                 'estado' => true,
                 'mensaje' => 'Producto actualizado correctamente.',

@@ -145,25 +145,130 @@ class OrdenServicioController extends Controller
 
 
     public function detalle($id)
-{
-    $orden = OrdenServicio::with([
-        'vehiculo.cliente.user',
-        'vehiculo.marca',
+    {
+        $orden = OrdenServicio::with([
+            'vehiculo.cliente.user',
+            'vehiculo.marca',
 
-        // Inspección
-        'inspeccionActual.detalles',
-        'inspeccionActual.fotos',
+            // Inspección
+            'inspeccionActual.detalles',
+            'inspeccionActual.fotos',
 
-        // Diagnóstico
-        'diagnosticoActual.detalles',
+            // Diagnóstico
+            'diagnosticoActual.detalles',
 
-        // Cotización
-        'cotizacionActual.detalles.producto',
-    ])->findOrFail($id);
+            // Cotización
+            'cotizacionActual.detalles.producto',
+        ])->findOrFail($id);
 
-    return view(
-        'ordenServicio.detalle',
-        compact('orden')
-    );
-}
+        return view(
+            'ordenServicio.detalle',
+            compact('orden')
+        );
+    }
+
+
+    public function aprobarCotizacion($id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $cotizacion = \App\Models\OrdenCotizacion::where(
+                'orden_servicio_id',
+                $id
+            )
+                ->where('estado', 'PENDIENTE')
+                ->latest('id')
+                ->firstOrFail();
+
+            $cotizacion->update([
+                'estado' => 'APROBADA',
+                'fecha_respuesta' => now(),
+                'usuario_respuesta_id' => Auth::id(),
+                'usuario_modificador_id' => Auth::id(),
+            ]);
+
+            $orden = OrdenServicio::findOrFail($id);
+
+            $orden->update([
+                'estado' => 'AUTORIZADO',
+                'usuario_modificador_id' => Auth::id(),
+            ]);
+
+            DB::commit();
+
+            return response()->json(
+                Respuesta::success(
+                    $cotizacion,
+                    'Cotización aprobada correctamente'
+                )->toArray()
+            );
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json(
+                Respuesta::error(
+                    null,
+                    'No se pudo aprobar la cotización: ' . $e->getMessage()
+                )->toArray(),
+                500
+            );
+        }
+    }
+
+    public function rechazarCotizacion(Request $request, $id)
+    {
+        $request->validate([
+            'observacion_respuesta' => 'required|string|max:1000',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $cotizacion = \App\Models\OrdenCotizacion::where(
+                'orden_servicio_id',
+                $id
+            )
+                ->where('estado', 'PENDIENTE')
+                ->latest('id')
+                ->firstOrFail();
+
+            $cotizacion->update([
+                'estado' => 'RECHAZADA',
+                'fecha_respuesta' => now(),
+                'usuario_respuesta_id' => Auth::id(),
+                'observacion_respuesta' => $request->observacion_respuesta,
+                'usuario_modificador_id' => Auth::id(),
+            ]);
+
+            $orden = OrdenServicio::findOrFail($id);
+
+            $orden->update([
+                'estado' => 'EN_COTIZACION',
+                'usuario_modificador_id' => Auth::id(),
+            ]);
+
+            DB::commit();
+
+            return response()->json(
+                Respuesta::success(
+                    $cotizacion,
+                    'Cotización rechazada correctamente'
+                )->toArray()
+            );
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json(
+                Respuesta::error(
+                    null,
+                    'No se pudo rechazar la cotización: ' . $e->getMessage()
+                )->toArray(),
+                500
+            );
+        }
+    }
+
 }
