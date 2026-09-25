@@ -67,6 +67,18 @@
                                     </span>
                                 </a>
                         </div>
+                        <div class="menu-item">
+                              <a class="menu-link {{ Route::currentRouteName() == 'cuentasPorCobrar.listado' ? 'active' : '' }}"
+                                    href="{{ route('cuentasPorCobrar.listado') }}"
+                                >
+                                    <span class="menu-icon">
+                                        <i class="fa fa-exchange-alt"></i>
+                                    </span>
+                                    <span class="menu-title">
+                                        Cuentas por Cobrar
+                                    </span>
+                                </a>                            
+                            </div>
 
 
 

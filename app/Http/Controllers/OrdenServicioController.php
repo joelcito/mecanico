@@ -271,4 +271,38 @@ class OrdenServicioController extends Controller
         }
     }
 
+
+    public function iniciarReparacion($id)
+    {
+        try {
+
+            $orden = OrdenServicio::findOrFail($id);
+
+            if ($orden->estado !== 'AUTORIZADO') {
+                return response()->json([
+                    'estado' => false,
+                    'message' => 'La orden debe estar autorizada para iniciar la reparación.'
+                ], 422);
+            }
+
+            $orden->update([
+                'estado' => 'EN_REPARACION',
+                'usuario_modificador_id' => Auth::id(),
+            ]);
+
+            return response()->json([
+                'estado' => true,
+                'message' => 'La reparación fue iniciada correctamente.',
+                'data' => $orden
+            ]);
+
+        } catch (\Throwable $e) {
+
+            return response()->json([
+                'estado' => false,
+                'message' => 'No se pudo iniciar la reparación: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

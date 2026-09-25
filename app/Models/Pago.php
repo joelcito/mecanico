@@ -23,6 +23,7 @@ class Pago extends Model
 
         'monto',
         'cambio',
+        'monto_recibido',
 
         'fecha',
         'descripcion',
@@ -35,6 +36,7 @@ class Pago extends Model
     protected $casts = [
         'monto' => 'decimal:2',
         'cambio' => 'decimal:2',
+        'monto_recibido' => 'decimal:2',
         'fecha' => 'datetime',
         'deleted_at' => 'datetime',
     ];

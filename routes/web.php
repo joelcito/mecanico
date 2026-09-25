@@ -18,6 +18,7 @@ use App\Http\Controllers\OrdenCotizacionController;
 use App\Http\Controllers\CajaController;
 use App\Http\Controllers\MovimientoCajaController;
 use App\Http\Controllers\PagoController;
+use App\Http\Controllers\CuentaPorCobrarController;
 
 Route::get('/', function () {
     // return view('welcome');
@@ -118,6 +119,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/{id}/cotizacion/aprobar',[OrdenServicioController::class, 'aprobarCotizacion'])->name('ordenServicio.cotizacion.aprobar');
             Route::post('/{id}/cotizacion/rechazar',[OrdenServicioController::class, 'rechazarCotizacion'])->name('ordenServicio.cotizacion.rechazar');
            
+            Route::post( '/{id}/reparacion/iniciar', [OrdenServicioController::class, 'iniciarReparacion'])->name('ordenServicio.reparacion.iniciar');
            
             });
 
@@ -145,6 +147,12 @@ Route::middleware('auth')->group(function () {
                 Route::post('/guardar', [PagoController::class, 'guardar'])->name('pagos.guardar');
                 Route::get('/{id}/actual', [PagoController::class, 'actual'])->name('pagos.actual');
                 Route::post('/{id}/anular', [PagoController::class, 'anular'])->name('pagos.anular');
+
+            });
+
+            Route::prefix('cuentasPorCobrar')->group(function () {
+                Route::get('/listado', [CuentaPorCobrarController::class, 'listado'])->name('cuentasPorCobrar.listado');
+                Route::post( '/ajaxListado',[CuentaPorCobrarController::class, 'ajaxListado'])->name('cuentasPorCobrar.ajaxListado');
 
             });
 

@@ -63,17 +63,35 @@ class PagoController extends Controller
             ->orderByDesc('id')
             ->get();
 
-        $ordenesDisponibles = $ordenes->map(function ($orden) {
+        $ordenesDisponibles = $ordenes->filter(function ($orden) {
 
             $cotizacion = $orden->cotizacionActual;
 
+            // Debe tener cotización
             if (!$cotizacion) {
-                return null;
+                return false;
             }
 
+            // La cotización debe estar aprobada
             if ($cotizacion->estado !== 'APROBADA') {
-                return null;
+                return false;
             }
+
+            $total = (float) $cotizacion->total;
+
+            // Total pagado
+            $pagado = (float) $orden->pagos()
+                ->where('estado', 'ACTIVO')
+                ->sum('monto');
+
+            // Saldo
+            $saldo = $total - $pagado;
+
+            // Solo mostrar si todavía debe dinero
+            return $saldo > 0;
+        })->map(function ($orden) {
+
+            $cotizacion = $orden->cotizacionActual;
 
             $total = (float) $cotizacion->total;
 
@@ -83,13 +101,8 @@ class PagoController extends Controller
 
             $saldo = max(0, $total - $pagado);
 
-            if ($saldo <= 0) {
-                return null;
-            }
-
             return [
                 'id' => $orden->id,
-
                 'numero_orden' => $orden->numero_orden,
 
                 'vehiculo' => $orden->vehiculo ? [
@@ -98,14 +111,11 @@ class PagoController extends Controller
                 ] : null,
 
                 'total' => $total,
-
                 'pagado' => $pagado,
-
                 'saldo' => $saldo,
             ];
 
-        })->filter()->values();
-
+        })->values();
 
         $cajas = Caja::with([
             'usuario',
@@ -115,12 +125,9 @@ class PagoController extends Controller
             ->orderByDesc('id')
             ->get();
 
-
         return response()->json([
             'estado' => true,
-
             'ordenes' => $ordenesDisponibles,
-
             'cajas' => $cajas,
         ]);
 
@@ -148,19 +155,15 @@ class PagoController extends Controller
                 'required',
                 'in:EFECTIVO,QR,TRANSFERENCIA'
             ],
-            'monto' => [
-                'required',
-                'numeric',
-                'min:0.01'
-            ],
-            'cambio' => [
-                'nullable',
-                'numeric',
-                'min:0'
-            ],
+           
             'descripcion' => [
                 'nullable',
                 'string'
+            ],
+            'monto_recibido' => [
+                'required',
+                'numeric',
+                'min:0'
             ],
         ], [
             'orden_servicio_id.required' => 'Debe seleccionar una orden de servicio.',
@@ -171,10 +174,6 @@ class PagoController extends Controller
 
             'tipo_pago.required' => 'Debe seleccionar el método de pago.',
             'tipo_pago.in' => 'El método de pago no es válido.',
-
-            'monto.required' => 'Debe ingresar el monto.',
-            'monto.numeric' => 'El monto debe ser numérico.',
-            'monto.min' => 'El monto debe ser mayor a 0.',
 
             'cambio.numeric' => 'El cambio debe ser numérico.',
             'cambio.min' => 'El cambio no puede ser negativo.',
@@ -215,19 +214,23 @@ class PagoController extends Controller
 
         $saldo = max(0, $total - $pagado);
 
-        $monto = (float) $request->monto;
-        $cambio = (float) ($request->cambio ?? 0);
+        $montoRecibido = (float) $request->monto_recibido;
 
-        if ($monto > $saldo) {
+        if ($montoRecibido <= 0) {
             return response()->json([
                 'estado' => false,
-                'message' => 'El monto del pago supera el saldo pendiente.',
-                'data' => [
-                    'total' => $total,
-                    'pagado' => $pagado,
-                    'saldo' => $saldo
-                ]
+                'message' => 'El monto recibido debe ser mayor a cero.'
             ], 422);
+        }
+
+        // El pago real nunca puede superar el saldo pendiente.
+        $monto = min($montoRecibido, $saldo);
+
+        $cambio = 0;
+
+        // El cambio solo aplica para efectivo.
+        if ($request->tipo_pago === 'EFECTIVO') {
+            $cambio = max(0, $montoRecibido - $monto);
         }
 
         /*
@@ -248,6 +251,7 @@ class PagoController extends Controller
                 'caja_id' => $caja->id,
                 'sucursal_id' => $caja->sucursal_id,
                 'monto' => $monto,
+                'monto_recibido' => $montoRecibido,
                 'cambio' => $cambio,
                 'fecha' => now(),
                 'tipo_pago' => $request->tipo_pago,

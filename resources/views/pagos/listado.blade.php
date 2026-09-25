@@ -130,10 +130,13 @@
                                 </option>
                             </select>
                         </div>
-                        <div class="col-md-6 mb-5">
+                        {{-- MONTO A PAGAR --}}
+                        <div class="col-md-4 mb-5">
+
                             <label class="form-label fw-bold">
-                                Monto
+                                Monto a pagar
                             </label>
+
                             <input
                                 type="number"
                                 step="0.01"
@@ -144,21 +147,41 @@
                                 placeholder="0.00">
 
                         </div>
-                        <div class="col-md-6 mb-5">
+
+
+                        {{-- MONTO RECIBIDO --}}
+                        <div class="col-md-4 mb-5">
+
                             <label class="form-label fw-bold">
-                                Cambio
+                                Monto recibido
                             </label>
+
                             <input
                                 type="number"
                                 step="0.01"
                                 min="0"
                                 class="form-control"
+                                id="monto_recibido"
+                                name="monto_recibido"
+                                placeholder="0.00">
+
+                        </div>
+
+
+                        {{-- CAMBIO --}}
+                        <div class="col-md-4 mb-5">
+
+                            <label class="form-label fw-bold">
+                                Cambio
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control"
                                 id="cambio"
                                 name="cambio"
-                                value="0">
-                            <div class="form-text">
-                                El cambio aplica únicamente para pagos en efectivo.
-                            </div>
+                                value="0.00"
+                                readonly>
 
                         </div>
 
@@ -254,85 +277,208 @@
     }
 
     function modalNuevoPago() {
-        limpiarFormularioPago();
-        cargarDatosPago();
-        $('#modalPago').modal('show');
+    limpiarFormularioPago();
+    cargarDatosPago();
+    $('#modalPago').modal('show');
+}
 
-    }
+function modalPagoOrden(idOrden) {
 
+    limpiarFormularioPago();
 
-    function cargarDatosPago() {
-        $.ajax({
-            url: "{{ route('pagos.crear') }}",
-            type: "GET",
-            dataType: "json",
-            success: function(response) {
-                if (!response.estado) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: response.message
-                    });
-                    return;
-                }
+    $.ajax({
+        url: "{{ route('pagos.crear') }}",
+        type: "GET",
+        dataType: "json",
 
-                let selectOrden = $('#orden_servicio_id');
-                selectOrden.html(`
-                    <option value="">
-                        Seleccione una orden
-                    </option>
-                `);
+        success: function(response) {
 
-                response.ordenes.forEach(function(orden) {
-                    let placa = '';
-                    if (orden.vehiculo) {
-                        placa = orden.vehiculo.placa
-                            ? ' - ' + orden.vehiculo.placa
-                            : '';
-                    }
-                    selectOrden.append(`
-                        <option
-                            value="${orden.id}"
-                            data-total="${orden.total}"
-                            data-pagado="${orden.pagado}"
-                            data-saldo="${orden.saldo}">
-
-                            Orden #${orden.numero_orden}${placa}
-
-                        </option>
-                    `);
-
-                });
-
-                let selectCaja = $('#caja_id');
-                selectCaja.html(`
-                    <option value="">
-                        Seleccione una caja
-                    </option>
-                `);
-
-                response.cajas.forEach(function(caja) {
-                    selectCaja.append(`
-                        <option value="${caja.id}">
-                            Caja #${caja.id} -
-                            ${caja.sucursal?.nombre ?? ''}
-                        </option>
-                    `);
-
-                });
-
-            },
-
-            error: function(xhr) {
+            if (!response.estado) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: xhr.responseJSON?.message ??
-                        'No se pudieron cargar los datos.'
+                    text: response.message
                 });
+                return;
             }
-        });
-    }
+
+            let selectOrden = $('#orden_servicio_id');
+
+            selectOrden.html(`
+                <option value="">
+                    Seleccione una orden
+                </option>
+            `);
+
+            response.ordenes.forEach(function(orden) {
+
+                let placa = '';
+
+                if (orden.vehiculo) {
+                    placa = orden.vehiculo.placa
+                        ? ' - ' + orden.vehiculo.placa
+                        : '';
+                }
+
+                selectOrden.append(`
+                    <option
+                        value="${orden.id}"
+                        data-total="${orden.total}"
+                        data-pagado="${orden.pagado}"
+                        data-saldo="${orden.saldo}">
+
+                        Orden #${orden.numero_orden}${placa}
+
+                    </option>
+                `);
+            });
+
+            let selectCaja = $('#caja_id');
+
+            selectCaja.html(`
+                <option value="">
+                    Seleccione una caja
+                </option>
+            `);
+
+            response.cajas.forEach(function(caja) {
+
+                selectCaja.append(`
+                    <option value="${caja.id}">
+                        Caja #${caja.id} -
+                        ${caja.sucursal?.nombre ?? ''}
+                    </option>
+                `);
+
+            });
+
+            // Seleccionar automáticamente la orden
+            selectOrden.val(idOrden);
+
+            // Ejecutar el cambio para cargar total, pagado y saldo
+            selectOrden.trigger('change');
+
+            $('#modalPago').modal('show');
+        },
+
+        error: function(xhr) {
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: xhr.responseJSON?.message ??
+                    'No se pudieron cargar los datos.'
+            });
+
+        }
+    });
+}
+
+
+    function cargarDatosPago(idOrden = null) {
+
+    $.ajax({
+
+        url: "{{ route('pagos.crear') }}",
+
+        type: "GET",
+
+        dataType: "json",
+
+        success: function(response) {
+
+            if (!response.estado) {
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: response.message
+                });
+
+                return;
+            }
+
+            let selectOrden = $('#orden_servicio_id');
+
+            selectOrden.html(`
+                <option value="">
+                    Seleccione una orden
+                </option>
+            `);
+
+            response.ordenes.forEach(function(orden) {
+
+                let placa = '';
+
+                if (orden.vehiculo) {
+
+                    placa = orden.vehiculo.placa
+                        ? ' - ' + orden.vehiculo.placa
+                        : '';
+                }
+
+                selectOrden.append(`
+                    <option
+                        value="${orden.id}"
+                        data-total="${orden.total}"
+                        data-pagado="${orden.pagado}"
+                        data-saldo="${orden.saldo}">
+
+                        Orden #${orden.numero_orden}${placa}
+
+                    </option>
+                `);
+
+            });
+
+
+            let selectCaja = $('#caja_id');
+
+            selectCaja.html(`
+                <option value="">
+                    Seleccione una caja
+                </option>
+            `);
+
+            response.cajas.forEach(function(caja) {
+
+                selectCaja.append(`
+                    <option value="${caja.id}">
+                        Caja #${caja.id} -
+                        ${caja.sucursal?.nombre ?? ''}
+                    </option>
+                `);
+
+            });
+
+
+            /*
+             * Si venimos desde Cuentas por Cobrar,
+             * seleccionar automáticamente la orden.
+             */
+            if (idOrden) {
+
+                selectOrden.val(idOrden);
+
+                selectOrden.trigger('change');
+            }
+
+        },
+
+        error: function(xhr) {
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: xhr.responseJSON?.message ??
+                    'No se pudieron cargar los datos.'
+            });
+
+        }
+
+    });
+
+}
 
 
     $('#orden_servicio_id').on('change', function() {
@@ -372,17 +518,83 @@
 
 
     $('#tipo_pago').on('change', function() {
-        if ($(this).val() !== 'EFECTIVO') {
-            $('#cambio')
-                .val('0')
-                .prop('readonly', true);
 
-        } else {
-            $('#cambio')
-                .prop('readonly', false);
+    let metodo = $(this).val();
 
-        }
-    });
+    if (metodo === 'EFECTIVO') {
+
+        $('#monto_recibido')
+            .prop('readonly', false)
+            .val('');
+
+        $('#cambio').val('0.00');
+
+    } else {
+
+        $('#monto_recibido')
+            .prop('readonly', true);
+
+        $('#monto_recibido').val(
+            $('#monto').val() || '0.00'
+        );
+
+        $('#cambio').val('0.00');
+
+    }
+
+    calcularCambio();
+
+});
+
+
+    $('#monto, #monto_recibido').on('input', function() {
+
+    calcularCambio();
+
+});
+
+
+function calcularCambio() {
+
+    let metodo = $('#tipo_pago').val();
+
+    let monto = parseFloat(
+        $('#monto').val()
+    ) || 0;
+
+    let recibido = parseFloat(
+        $('#monto_recibido').val()
+    ) || 0;
+
+
+    if (metodo !== 'EFECTIVO') {
+
+        $('#monto_recibido').val(
+            monto > 0 ? monto.toFixed(2) : ''
+        );
+
+        $('#cambio').val('0.00');
+
+        return;
+    }
+
+
+    if (recibido < monto) {
+
+        $('#cambio').val('0.00');
+
+        return;
+    }
+
+
+    let cambio = recibido - monto;
+
+    $('#cambio').val(
+        cambio.toFixed(2)
+    );
+
+}
+
 
     function guardarPago() {
         limpiarErroresPago();
@@ -591,8 +803,26 @@
     }
 
     $(document).ready(function() {
-        ajaxListado();
-    });
+
+    ajaxListado();
+
+    const params = new URLSearchParams(
+        window.location.search
+    );
+
+    const ordenId = params.get('orden');
+
+    if (ordenId) {
+
+        limpiarFormularioPago();
+
+        cargarDatosPago(ordenId);
+
+        $('#modalPago').modal('show');
+
+    }
+
+});
 </script>
 
 @endsection
