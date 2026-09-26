@@ -94,12 +94,6 @@
                         </div>
                         <div class="col-md-6 mb-5">
                             <label class="required form-label">
-                                Monto a pagar
-                            </label>
-                            <input type="number" step="0.01" min="0" class="form-control" id="monto" name="monto">
-                        </div>
-                        <div class="col-md-6 mb-5">
-                            <label class="required form-label">
                                 Monto recibido
                             </label>
                             <input type="number" step="0.01" min="0" class="form-control" id="monto_recibido" name="monto_recibido">
@@ -165,19 +159,10 @@ const BASE_URL = "{{ url('/') }}";
 
 let ordenPagoSeleccionada = null;
 
-
-/* ============================================================
-   LISTADO
-============================================================ */
-
 function ajaxListado() {
-
     $.ajax({
-
         url: "{{ route('cuentasPorCobrar.ajaxListado') }}",
-
         type: "POST",
-
         dataType: "json",
 
         success: function(response) {
@@ -187,59 +172,35 @@ function ajaxListado() {
                 $('#table_listado').html(
                     response.data.listado
                 );
-
             } else {
-
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
                     text: response.message
                 });
-
             }
-
         },
 
         error: function(xhr) {
-
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
                 text: xhr.responseJSON?.message ??
                     'No se pudo cargar las cuentas por cobrar.'
             });
-
         }
-
     });
-
 }
 
-
-/* ============================================================
-   REGISTRAR PAGO
-============================================================ */
-
 function registrarPago(idOrden) {
-
     limpiarFormularioPago();
-
     ordenPagoSeleccionada = idOrden;
-
     cargarDatosPago(idOrden);
-
     $('#modalPago').modal('show');
 }
 
-
-/* ============================================================
-   LIMPIAR FORMULARIO
-============================================================ */
-
 function limpiarFormularioPago() {
-
     $('#formPago')[0].reset();
-
     $('#orden_servicio_id').html(`
         <option value="">
             Seleccione una orden
@@ -256,57 +217,36 @@ function limpiarFormularioPago() {
     $('#total_pagado').val('');
     $('#saldo_pendiente').val('');
     $('#cambio').val('');
-
     $('#erroresPago').html('');
-
     ordenPagoSeleccionada = null;
 }
 
 
-/* ============================================================
-   CARGAR DATOS DEL PAGO
-============================================================ */
 
 function cargarDatosPago(idOrden = null) {
-
     $.ajax({
-
         url: "{{ route('pagos.crear') }}",
-
         type: "GET",
-
         dataType: "json",
-
         success: function(response) {
-
             if (!response.estado) {
-
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
                     text: response.message
                 });
-
                 return;
             }
 
-
-            /* ORDENES */
-
             let selectOrden = $('#orden_servicio_id');
-
             selectOrden.html(`
                 <option value="">
                     Seleccione una orden
                 </option>
             `);
-
             response.ordenes.forEach(function(orden) {
-
                 let placa = '';
-
                 if (orden.vehiculo) {
-
                     placa = orden.vehiculo.placa
                         ? ' - ' + orden.vehiculo.placa
                         : '';
@@ -322,14 +262,9 @@ function cargarDatosPago(idOrden = null) {
                         Orden #${orden.numero_orden}${placa}
                     </option>
                 `);
-
             });
 
-
-            /* CAJAS */
-
             let selectCaja = $('#caja_id');
-
             selectCaja.html(`
                 <option value="">
                     Seleccione una caja
@@ -337,66 +272,37 @@ function cargarDatosPago(idOrden = null) {
             `);
 
             response.cajas.forEach(function(caja) {
-
                 selectCaja.append(`
                     <option value="${caja.id}">
                         Caja #${caja.id} -
                         ${caja.sucursal?.nombre ?? ''}
                     </option>
                 `);
-
             });
 
-
-            /* SELECCIONAR ORDEN */
-
             if (idOrden) {
-
-                selectOrden.val(idOrden);
-
-                selectOrden.trigger('change');
-
+                 selectOrden.val(idOrden);
+                 selectOrden.trigger('change');
             }
-
         },
 
         error: function(xhr) {
-
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
                 text: xhr.responseJSON?.message ??
                     'No se pudieron cargar los datos.'
             });
-
         }
-
     });
-
 }
 
 
-/* ============================================================
-   CAMBIO DE ORDEN
-============================================================ */
-
 $('#orden_servicio_id').on('change', function() {
-
     let option = $(this).find(':selected');
-
-    let total = parseFloat(
-        option.data('total')
-    ) || 0;
-
-    let pagado = parseFloat(
-        option.data('pagado')
-    ) || 0;
-
-    let saldo = parseFloat(
-        option.data('saldo')
-    ) || 0;
-
-
+    let total = parseFloat(option.data('total')) || 0;
+    let pagado = parseFloat(option.data('pagado')) || 0;
+    let saldo = parseFloat(option.data('saldo')) || 0;
     $('#total_cotizacion').val(
         total.toFixed(2)
     );
@@ -409,142 +315,61 @@ $('#orden_servicio_id').on('change', function() {
         saldo.toFixed(2)
     );
 
-    $('#monto').val('');
     $('#monto_recibido').val('');
     $('#cambio').val('');
 
 });
 
-
-/* ============================================================
-   CAMBIO MÉTODO DE PAGO
-============================================================ */
-
 $('#tipo_pago').on('change', function() {
-
     calcularCambio();
-
 });
-
-
-/* ============================================================
-   CAMBIO MONTO
-============================================================ */
-
-$('#monto').on('input', function() {
-
-    calcularCambio();
-
-});
-
-
-/* ============================================================
-   CAMBIO RECIBIDO
-============================================================ */
 
 $('#monto_recibido').on('input', function() {
-
     calcularCambio();
-
 });
 
-
-/* ============================================================
-   CALCULAR CAMBIO
-============================================================ */
-
 function calcularCambio() {
-
     let tipoPago = $('#tipo_pago').val();
-
-    let monto = parseFloat(
-        $('#monto').val()
-    ) || 0;
-
     let recibido = parseFloat(
         $('#monto_recibido').val()
     ) || 0;
-
-
+    let saldo = parseFloat(
+        $('#saldo_pendiente').val()
+    ) || 0;
+    let cambio = 0;
     if (tipoPago === 'EFECTIVO') {
-
-        let cambio = recibido - monto;
-
-        if (cambio < 0) {
-            cambio = 0;
-        }
-
+        cambio = Math.max(
+            0,
+            recibido - saldo
+        );
         $('#cambio').val(
             cambio.toFixed(2)
         );
-
     } else {
-
-        $('#monto_recibido').val(
-            monto > 0
-                ? monto.toFixed(2)
-                : ''
-        );
-
         $('#cambio').val('0.00');
-
     }
-
 }
 
-
-/* ============================================================
-   GUARDAR PAGO
-============================================================ */
-
 $('#formPago').on('submit', function(e) {
-
     e.preventDefault();
-
     $('#erroresPago').html('');
-
     let btn = $('#btnGuardarPago');
-
     btn.prop('disabled', true);
-
     $.ajax({
-
         url: "{{ route('pagos.guardar') }}",
-
         type: "POST",
-
         data: {
-
             _token: "{{ csrf_token() }}",
-
-            orden_servicio_id:
-                $('#orden_servicio_id').val(),
-
-            caja_id:
-                $('#caja_id').val(),
-
-            tipo_pago:
-                $('#tipo_pago').val(),
-
-            monto:
-                $('#monto').val(),
-
-            monto_recibido:
-                $('#monto_recibido').val(),
-
-            descripcion:
-                $('#descripcion').val()
-
+            orden_servicio_id: $('#orden_servicio_id').val(),
+            caja_id: $('#caja_id').val(),
+            tipo_pago:  $('#tipo_pago').val(),
+            monto_recibido: $('#monto_recibido').val(),
+            descripcion:  $('#descripcion').val()
         },
-
         dataType: "json",
-
         success: function(response) {
-
             if (response.estado) {
-
                 $('#modalPago').modal('hide');
-
                 Swal.fire({
                     icon: 'success',
                     title: 'Pago registrado',
@@ -552,53 +377,34 @@ $('#formPago').on('submit', function(e) {
                     timer: 1800,
                     showConfirmButton: false
                 });
-
                 ajaxListado();
-
             } else {
-
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
                     text: response.message
                 });
-
             }
-
         },
-
         error: function(xhr) {
-
             if (xhr.status === 422) {
-
                 let errores = xhr.responseJSON?.errors;
-
                 let html = '';
-
                 if (errores) {
-
                     html += `
                         <div class="alert alert-danger">
                             <ul class="mb-0">
                     `;
-
                     Object.values(errores).forEach(function(error) {
-
                         error.forEach(function(mensaje) {
-
                             html += `<li>${mensaje}</li>`;
-
                         });
-
                     });
-
                     html += `
                             </ul>
                         </div>
                     `;
-
                 } else {
-
                     html = `
                         <div class="alert alert-danger">
                             ${xhr.responseJSON?.message ??
@@ -606,43 +412,25 @@ $('#formPago').on('submit', function(e) {
                         </div>
                     `;
                 }
-
                 $('#erroresPago').html(html);
-
             } else {
-
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
                     text: xhr.responseJSON?.message ??
                         'No se pudo registrar el pago.'
                 });
-
             }
-
         },
 
         complete: function() {
-
             btn.prop('disabled', false);
-
         }
-
     });
-
 });
-
-
-/* ============================================================
-   INICIO
-============================================================ */
 
 $(document).ready(function() {
-
     ajaxListado();
-
 });
-
 </script>
-
 @endsection
