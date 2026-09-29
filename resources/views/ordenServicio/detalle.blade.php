@@ -1,5 +1,4 @@
 @extends('layouts.app')
-
 @section('css')
 
 <style>
