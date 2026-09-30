@@ -19,6 +19,8 @@ use App\Http\Controllers\CajaController;
 use App\Http\Controllers\MovimientoCajaController;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\CuentaPorCobrarController;
+use App\Http\Controllers\ReparacionController;
+use App\Http\Controllers\MovimientoInventarioController;
 
 Route::get('/', function () {
     // return view('welcome');
@@ -157,9 +159,19 @@ Route::middleware('auth')->group(function () {
             });
 
 
+            Route::prefix('reparaciones')->group(function () {
+                Route::get('/{id}/datos', [ReparacionController::class, 'datos'])->name('reparaciones.datos');
+                Route::post('/{id}/guardar', [ReparacionController::class, 'guardar'])->name('reparaciones.guardar');
+                Route::post('/{id}/finalizar', [ReparacionController::class,'finalizar'])->name('reparaciones.finalizar');
+            });
 
 
+            Route::prefix('inventario')->group(function () {
+                Route::post('/ingresos/guardar', [MovimientoInventarioController::class,'guardarIngreso'])->name('inventario.ingresos.guardar');
+                Route::post('/salidas/guardar', [MovimientoInventarioController::class,'guardarSalida'])->name('inventario.salidas.guardar');
+            });
 
+    
 });
 
 require __DIR__.'/auth.php';

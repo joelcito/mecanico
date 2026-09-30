@@ -155,5 +155,13 @@ class OrdenServicio extends Model
         }
         return 'PAGADO';
     }
+
+    public function reparacion()
+    {
+        return $this->hasOne(
+            Reparacion::class,
+            'orden_servicio_id'
+        );
+    }
         
     }

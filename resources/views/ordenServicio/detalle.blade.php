@@ -507,6 +507,88 @@
                 </div>
             </div>
         @endif
+
+
+        @if($orden->estado === 'EN_REPARACION')
+        <div class="card shadow-sm mb-5">
+            <div class="card-header">
+                <h3 class="card-title fw-bold">
+                    <i class="fa fa-wrench text-primary me-2"></i>
+                    Reparación
+                </h3>
+                <div class="card-toolbar">
+                    <span class="badge badge-light-warning">
+                        EN PROCESO
+                    </span>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div id="erroresReparacion"
+                     class="alert alert-danger d-none">
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-5">
+                        <label class="form-label fw-semibold">
+                            Técnico responsable
+                        </label>
+                        <select id="tecnico_id"
+                                class="form-select">
+                            <option value="">
+                                Seleccione un técnico
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-5">
+                        <label class="form-label fw-semibold">
+                            Fecha de inicio
+                        </label>
+                        <input type="date"
+                               id="fecha_inicio_reparacion"
+                               class="form-control">
+                    </div>
+
+                    <div class="col-md-12 mb-5">
+                        <label class="form-label fw-semibold">
+                            Trabajos realizados
+                        </label>
+                        <textarea
+                            id="trabajos_realizados"
+                            class="form-control"
+                            rows="5"
+                            placeholder="Describa los trabajos realizados en el vehículo..."></textarea>
+                    </div>
+
+                    <div class="col-md-12 mb-5">
+                        <label class="form-label fw-semibold">
+                            Observaciones de reparación
+                        </label>
+                        <textarea
+                            id="observaciones_reparacion"
+                            class="form-control"
+                            rows="4"
+                            placeholder="Ingrese observaciones, recomendaciones o detalles adicionales..."></textarea>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button"
+                            class="btn btn-light-primary"
+                            id="btnGuardarReparacion">
+
+                        <i class="fa fa-save me-2"></i>
+                        Guardar avance
+                    </button>
+                    <button type="button"
+                            class="btn btn-success"
+                            id="btnFinalizarReparacion">
+                        <i class="fa fa-check me-2"></i>
+                        Finalizar reparación
+                   </button>
+                </div>
+            </div>
+        </div>
+        @endif
         
         <div class="card shadow-sm">
             <div class="card-body">
@@ -1200,6 +1282,223 @@ function iniciarReparacion(id) {
         });
     });
 }
+
+
+@if($orden->estado === 'EN_REPARACION')
+
+function cargarDatosReparacion()
+{
+    $.ajax({
+        url: "{{ route('reparaciones.datos', $orden->id) }}",
+        type: "GET",
+
+        success: function(response) {
+
+            if (!response.estado) {
+
+                mostrarErrorReparacion(
+                    response.message ??
+                    'No se pudieron cargar los datos de reparación.'
+                );
+
+                return;
+            }
+
+            const reparacion = response.data.reparacion;
+            const tecnicos = response.data.tecnicos;
+
+            const selectTecnico = $('#tecnico_id');
+
+            selectTecnico.html(`
+                <option value="">
+                    Seleccione un técnico
+                </option>
+            `);
+
+            tecnicos.forEach(function(tecnico) {
+
+                const nombre = [
+                    tecnico.nombres,
+                    tecnico.ap_paterno,
+                    tecnico.ap_materno
+                ]
+                .filter(Boolean)
+                .join(' ');
+
+                selectTecnico.append(`
+                    <option value="${tecnico.id}">
+                        ${nombre}
+                    </option>
+                `);
+
+            });
+
+            if (reparacion) {
+
+                if (reparacion.tecnico_id) {
+                    selectTecnico.val(
+                        reparacion.tecnico_id
+                    );
+                }
+
+                $('#trabajos_realizados').val(
+                    reparacion.trabajos_realizados ?? ''
+                );
+
+                $('#observaciones_reparacion').val(
+                    reparacion.observaciones ?? ''
+                );
+
+                if (reparacion.fecha_inicio) {
+
+                    $('#fecha_inicio_reparacion').val(
+                        new Date(reparacion.fecha_inicio)
+                            .toLocaleString('es-BO')
+                    );
+                }
+
+                if (reparacion.estado === 'FINALIZADA') {
+
+                    $('#tecnico_id').prop('disabled', true);
+                    $('#trabajos_realizados').prop('readonly', true);
+                    $('#observaciones_reparacion').prop('readonly', true);
+
+                    $('#btnGuardarReparacion').hide();
+                    $('#btnFinalizarReparacion').hide();
+                }
+            }
+        },
+
+        error: function(xhr) {
+
+            mostrarErrorReparacion(
+                xhr.responseJSON?.message ??
+                'No se pudieron cargar los datos de reparación.'
+            );
+        }
+    });
+}
+
+
+function mostrarErrorReparacion(mensaje)
+{
+    $('#erroresReparacion')
+        .removeClass('d-none')
+        .html(mensaje);
+}
+
+
+$('#btnGuardarReparacion').on('click', function() {
+    const btn = $(this);
+    const tecnicoId =  $('#tecnico_id').val();
+    const trabajos =  $('#trabajos_realizados').val();
+    const observaciones = $('#observaciones_reparacion').val();
+    $('#erroresReparacion')
+        .addClass('d-none')
+        .html('');
+
+    btn.prop('disabled', true);
+    $.ajax({
+        url: "{{ route('reparaciones.guardar', $orden->id) }}",
+        type: "POST",
+        data: {
+            _token: "{{ csrf_token() }}",
+            tecnico_id: tecnicoId,
+            trabajos_realizados: trabajos,
+            observaciones: observaciones
+        },
+
+        success: function(response) {
+            if (response.estado) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Guardado',
+                    text: response.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(function() {
+                    location.reload();
+                });
+            } else {
+                mostrarErrorReparacion(
+                    response.message
+                );
+                btn.prop('disabled', false);
+            }
+        },
+
+        error: function(xhr) {
+            mostrarErrorReparacion(
+                xhr.responseJSON?.message ??
+                'No se pudo guardar la reparación.'
+            );
+            btn.prop('disabled', false);
+        }
+    });
+
+});
+
+
+$('#btnFinalizarReparacion').on('click', function() {
+    Swal.fire({
+        title: '¿Finalizar reparación?',
+        text: 'La orden pasará al estado LISTO.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, finalizar',
+        cancelButtonText: 'Cancelar'
+    }).then(function(result) {
+        if (!result.isConfirmed) {
+            return;
+        }
+        const btn = $('#btnFinalizarReparacion');
+        btn.prop('disabled', true);
+        $.ajax({
+            url: "{{ route('reparaciones.finalizar', $orden->id) }}",
+            type: "POST",
+            data: {
+                _token: "{{ csrf_token() }}"
+            },
+            success: function(response) {
+                if (response.estado) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Reparación finalizada',
+                        text: response.message,
+                        confirmButtonText: 'Continuar'
+                    }).then(function() {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'No se puede finalizar',
+                        text: response.message
+                    });
+                    btn.prop('disabled', false);
+                }
+            },
+
+            error: function(xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text:
+                        xhr.responseJSON?.message ??
+                        'No se pudo finalizar la reparación.'
+                });
+                btn.prop('disabled', false);
+            }
+        });
+    });
+});
+
+$(document).ready(function() {
+    cargarDatosReparacion();
+});
+@endif
+
+
 </script>
 
 

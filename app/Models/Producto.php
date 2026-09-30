@@ -59,4 +59,19 @@ class Producto extends Model
     {
         return $this->belongsTo(User::class, 'usuario_eliminador_id');
     }
+
+    public function reparacionDetalles()
+    {
+        return $this->hasMany(ReparacionDetalle::class, 'producto_id');
+    }
+
+    public function movimientosInventario()
+    {
+        return $this->hasMany(MovimientoInventario::class, 'producto_id');
+    }
+
+    public function asignacionesHerramientas()
+    {
+        return $this->hasMany(AsignacionHerramienta::class, 'producto_id');
+    }
 }

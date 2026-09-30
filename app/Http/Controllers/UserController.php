@@ -13,7 +13,7 @@ class UserController extends Controller
     public function listado()
     {
         //$roles = Rol::all();
-        $roles = Rol::where('id', '!=', 5)->get();
+        $roles = Rol::all();
         $sucursales = Sucursal::all();
         return view('user.listado')->with(compact('roles', 'sucursales'));
     }
@@ -22,7 +22,7 @@ class UserController extends Controller
     {
         if ($request->ajax()) {
 
-            $usuarios = User::where('rol_id', '!=', 5)->get();
+            $usuarios = User::all();
             $valores = [
                 'listado' => view('user.ajaxListado')->with(compact('usuarios'))->render()
             ];

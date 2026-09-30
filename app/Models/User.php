@@ -71,6 +71,10 @@ class User extends Authenticatable
             return $this->hasOne(Cliente::class, 'user_id');
         }
 
+        public function asignacionesHerramientas()
+        {
+            return $this->hasMany(AsignacionHerramienta::class, 'mecanico_id');
+        }
 
 
     }
