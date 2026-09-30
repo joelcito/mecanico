@@ -99,50 +99,34 @@
                 <label class="form-label fw-bold">
                     Tipo
                 </label>
-
                 <div>
                     {{ $orden->vehiculo->tipo_vehiculo }}
                 </div>
-
             </div>
-
             <div class="col-md-3 mb-4">
-
                 <label class="form-label fw-bold">
                     Propulsión
                 </label>
-
                 <div>
 
                     @if($orden->vehiculo->tipo_propulsion === 'ELECTRICO')
-
                         <span class="badge badge-light-success">
                             Eléctrico
                         </span>
-
                     @elseif($orden->vehiculo->tipo_propulsion === 'HIBRIDO')
-
                         <span class="badge badge-light-warning">
                             Híbrido
                         </span>
-
                     @else
-
                         <span class="badge badge-light-primary">
                             Combustión
                         </span>
-
                     @endif
-
                 </div>
-
             </div>
-
-
             </div>
         </div>
     </div>
-
 
     <form method="POST"
           action="{{ route('ordenServicio.inspeccion.guardar', $orden->id) }}"
@@ -179,65 +163,65 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @foreach($items->unique('nombre') as $item)
+                                <tr>
+                                    <td>
+                                        <span class="fw-bold">
+                                            {{ $item->nombre }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-4">
+                                            <label class="form-check form-check-inline mb-0">
+                                                <input
+                                                    class="form-check-input"
+                                                    type="radio"
+                                                    name="items[{{ $item->id }}][resultado]"
+                                                    value="SI" >
+                                                <span class="form-check-label">
+                                                    Sí
+                                                </span>
+                                            </label>
 
-                            @foreach($items as $item)
+                                            <label class="form-check form-check-inline mb-0">
+                                                <input
+                                                    class="form-check-input"
+                                                    type="radio"
+                                                    name="items[{{ $item->id }}][resultado]"
+                                                    value="NO"
+                                                    checked >
+                                                <span class="form-check-label">
+                                                    No
+                                                </span>
+                                            </label>
 
-                            <tr>
-
-                                <td>
-
-                                    <span class="fw-bold">
-                                        {{ $item->nombre }}
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <select
-                                        name="items[{{ $item->id }}][resultado]"
-                                        class="form-select form-select-sm"
-                                        required>
-
-                                        <option value="">
-                                            Seleccione
-                                        </option>
-
-                                        <option value="SI">
-                                            SI
-                                        </option>
-
-                                        <option value="NO">
-                                            NO
-                                        </option>
-
-                                        <option value="NA">
-                                            N/A
-                                        </option>
-
-                                    </select>
-
-                                </td>
-
-                                <td>
-
-                                    <input
-                                        type="text"
-                                        name="items[{{ $item->id }}][observacion]"
-                                        class="form-control form-control-sm"
-                                        placeholder="Observación">
-
-                                </td>
-
-                            </tr>
-
-                        @endforeach
+                                            <label class="form-check form-check-inline mb-0">
+                                                <input
+                                                    class="form-check-input"
+                                                    type="radio"
+                                                    name="items[{{ $item->id }}][resultado]"
+                                                    value="NA"  >
+                                                <span class="form-check-label">
+                                                    N/A
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="text"
+                                            name="items[{{ $item->id }}][observacion]"
+                                            class="form-control form-control-sm"
+                                            placeholder="Observación">
+                                    </td>
+                                </tr>
+                            @endforeach
                         </tbody>
+
                     </table>
                 </div>
             </div>
         </div>
-
 
         <div class="card mb-5">
             <div class="card-header">

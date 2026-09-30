@@ -36,8 +36,8 @@
                             </div>
                              <div class="fv-row mb-7">
                                 <label class="required fw-semibold fs-6 mb-2">Telefono</label>
-                                <textarea class="form-control form-control-sm" id="telefono"
-                                    name="telefono"></textarea>
+                                <input type="number" class="form-control form-control-sm" id="telefono"
+                                    name="telefono">
                             </div>
                         </div>
                     </div>

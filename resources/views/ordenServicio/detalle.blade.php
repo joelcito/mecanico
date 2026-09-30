@@ -352,9 +352,22 @@
                         Cotización
                     </h3>
                     <div class="card-toolbar">
-                        <span class="badge badge-light-warning">
-                            {{ $orden->cotizacionActual->estado }}
-                        </span>
+                        @if($orden->cotizacionActual->estado === 'PENDIENTE')
+                            <span class="badge badge-light-warning">
+                                <i class="fa fa-clock me-1"></i>
+                                Pendiente
+                            </span>
+                        @elseif($orden->cotizacionActual->estado === 'APROBADA')
+                            <span class="badge badge-light-success">
+                                <i class="fa fa-check-circle me-1"></i>
+                                Aprobada
+                            </span>
+                        @elseif($orden->cotizacionActual->estado === 'RECHAZADA')
+                            <span class="badge badge-light-danger">
+                                <i class="fa fa-times-circle me-1"></i>
+                                Rechazada
+                            </span>
+                        @endif
                     </div>
                 </div>
 
@@ -475,9 +488,44 @@
                         </div>
                     @endif
 
+
+                    @if($orden->cotizacionActual->estado === 'APROBADA')
+                    <div class="separator separator-dashed my-5"></div>
+                    <div class="alert alert-success d-flex align-items-center">
+                        <i class="fa fa-check-circle fs-2x me-4"></i>
+                        <div>
+                            <div class="fw-bold fs-5">
+                                Cotización aprobada
+                            </div>
+                            <div class="text-gray-700">
+                                La cotización fue aprobada correctamente.
+                            </div>
+                            @if($orden->cotizacionActual->fecha_respuesta)
+                                <div class="text-muted mt-1">
+                                    Fecha de aprobación:
+                                    {{ $orden->cotizacionActual->fecha_respuesta->format('d/m/Y H:i') }}
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @elseif($orden->cotizacionActual->estado === 'RECHAZADA')
+                    <div class="separator separator-dashed my-5"></div>
+                    <div class="alert alert-danger d-flex align-items-center">
+                        <i class="fa fa-times-circle fs-2x me-4"></i>
+                        <div>
+                            <div class="fw-bold fs-5">
+                                Cotización rechazada
+                            </div>
+                            @if($orden->cotizacionActual->observacion_respuesta)
+                                <div class="text-gray-700 mt-1">
+                                    {{ $orden->cotizacionActual->observacion_respuesta }}
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
                     @if($orden->cotizacionActual->estado === 'PENDIENTE')
                     <div class="separator separator-dashed my-5"></div>
-
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                         <div>
                             <h4 class="fw-bold mb-1">
@@ -1505,14 +1553,9 @@ $(document).ready(function() {
 @if($orden->cotizacionActual && $orden->cotizacionActual->estado === 'PENDIENTE')
 
 <script>
-
-    const btnAprobarCotizacion =
-        document.getElementById('btnAprobarCotizacion');
-
+    const btnAprobarCotizacion = document.getElementById('btnAprobarCotizacion');
     if (btnAprobarCotizacion) {
-
         btnAprobarCotizacion.addEventListener('click', function () {
-
             Swal.fire({
                 title: '¿Aprobar cotización?',
                 text: 'La orden pasará al estado AUTORIZADO.',
@@ -1541,34 +1584,29 @@ $(document).ready(function() {
                 .then(response => response.json())
                 .then(data => {
 
-                    if (data.success) {
-
+                    if (data.estado) {
                         Swal.fire({
                             icon: 'success',
                             title: 'Cotización aprobada',
-                            text: 'La orden ha sido autorizada correctamente.',
+                            text: data.mensaje || 'La orden ha sido autorizada correctamente.',
                             confirmButtonText: 'Continuar'
                         }).then(() => {
                             location.reload();
                         });
 
                     } else {
-
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: data.message ??
+                            text: data.mensaje ||
                                 'No se pudo aprobar la cotización.'
                         });
-
                         btnAprobarCotizacion.disabled = false;
                     }
 
                 })
                 .catch(error => {
-
                     console.error(error);
-
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',

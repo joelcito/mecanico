@@ -71,8 +71,8 @@
                               <a class="menu-link {{ Route::currentRouteName() == 'cuentasPorCobrar.listado' ? 'active' : '' }}"
                                     href="{{ route('cuentasPorCobrar.listado') }}"
                                 >
-                                    <span class="menu-icon">
-                                        <i class="fa fa-exchange-alt"></i>
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
                                     </span>
                                     <span class="menu-title">
                                         Cuentas por Cobrar
@@ -100,8 +100,8 @@
                               <a class="menu-link {{ Route::currentRouteName() == 'movimientosCaja.listado' ? 'active' : '' }}"
                                     href="{{ route('movimientosCaja.listado') }}"
                                 >
-                                    <span class="menu-icon">
-                                        <i class="fa fa-exchange-alt"></i>
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
                                     </span>
                                     <span class="menu-title">
                                         Movimientos de Caja
@@ -112,8 +112,8 @@
                               <a class="menu-link {{ Route::currentRouteName() == 'pagos.listado' ? 'active' : '' }}"
                                     href="{{ route('pagos.listado') }}"
                                 >
-                                    <span class="menu-icon">
-                                        <i class="fa fa-exchange-alt"></i>
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
                                     </span>
                                     <span class="menu-title">
                                         Pagos

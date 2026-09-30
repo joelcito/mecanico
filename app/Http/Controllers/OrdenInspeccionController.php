@@ -45,21 +45,23 @@ class OrdenInspeccionController extends Controller
     $vehiculo = $orden->vehiculo;
 
     $items = ChecklistItem::where(
-            'tipo_vehiculo',
-            $vehiculo->tipo_vehiculo
-        )
-        ->where('estado', 'ACTIVO')
-        ->where(function ($query) use ($vehiculo) {
+        'tipo_vehiculo',
+        $vehiculo->tipo_vehiculo
+    )
+    ->where('estado', 'ACTIVO')
+    ->where(function ($query) use ($vehiculo) {
 
-            $query->whereNull('tipo_propulsion')
-                ->orWhere(
-                    'tipo_propulsion',
-                    $vehiculo->tipo_propulsion
-                );
+        $query->whereNull('tipo_propulsion')
+            ->orWhere(
+                'tipo_propulsion',
+                $vehiculo->tipo_propulsion
+            );
 
-        })
-        ->orderBy('orden')
-        ->get();
+    })
+    ->orderBy('orden')
+    ->get()
+    ->unique('nombre')
+    ->values();
 
     return view(
         'ordenServicio.inspeccion',

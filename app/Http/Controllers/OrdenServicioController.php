@@ -177,9 +177,21 @@ class OrdenServicioController extends Controller
                 'orden_servicio_id',
                 $id
             )
-                ->where('estado', 'PENDIENTE')
                 ->latest('id')
-                ->firstOrFail();
+                ->first();
+
+            if (!$cotizacion) {
+                throw new \Exception(
+                    'La orden no tiene una cotización registrada.'
+                );
+            }
+
+            if ($cotizacion->estado !== 'PENDIENTE') {
+                throw new \Exception(
+                    'La cotización ya fue respondida. Estado actual: ' .
+                    $cotizacion->estado
+                );
+            }
 
             $cotizacion->update([
                 'estado' => 'APROBADA',
