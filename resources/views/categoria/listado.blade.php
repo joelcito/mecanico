@@ -1,11 +1,6 @@
 @extends('layouts.app')
 @section('css')
-    <link
-        href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}"
-        rel="stylesheet"
-        type="text/css"
-    />
-
+    <link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
     <style>
         .tamanio_boton {
             font-size: 6px;
@@ -26,16 +21,12 @@
                     FORMULARIO DE CATEGORÍA
                     <span class="text-info" id="nombre_busqueda"></span>
                 </h3>
-                <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal">
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
                 </button>
             </div>
             <div class="modal-body scroll-y">
                 <form id="formularioCategoria">
                     <input type="hidden" name="id" id="id" value="0">
-
                     <div class="row">
                         <div class="col-md-12">
                             <div class="fv-row mb-7">
@@ -53,11 +44,7 @@
                                 <label class="fw-semibold fs-6 mb-2">
                                     Descripción
                                 </label>
-                                <textarea
-                                    class="form-control form-control-sm"
-                                    id="descripcion"
-                                    name="descripcion"
-                                    rows="3"
+                                <textarea class="form-control form-control-sm" id="descripcion" name="descripcion" rows="3"
                                 ></textarea>
                             </div>
                         </div>
@@ -65,8 +52,8 @@
                             <label class="form-label">Tipo</label>
 
                             <select name="tipo" id="tipo" class="form-select">
-                                <option value="AUTO">Auto</option>
                                 <option value="HERRAMIENTA">Herramienta</option>
+                                <option value="PRODUCTO">Producto</option>
                             </select>
                         </div>
                     </div>
@@ -77,11 +64,7 @@
                                 <label class="fw-semibold fs-6 mb-2">
                                     Estado
                                 </label>
-                                <select
-                                    class="form-select form-select-sm"
-                                    id="estado"
-                                    name="estado"
-                                >
+                                <select class="form-select form-select-sm" id="estado" name="estado">
                                     <option value="ACTIVO">
                                         Activo
                                     </option>
@@ -95,14 +78,10 @@
                 </form>
             </div>
 
-
             <div class="modal-footer">
                 <div class="row w-100">
                     <div class="col-md-12">
-                        <button
-                            class="btn btn-sm w-100 btn-success"
-                            onclick="guardarCategoria()"
-                        >
+                        <button class="btn btn-sm w-100 btn-success" onclick="guardarCategoria()" >
                             Guardar
                         </button>
                     </div>
@@ -115,91 +94,46 @@
 
 <div class="d-flex flex-column flex-column-fluid">
     <div id="kt_app_content" class="app-content flex-column-fluid">
-
-        <div
-            id="kt_app_content_container"
-            class="app-container container-xxlg"
-        >
-
+        <div id="kt_app_content_container" class="app-container container-xxlg" >
             <div class="card shadow-sm">
-
-                <div
-                    class="card-header bg-light-info py-4 d-flex align-items-center justify-content-between"
-                >
-
+                <div class="card-header bg-light-info py-4 d-flex align-items-center justify-content-between" >
                     <h3 class="card-title fw-bold">
                         Listado de Categorías
                     </h3>
-
-
                     <div class="card-toolbar">
-
-                        <button
-                            type="button"
-                            class="btn btn-primary btn-sm"
-                            onclick="modalNuevaCategoria()"
-                        >
-
+                        <button type="button" class="btn btn-primary btn-sm" onclick="modalNuevaCategoria()" >
                             <i class="fa fa-plus"></i>
-
                             Nueva Categoría
-
                         </button>
-
                     </div>
-
                 </div>
-
-
-                {{-- BODY --}}
-
-                <div
-                    class="card-body py-4"
-                    id="table_listado"
-                >
-
+                <div class="card-body py-4" id="table_listado" >
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
-
-
 @stop()
-
-
 @section('js')
-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ asset('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
     <script>
 
         $.ajaxSetup({
             headers: {
-
                 'X-CSRF-TOKEN':
                     $('meta[name="csrf-token"]').attr('content')
 
             }
-
         });
 
         $(document).ready(function () {
-
             ajaxListado();
-
         });
 
         function ajaxListado() {
-
             let datos = {};
-
             $.ajax({
-
                 url: "{{ route('categoria.ajaxListado') }}",
                 method: "POST",
                 data: datos,
@@ -226,6 +160,7 @@
             limpiarErrores();
             $('#formularioCategoria')[0].reset();
             $('#id').val(0);
+            $('#tipo').val('PRODUCTO');
             $('#estado').val('ACTIVO');
             $('#modalCategoria').modal('show');
 
@@ -233,10 +168,7 @@
 
         function guardarCategoria() {
             limpiarErrores();
-
-            let datos =
-                $('#formularioCategoria').serializeArray();
-
+            let datos = $('#formularioCategoria').serializeArray();
             $.ajax({
                 url: "{{ route('categoria.guardar') }}",
                 method: "POST",
@@ -250,91 +182,55 @@
                             showConfirmButton: false
 
                         });
-
                         ajaxListado();
                         $('#modalCategoria').modal('hide');
-
                     } else {
-
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: resultado.message ||
-                                'No se pudo guardar la categoría.'
-
+                            text: resultado.message || 'No se pudo guardar la categoría.'
                         });
                     }
-
                 },
 
-
                 error: function (xhr) {
-
                     limpiarErrores();
-
                     if (xhr.status === 422) {
-                        let errores =
-                            xhr.responseJSON.errors;
-
+                        let errores = xhr.responseJSON.errors;
                         for (let campo in errores) {
-
-                            let mensaje =
-                                errores[campo][0];
-
-
-                            let input =
-                                $(`[name="${campo}"]`);
-
-
+                            let mensaje = errores[campo][0];
+                            let input = $(`[name="${campo}"]`);
                             input.addClass('is-invalid');
-
-
                             input.after(
                                 `<div class="invalid-feedback">
                                     ${mensaje}
                                 </div>`
                             );
-
                         }
 
                     } else {
-
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
                             text: 'Ocurrió un error inesperado.'
-
                         });
-
                     }
-
                 }
-
             });
-
         }
 
         function editarCategoria(categoria) {
-
             limpiarErrores();
-
             $('#id').val(categoria.id);
             $('#nombre').val(categoria.nombre);
-            $('#descripcion').val(
-                categoria.descripcion ?? ''
-            );
-            $('#estado').val(
-                categoria.estado ?? 'ACTIVO'
-            );
+            $('#descripcion').val(categoria.descripcion ?? '');
+            $('#tipo').val(categoria.tipo ?? 'PRODUCTO');
+            $('#estado').val(categoria.estado ?? 'ACTIVO');
             $('#modalCategoria').modal('show');
-
         }
 
-
         function eliminarCategoria(id, nombre) {
-
             Swal.fire({
-
                 title: "¿Quieres eliminar " + nombre + "?",
                 text: "¡No podrás recuperarlo!",
                 icon: "warning",
@@ -344,18 +240,12 @@
                 confirmButtonText: "Sí, borrar",
                 cancelButtonText: "No, cancelar",
                 reverseButtons: true
-
             }).then((result) => {
-
                 if (result.isConfirmed) {
-
                     $.ajax({
-
                         url: "{{ route('categoria.eliminar') }}",
                         method: "POST",
-                        data: {
-                            categoria: id
-                        },
+                        data: { categoria: id },
                         success: function (resultado) {
                             if (resultado.estado) {
                                 ajaxListado();
@@ -363,9 +253,7 @@
                                     'Eliminado!',
                                     'La categoría ha sido eliminada correctamente.',
                                     'success'
-
                                 );
-
                             } else {
                                 Swal.fire(
                                     'Error',
@@ -376,52 +264,30 @@
                             }
                         },
 
-
                         error: function (xhr) {
-
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error',
                                 text: 'Ocurrió un error inesperado.'
-
                             });
-
                         }
-
                     });
-
-
                 }
-
                 else if (
                     result.dismiss ===
                     Swal.DismissReason.cancel
                 ) {
-
                     Swal.fire(
-
                         'Cancelado',
                         'La operación fue cancelada',
                         'info'
-
                     );
-
                 }
-
             });
-
         }
-
         function limpiarErrores() {
-
-            $('.is-invalid')
-                .removeClass('is-invalid');
-
-            $('.invalid-feedback')
-                .remove();
-
+            $('.is-invalid').removeClass('is-invalid');
+            $('.invalid-feedback').remove();
         }
-
     </script>
-
 @endsection

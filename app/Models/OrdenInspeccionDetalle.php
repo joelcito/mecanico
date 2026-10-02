@@ -18,11 +18,9 @@ class OrdenInspeccionDetalle extends Model
         'resultado',
         'observacion',
         'estado',
-
         'usuario_creador_id',
         'usuario_modificador_id',
         'usuario_eliminador_id',
-
         'deleted_at',
     ];
 

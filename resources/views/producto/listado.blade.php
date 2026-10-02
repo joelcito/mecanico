@@ -304,26 +304,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="fv-row mb-7">
-                                <label class="required fw-semibold fs-6 mb-2">
-                                    Tipo
-                                </label>
-                                <select class="form-select form-select-sm" id="tipo" name="tipo">
-                                    <option value="">
-                                        Seleccione...
-                                    </option>
-                                    <option value="PRODUCTO">
-                                        Producto
-                                    </option>
-                                    <option value="HERRAMIENTA">
-                                        Herramienta
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <div class="fv-row mb-7">
                                 <label class="required fw-semibold fs-6 mb-2">
                                     Categoría
@@ -663,10 +644,6 @@
 
         $('#descripcion').val(
             producto.descripcion ?? ''
-        );
-
-        $('#tipo').val(
-            producto.tipo
         );
 
         $('#categoria_id').val(

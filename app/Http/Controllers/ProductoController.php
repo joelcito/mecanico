@@ -8,6 +8,7 @@ use App\Models\Marca;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use App\Utils\Respuesta;
 
 class ProductoController extends Controller
@@ -16,6 +17,7 @@ class ProductoController extends Controller
 {
     $categorias = Categoria::whereNull('deleted_at')
         ->where('estado', 'ACTIVO')
+        ->where('tipo', 'PRODUCTO')
         ->orderBy('nombre')
         ->get();
 
@@ -70,16 +72,18 @@ class ProductoController extends Controller
         ]);
     }
 
-    /**
-     * Registrar o actualizar producto.
-     */
     public function guardarProducto(Request $request)
     {
         $request->validate([
             'codigo' => 'required|string|max:100',
             'nombre' => 'required|string|max:255',
-            'tipo' => 'required|string|max:50',
-            'categoria_id' => 'required|exists:categorias,id',
+            'categoria_id' => [
+                'required',
+                Rule::exists('categorias', 'id')
+                    ->where('tipo', 'PRODUCTO')
+                    ->where('estado', 'ACTIVO')
+                    ->whereNull('deleted_at'),
+            ],
             'marca_id' => 'nullable|exists:marcas,id',
             'unidad_medida' => 'required|string|max:50',
             'stock_minimo' => 'required|numeric|min:0',
@@ -88,16 +92,10 @@ class ProductoController extends Controller
             'imagen' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-    
-
         if ($request->id) {
-
-            $producto = Producto::whereNull('deleted_at')
-                ->findOrFail($request->id);
-
+            $producto = Producto::whereNull('deleted_at')->findOrFail($request->id);
             $producto->codigo = $request->codigo;
             $producto->nombre = $request->nombre;
-            $producto->tipo = $request->tipo;
             $producto->categoria_id = $request->categoria_id;
             $producto->marca_id = $request->marca_id;
             $producto->unidad_medida = $request->unidad_medida;
@@ -110,13 +108,11 @@ class ProductoController extends Controller
 
             if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
                 $imagen = $request->file('imagen');
-
                 $nombreImagen = uniqid() . '_' . preg_replace(
                     '/[^A-Za-z0-9._-]/',
                     '_',
                     $imagen->getClientOriginalName()
                 );
-
                 Storage::disk('public')->putFileAs(
                     'uploads/productos',
                     $imagen,
@@ -134,45 +130,35 @@ class ProductoController extends Controller
             ]);
         }
 
-        
-
         $producto = new Producto();
-
         $producto->codigo = $request->codigo;
         $producto->nombre = $request->nombre;
-        $producto->tipo = $request->tipo;
         $producto->categoria_id = $request->categoria_id;
         $producto->marca_id = $request->marca_id;
         $producto->unidad_medida = $request->unidad_medida;
-        $producto->cantidad = 0;
+        $producto->cantidad = '0.00';
         $producto->stock_minimo = $request->stock_minimo;
         $producto->descripcion = $request->descripcion;
         $producto->estado = $request->estado ?? 'ACTIVO';
         $producto->usuario_creador_id = Auth::id();
 
-     
-
         if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
+            $imagen = $request->file('imagen');
+            $nombreImagen = uniqid() . '_' . preg_replace(
+                '/[^A-Za-z0-9._-]/',
+                '_',
+                $imagen->getClientOriginalName()
+            );
 
-    $imagen = $request->file('imagen');
-
-    $nombreImagen = uniqid() . '_' . preg_replace(
-        '/[^A-Za-z0-9._-]/',
-        '_',
-        $imagen->getClientOriginalName()
-    );
-
-    Storage::disk('public')->putFileAs(
-        'uploads/productos',
-        $imagen,
-        $nombreImagen
-    );
-
-    $producto->imagen = 'storage/uploads/productos/' . $nombreImagen;
-}
+        Storage::disk('public')->putFileAs(
+            'uploads/productos',
+            $imagen,
+            $nombreImagen
+        );
+        $producto->imagen = 'storage/uploads/productos/' . $nombreImagen;
+    }
 
         $producto->save();
-
         return response()->json([
             'estado' => true,
             'mensaje' => 'Producto registrado correctamente.',
@@ -180,20 +166,13 @@ class ProductoController extends Controller
         ]);
     }
 
-    /**
-     * Eliminar producto.
-     */
     public function eliminarProducto(Request $request)
     {
-        $producto = Producto::whereNull('deleted_at')
-            ->findOrFail($request->id);
-
+        $producto = Producto::whereNull('deleted_at')->findOrFail($request->id);
         $producto->usuario_eliminador_id = Auth::id();
         $producto->deleted_at = now();
         $producto->estado = 'INACTIVO';
-
         $producto->save();
-
         return response()->json([
             'estado' => true,
             'mensaje' => 'Producto eliminado correctamente.'

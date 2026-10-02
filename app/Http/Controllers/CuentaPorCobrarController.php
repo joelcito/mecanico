@@ -28,22 +28,15 @@ class CuentaPorCobrarController extends Controller
                 ->get();
 
             $cuentas = $ordenes->map(function ($orden) {
-
                 $cotizacion = $orden->cotizacionActual;
-
                 if (!$cotizacion || $cotizacion->estado !== 'APROBADA') {
                     return null;
                 }
-
                 $total = (float) $cotizacion->total;
-
                 $pagado = (float) $orden->pagos()
                     ->where('estado', 'ACTIVO')
                     ->sum('monto');
-
                 $saldo = max(0, $total - $pagado);
-
-                // Solo cuentas que todavía tienen saldo
                 if ($saldo <= 0) {
                     return null;
                 }
@@ -57,7 +50,6 @@ class CuentaPorCobrarController extends Controller
                 return [
                     'id' => $orden->id,
                     'numero_orden' => $orden->numero_orden,
-
                     'cliente' => $orden->vehiculo?->cliente?->user
                         ? trim(
                             $orden->vehiculo->cliente->user->nombres . ' ' .
@@ -65,16 +57,13 @@ class CuentaPorCobrarController extends Controller
                             $orden->vehiculo->cliente->user->ap_materno
                         )
                         : 'Sin cliente',
-
                     'vehiculo' => $orden->vehiculo
                         ? trim(
                             ($orden->vehiculo->marca?->nombre ?? '') . ' ' .
                             ($orden->vehiculo->modelo ?? '')
                         )
                         : 'Sin vehículo',
-
                     'placa' => $orden->vehiculo?->placa ?? '',
-
                     'total' => $total,
                     'pagado' => $pagado,
                     'saldo' => $saldo,
@@ -83,12 +72,10 @@ class CuentaPorCobrarController extends Controller
             })
             ->filter()
             ->values();
-
             $listado = view(
                 'cuentasPorCobrar.ajaxListado',
                 compact('cuentas')
             )->render();
-
             return response()->json([
                 'estado' => true,
                 'data' => [
@@ -97,7 +84,6 @@ class CuentaPorCobrarController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-
             return response()->json([
                 'estado' => false,
                 'message' => $e->getMessage()

@@ -24,11 +24,14 @@ class Categoria extends Model
         'deleted_at' => 'datetime',
     ];
 
-    
-
     public function productos(): HasMany
     {
         return $this->hasMany(Producto::class, 'categoria_id');
+    }
+
+    public function herramientas(): HasMany
+    {
+        return $this->hasMany(Herramienta::class, 'categoria_id');
     }
 
     public function usuarioCreador()

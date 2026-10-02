@@ -14,6 +14,7 @@ class AsignacionHerramienta extends Model
 
     protected $fillable = [
         'producto_id',
+        'herramienta_id',
         'mecanico_id',
         'cantidad',
         'fecha_asignacion',
@@ -33,9 +34,14 @@ class AsignacionHerramienta extends Model
         'deleted_at' => 'datetime',
     ];
 
-    public function producto()
+    public function productoHistorico()
     {
         return $this->belongsTo(Producto::class, 'producto_id');
+    }
+
+    public function herramienta()
+    {
+        return $this->belongsTo(Herramienta::class, 'herramienta_id');
     }
 
     public function mecanico()

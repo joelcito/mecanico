@@ -15,19 +15,14 @@ class Reparacion extends Model
     protected $fillable = [
         'orden_servicio_id',
         'tecnico_id',
-
         'fecha_inicio',
         'fecha_fin',
-
         'trabajos_realizados',
         'observaciones',
-
         'estado',
-
         'usuario_creador_id',
         'usuario_modificador_id',
         'usuario_eliminador_id',
-
         'deleted_at',
     ];
 

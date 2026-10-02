@@ -6,6 +6,7 @@ use App\Http\Controllers\RolController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\MarcaController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\HerramientaController;
 use App\Http\Controllers\SucursalController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -93,6 +94,13 @@ Route::middleware('auth')->group(function () {
             Route::post('/ajaxListado', [ProductoController::class, 'ajaxListado'])->name('producto.ajaxListado');
             Route::post('/guardar', [ProductoController::class, 'guardarProducto'])->name('producto.guardar');
             Route::post('/eliminar', [ProductoController::class, 'eliminarProducto'])->name('producto.eliminar');
+        });
+
+        Route::prefix('herramienta')->group(function () {
+            Route::get('/listado', [HerramientaController::class, 'listado'])->name('herramienta.listado');
+            Route::post('/ajaxListado', [HerramientaController::class, 'ajaxListado'])->name('herramienta.ajaxListado');
+            Route::post('/guardar', [HerramientaController::class, 'guardarHerramienta'])->name('herramienta.guardar');
+            Route::post('/eliminar', [HerramientaController::class, 'eliminarHerramienta'])->name('herramienta.eliminar');
         });
 
         Route::prefix('vehiculo')->group(function () {

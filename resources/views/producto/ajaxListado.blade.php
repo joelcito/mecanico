@@ -8,7 +8,6 @@
 
                 <th>Código</th>
                 <th>Nombre</th>
-                <th>Tipo</th>
                 <th>Categoría</th>
                 <th>Marca</th>
                 <th>Unidad</th>
@@ -29,18 +28,6 @@
                         {{ $producto->nombre }}
                     </td>
 
-                    <td>
-                        @if ($producto->tipo == 'HERRAMIENTA')
-                            <span class="badge badge-light-warning">
-                                Herramienta
-                            </span>
-                        @else
-                            <span class="badge badge-light-primary">
-                                Producto
-                            </span>
-                        @endif
-
-                    </td>
                     <td>
                         {{ $producto->categoria->nombre ?? '-' }}
                     </td>

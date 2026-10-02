@@ -44,20 +44,17 @@ class ReparacionController extends Controller
         try {
 
             $orden = OrdenServicio::findOrFail($id);
-
             if ($orden->estado !== 'EN_REPARACION') {
                 return response()->json([
                     'estado' => false,
                     'message' => 'La orden no se encuentra en reparación.'
                 ], 422);
             }
-
             $request->validate([
                 'tecnico_id' => 'nullable|exists:users,id',
                 'trabajos_realizados' => 'nullable|string',
                 'observaciones' => 'nullable|string',
             ]);
-
             $reparacion = Reparacion::firstOrNew([
                 'orden_servicio_id' => $orden->id
             ]);
@@ -73,7 +70,6 @@ class ReparacionController extends Controller
             $reparacion->tecnico_id = $request->tecnico_id;
             $reparacion->trabajos_realizados = $request->trabajos_realizados;
             $reparacion->observaciones = $request->observaciones;
-
             $reparacion->save();
 
             return response()->json([
@@ -94,16 +90,13 @@ class ReparacionController extends Controller
     public function finalizar($id)
     {
         try {
-
             $orden = OrdenServicio::findOrFail($id);
-
             if ($orden->estado !== 'EN_REPARACION') {
                 return response()->json([
                     'estado' => false,
                     'message' => 'La orden no se encuentra en reparación.'
                 ], 422);
             }
-
             $reparacion = Reparacion::where(
                 'orden_servicio_id',
                 $orden->id

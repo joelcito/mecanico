@@ -58,66 +58,43 @@ class ClienteController extends Controller
         ]);
 
         $usuario = Auth::user();
-
         if (!$usuario) {
             return Respuesta::error(null, 'Usuario no autenticado');
         }
-
         DB::beginTransaction();
-
         try {
-
             $clienteId = $request->input('id');
             if ($clienteId == '0') {
                 $user = new User();
-                
-
                 $user->email = $request->input('email');
-                $user->password = Hash::make(
-                    $request->input('password', '12345678')
-                );
+                $user->password = Hash::make($request->input('password', '12345678'));
                 $user->nombres = $request->input('nombres');
                 $user->ap_paterno = $request->input('ap_paterno');
                 $user->ap_materno = $request->input('ap_materno');
                 $user->cedula = $request->input('cedula');
                 $user->celular = $request->input('celular');
-
                 $user->usuario_creador_id = $usuario->id;
-
                 $user->save();
-
                 $cliente = new Cliente();
-
                 $cliente->user_id = $user->id;
                 $cliente->nit = $request->input('nit');
                 $cliente->direccion = $request->input('direccion');
                 $cliente->razon_social = $request->input('razon_social');
                 $cliente->estado = 'ACTIVO';
                 $cliente->usuario_creador_id = $usuario->id;
-
                 $cliente->save();
-
-            /*
-             * EDITAR
-             */
             } else {
-
                 $cliente = Cliente::with('user')->find($clienteId);
-
                 if (!$cliente) {
                     DB::rollBack();
-
                     return Respuesta::error(
                         null,
                         'Cliente no encontrado'
                     );
                 }
-
                 $user = $cliente->user;
-
                 if (!$user) {
                     DB::rollBack();
-
                     return Respuesta::error(
                         null,
                         'El cliente no tiene un usuario asociado'
@@ -130,31 +107,21 @@ class ClienteController extends Controller
                 $user->cedula = $request->input('cedula');
                 $user->celular = $request->input('celular');
                 $user->email = $request->input('email');
-
                 $user->usuario_modificador_id = $usuario->id;
-
                 $user->save();
-
                 $cliente->nit = $request->input('nit');
                 $cliente->direccion = $request->input('direccion');
                 $cliente->razon_social = $request->input('razon_social');
-
                 $cliente->usuario_modificador_id = $usuario->id;
-
                 $cliente->save();
             }
-
             DB::commit();
-
             return Respuesta::success(
                 null,
                 'Cliente guardado correctamente'
             );
-
         } catch (\Throwable $e) {
-
             DB::rollBack();
-
             return Respuesta::error(
                 null,
                 $e->getMessage()
@@ -169,24 +136,17 @@ class ClienteController extends Controller
         }
 
         $clienteId = $request->input('cliente');
-
         $usuario = Auth::user();
-
         if (!$usuario) {
             return Respuesta::error(null, 'Usuario no autenticado');
         }
-
         $cliente = Cliente::find($clienteId);
-
         if (!$cliente) {
             return Respuesta::error(null, 'Cliente no encontrado');
         }
-
         $cliente->usuario_eliminador_id = $usuario->id;
         $cliente->save();
-
         $cliente->delete();
-
         return Respuesta::success(
             null,
             'Cliente eliminado correctamente'

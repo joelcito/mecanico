@@ -52,7 +52,6 @@
                     <label class="fw-bold text-muted">
                         Cédula
                     </label>
-
                     <div class="fs-6">
                         {{ $orden->vehiculo->cliente->user->cedula ?? '-' }}
                     </div>
@@ -62,7 +61,6 @@
                     <label class="fw-bold text-muted">
                         Vehículo
                     </label>
-
                     <div class="fs-6">
                         {{ $orden->vehiculo->marca->nombre ?? '-' }}
                         {{ $orden->vehiculo->modelo }}
@@ -149,10 +147,8 @@
             </div>
         </div>
     @endif
-
     <form method="POST" action="{{ route('ordenServicio.cotizacion.guardar', $orden->id) }}">
-        @csrf
-
+    @csrf
         <div class="card shadow-sm mb-5">
             <div class="card-header">
                 <div class="card-title">
@@ -202,7 +198,6 @@
                         </tbody>
                     </table>
                 </div>
-
                 <div class="mt-5">
                     <label class="form-label fw-bold">
                         Observaciones
@@ -216,8 +211,6 @@
                 </div>
             </div>
         </div>
-
-
         <div class="row justify-content-end">
             <div class="col-md-5">
                 <div class="card shadow-sm">
@@ -233,8 +226,6 @@
                                 </span>
                             </span>
                         </div>
-
-
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <label
                                 for="descuento"
@@ -257,7 +248,6 @@
                                     step="0.01">
                             </div>
                         </div>
-
                         <div class="separator my-4"></div>
                         <div class="d-flex justify-content-between">
                             <span class="fs-3 fw-bold">
@@ -395,11 +385,13 @@ function agregarDetalle() {
         </tr>
     `;
 
-    $('#detalleContainer').append(fila);
-    configurarFila(
-        $('#detalleContainer tr').last()
-    );
-    calcularTotales();
+   $('#detalleContainer').append(fila);
+        const nuevaFila = $('#detalleContainer tr').last();
+        configurarFila(nuevaFila);
+        nuevaFila
+            .find('.tipo-detalle')
+            .trigger('change');
+        calcularTotales();
 }
 
 
@@ -416,31 +408,25 @@ function configurarFila(fila) {
                 .removeClass('d-none');
             fila.find('.servicio-container')
                 .addClass('d-none');
-
-            descripcionServicio.prop(
-                'disabled',
-                true
-            );
-
-            producto.prop(
-                'disabled',
-                false
-            );
+            producto.prop('disabled', false);
+            descripcionServicio
+                .prop('disabled', true)
+                .val('');
+            descripcionProducto
+                .prop('disabled', false);
 
         } else {
             fila.find('.producto-container')
                 .addClass('d-none');
+
             fila.find('.servicio-container')
                 .removeClass('d-none');
-            producto.prop(
-                'disabled',
-                true
-            );
-            descripcionServicio.prop(
-                'disabled',
-                false
-            );
-            descripcionProducto.val('');
+            producto.prop('disabled', true);
+            descripcionServicio
+                .prop('disabled', false);
+            descripcionProducto
+                .prop('disabled', true)
+                .val('');
         }
 
     });
@@ -551,18 +537,10 @@ function calcularTotales() {
     );
 }
 
-/*
-|--------------------------------------------------------------------------
-| Agregar detalle
-|--------------------------------------------------------------------------
-*/
-
 $('#btnAgregarDetalle').on(
     'click',
     function () {
-
         agregarDetalle();
-
     }
 );
 
@@ -575,16 +553,13 @@ $(document).on(
             .remove();
 
         calcularTotales();
-
     }
 );
 
 $('#descuento').on(
     'input',
     function () {
-
         calcularTotales();
-
     }
 );
 

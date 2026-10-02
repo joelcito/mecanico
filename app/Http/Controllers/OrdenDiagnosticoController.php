@@ -12,9 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class OrdenDiagnosticoController extends Controller
 {
-    /**
-     * Mostrar formulario de diagnóstico.
-     */
+    
     public function crear($id)
     {
         $orden = OrdenServicio::with([
@@ -40,45 +38,26 @@ class OrdenDiagnosticoController extends Controller
         );
     }
 
-    /**
-     * Guardar diagnóstico.
-     */
     public function guardar(Request $request, $id)
     {
         $request->validate([
             'descripcion' => 'required|string',
             'observaciones' => 'nullable|string',
-
             'detalles' => 'required|array|min:1',
-
-            'detalles.*.descripcion' =>
-                'required|string|max:1000',
-
-            'detalles.*.tipo' =>
-                'required|in:HALLAZGO,RECOMENDACION',
-
-            'detalles.*.prioridad' =>
-                'required|in:BAJA,MEDIA,ALTA,CRITICA',
-
-            'detalles.*.observacion' =>
-                'nullable|string|max:1000',
+            'detalles.*.descripcion' => 'required|string|max:1000',
+            'detalles.*.tipo' => 'required|in:HALLAZGO,RECOMENDACION',
+            'detalles.*.prioridad' =>  'required|in:BAJA,MEDIA,ALTA,CRITICA',
+            'detalles.*.observacion' => 'nullable|string|max:1000',
         ]);
-
         try {
-
             DB::beginTransaction();
-
             $orden = OrdenServicio::findOrFail($id);
-
             if ($orden->estado !== 'EN_DIAGNOSTICO') {
                 throw new \Exception(
                     'La orden no se encuentra disponible para diagnóstico.'
                 );
             }
 
-            /*
-             * Crear diagnóstico
-             */
             $diagnostico = OrdenDiagnostico::create([
                 'orden_servicio_id' => $orden->id,
                 'usuario_diagnostico_id' => Auth::id(),
@@ -89,11 +68,8 @@ class OrdenDiagnosticoController extends Controller
                 'usuario_creador_id' => Auth::id(),
             ]);
 
-            /*
-             * Crear detalles
-             */
+    
             foreach ($request->detalles as $detalle) {
-
                 OrdenDiagnosticoDetalle::create([
                     'orden_diagnostico_id' => $diagnostico->id,
                     'descripcion' => $detalle['descripcion'],
@@ -105,16 +81,12 @@ class OrdenDiagnosticoController extends Controller
                 ]);
             }
 
-            /*
-             * Pasar la orden a cotización
-             */
             $orden->update([
                 'estado' => 'EN_COTIZACION',
                 'usuario_modificador_id' => Auth::id(),
             ]);
 
             DB::commit();
-
             return redirect()
                 ->route(
                     'ordenServicio.detalle',
@@ -126,9 +98,7 @@ class OrdenDiagnosticoController extends Controller
                 );
 
         } catch (\Throwable $e) {
-
             DB::rollBack();
-
             return back()
                 ->withInput()
                 ->with(

@@ -9,17 +9,12 @@ use App\Utils\Respuesta;
 
 class MarcaController extends Controller
 {
-    /**
-     * Listar marcas.
-     */
+    
     public function listado()
     {
         return view('marca.listado');
     }
 
-    /**
-     * Listado AJAX.
-     */
     public function ajaxListado(Request $request)
     {
         if (!$request->ajax()) {
@@ -28,16 +23,13 @@ class MarcaController extends Controller
                 'Error al obtener los datos'
             );
         }
-
         $marcas = Marca::whereNull('deleted_at')
             ->orderBy('id', 'desc')
             ->get();
-
         $listado = view(
             'marca.ajaxListado',
             compact('marcas')
         )->render();
-
         return response()->json([
             'estado' => true,
             'data' => [
@@ -46,37 +38,25 @@ class MarcaController extends Controller
         ]);
     }
 
-    /**
-     * Registrar o actualizar marca.
-     */
     public function guardarMarca(Request $request)
     {
         $request->validate([
-    'nombre' => 'required|string|max:255',
-    'descripcion' => 'nullable|string',
-    'tipo' => 'required|in:AUTO,HERRAMIENTA',
-    'estado' => 'nullable|string|max:50',
-]);
-
-        
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'nullable|string',
+            'tipo' => 'required|in:AUTO,HERRAMIENTA',
+            'estado' => 'nullable|string|max:50',
+        ]);
 
         if ($request->id) {
-
-            $marca = Marca::whereNull('deleted_at')
-                ->findOrFail($request->id);
-
+            $marca = Marca::whereNull('deleted_at') ->findOrFail($request->id);
             $marca->nombre = $request->nombre;
             $marca->descripcion = $request->descripcion;
             $marca->tipo = $request->tipo;
-
             if ($request->has('estado')) {
                 $marca->estado = $request->estado;
             }
-
             $marca->usuario_modificador_id = Auth::id();
-
             $marca->save();
-
             return response()->json([
                 'estado' => true,
                 'mensaje' => 'Marca actualizada correctamente.',
@@ -84,39 +64,26 @@ class MarcaController extends Controller
             ]);
         }
 
-        
-
         $marca = new Marca();
-
         $marca->nombre = $request->nombre;
         $marca->descripcion = $request->descripcion;
         $marca->tipo = $request->tipo;
         $marca->estado = $request->estado ?? 'ACTIVO';
         $marca->usuario_creador_id = Auth::id();
-
         $marca->save();
-
         return response()->json([
             'estado' => true,
             'mensaje' => 'Marca registrada correctamente.',
             'data' => $marca
         ]);
     }
-
-    /**
-     * Eliminar marca.
-     */
     public function eliminarMarca(Request $request)
     {
-        $marca = Marca::whereNull('deleted_at')
-            ->findOrFail($request->id);
-
+        $marca = Marca::whereNull('deleted_at') ->findOrFail($request->id);
         $marca->usuario_eliminador_id = Auth::id();
         $marca->deleted_at = now();
         $marca->estado = 'INACTIVO';
-
         $marca->save();
-
         return response()->json([
             'estado' => true,
             'mensaje' => 'Marca eliminada correctamente.'

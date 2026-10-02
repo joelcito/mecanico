@@ -147,25 +147,15 @@
                 ) }}
 
             </div>
-
         </div>
-
     </div>
 
-
     <hr class="my-5">
-
-
-    {{-- MOVIMIENTOS --}}
-
     <div class="d-flex align-items-center justify-content-between mb-5">
-
         <h4 class="fw-bold mb-0">
             Movimientos de Caja
         </h4>
-
     </div>
-
     <div style="overflow-x: auto;">
         <table class="table align-middle table-row-dashed fs-7 gy-4" >
             <thead>
@@ -260,17 +250,11 @@
     </div>
 </div>
 
-
 <div class="modal-footer">
-    <button
-        type="button"
-        class="btn btn-light"
-        data-bs-dismiss="modal"
-    >
+    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
         Cerrar
     </button>
 </div>
-
 
 <script>
     function anularMovimiento(id) {
@@ -290,7 +274,6 @@
                     "{{ url('movimientosCaja') }}/"
                     + id
                     + "/anular",
-
                 method: "POST",
                 success: function (resultado) {
                     if (resultado.estado) {

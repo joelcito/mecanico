@@ -65,15 +65,8 @@
                             <span class="input-group-text">
                                 Bs.
                             </span>
-                            <input
-                                type="number"
-                                class="form-control form-control-sm"
-                                id="monto_apertura"
-                                name="monto_apertura"
-                                min="0"
-                                step="0.01"
-                                value="0"
-                            >
+                            <input type="number" class="form-control form-control-sm"
+                                id="monto_apertura" name="monto_apertura" min="0" step="0.01" value="0" >
                         </div>
                     </div>
                 </form>
@@ -92,15 +85,10 @@
 </div>
 
 <div class="modal fade" id="modalVerCaja" tabindex="-1" aria-hidden="true">
-
     <div class="modal-dialog modal-xl modal-dialog-centered">
-
         <div class="modal-content">
-
         </div>
-
     </div>
-
 </div>
 
 @stop()
@@ -202,16 +190,13 @@
                                 );
                             }
                         } else {
-
                             Swal.fire({
                                 icon: 'warning',
                                 title: 'Atención',
                                 text: xhr.responseJSON?.message ||
                                     'No se pudo abrir la caja.'
                             });
-
                         }
-
                     } else {
                         Swal.fire({
                             icon: 'error',
@@ -227,37 +212,24 @@
             $('.invalid-feedback').remove();
 
         }
-
         function verCaja(id) {
-
-    $.ajax({
-
-        url: "{{ url('cajas') }}/" + id + "/actual",
-
-        method: "GET",
-
-        success: function (resultado) {
-
-            $('#modalVerCaja .modal-content').html(resultado);
-
-            $('#modalVerCaja').modal('show');
-
-        },
-
-        error: function (xhr) {
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: xhr.responseJSON?.message ||
-                    'No se pudo obtener la información de la caja.'
+            $.ajax({
+                url: "{{ url('cajas') }}/" + id + "/actual",
+                method: "GET",
+                success: function (resultado) {
+                    $('#modalVerCaja .modal-content').html(resultado);
+                    $('#modalVerCaja').modal('show');
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.responseJSON?.message ||
+                            'No se pudo obtener la información de la caja.'
+                    });
+                }
             });
-
         }
-
-    });
-
-}
 
         function cerrarCaja(id) {
             Swal.fire({

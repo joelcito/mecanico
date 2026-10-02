@@ -13,17 +13,14 @@ use App\Models\OrdenCotizacion;
 
 class OrdenServicioController extends Controller
 {
-    
     public function listado()
     {
         return view('ordenServicio.listado');
     }
 
-    
     public function ajaxListado(Request $request)
 {
     if (!$request->ajax()) {
-
         return response()->json(
             Respuesta::error(
                 null,
@@ -72,9 +69,7 @@ class OrdenServicioController extends Controller
         );
     }
 
-    /**
-     * Guardar recepción
-     */
+   
     public function guardar(Request $request)
     {
         $request->validate([
@@ -89,14 +84,9 @@ class OrdenServicioController extends Controller
         try {
 
             DB::beginTransaction();
-
-            /*
-             * Generar número de orden
-             */
             $ultimaOrden = OrdenServicio::withTrashed()
                 ->orderByDesc('id')
                 ->first();
-
             $siguienteNumero = $ultimaOrden
                 ? $ultimaOrden->id + 1
                 : 1;
@@ -121,7 +111,6 @@ class OrdenServicioController extends Controller
             ]);
 
             DB::commit();
-
             return response()->json(
                 Respuesta::success(
                     $orden,
@@ -130,9 +119,7 @@ class OrdenServicioController extends Controller
             );
 
         } catch (\Throwable $e) {
-
             DB::rollBack();
-
             return response()->json(
                 Respuesta::error(
                     null,
@@ -143,21 +130,14 @@ class OrdenServicioController extends Controller
         }
     }
 
-
     public function detalle($id)
     {
         $orden = OrdenServicio::with([
             'vehiculo.cliente.user',
             'vehiculo.marca',
-
-            // Inspección
             'inspeccionActual.detalles',
             'inspeccionActual.fotos',
-
-            // Diagnóstico
             'diagnosticoActual.detalles',
-
-            // Cotización
             'cotizacionActual.detalles.producto',
         ])->findOrFail($id);
 
@@ -172,7 +152,6 @@ class OrdenServicioController extends Controller
     {
         try {
             DB::beginTransaction();
-
             $cotizacion = \App\Models\OrdenCotizacion::where(
                 'orden_servicio_id',
                 $id
@@ -185,14 +164,12 @@ class OrdenServicioController extends Controller
                     'La orden no tiene una cotización registrada.'
                 );
             }
-
             if ($cotizacion->estado !== 'PENDIENTE') {
                 throw new \Exception(
                     'La cotización ya fue respondida. Estado actual: ' .
                     $cotizacion->estado
                 );
             }
-
             $cotizacion->update([
                 'estado' => 'APROBADA',
                 'fecha_respuesta' => now(),
@@ -201,14 +178,12 @@ class OrdenServicioController extends Controller
             ]);
 
             $orden = OrdenServicio::findOrFail($id);
-
             $orden->update([
                 'estado' => 'AUTORIZADO',
                 'usuario_modificador_id' => Auth::id(),
             ]);
 
             DB::commit();
-
             return response()->json(
                 Respuesta::success(
                     $cotizacion,
@@ -218,7 +193,6 @@ class OrdenServicioController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
-
             return response()->json(
                 Respuesta::error(
                     null,
@@ -234,10 +208,8 @@ class OrdenServicioController extends Controller
         $request->validate([
             'observacion_respuesta' => 'required|string|max:1000',
         ]);
-
         try {
             DB::beginTransaction();
-
             $cotizacion = \App\Models\OrdenCotizacion::where(
                 'orden_servicio_id',
                 $id
@@ -255,14 +227,11 @@ class OrdenServicioController extends Controller
             ]);
 
             $orden = OrdenServicio::findOrFail($id);
-
             $orden->update([
                 'estado' => 'EN_COTIZACION',
                 'usuario_modificador_id' => Auth::id(),
             ]);
-
             DB::commit();
-
             return response()->json(
                 Respuesta::success(
                     $cotizacion,
@@ -272,7 +241,6 @@ class OrdenServicioController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
-
             return response()->json(
                 Respuesta::error(
                     null,
@@ -283,33 +251,26 @@ class OrdenServicioController extends Controller
         }
     }
 
-
     public function iniciarReparacion($id)
     {
         try {
-
             $orden = OrdenServicio::findOrFail($id);
-
             if ($orden->estado !== 'AUTORIZADO') {
                 return response()->json([
                     'estado' => false,
                     'message' => 'La orden debe estar autorizada para iniciar la reparación.'
                 ], 422);
             }
-
             $orden->update([
                 'estado' => 'EN_REPARACION',
                 'usuario_modificador_id' => Auth::id(),
             ]);
-
             return response()->json([
                 'estado' => true,
                 'message' => 'La reparación fue iniciada correctamente.',
                 'data' => $orden
             ]);
-
         } catch (\Throwable $e) {
-
             return response()->json([
                 'estado' => false,
                 'message' => 'No se pudo iniciar la reparación: ' . $e->getMessage()

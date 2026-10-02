@@ -107,9 +107,7 @@ class VehiculoController extends Controller
             'estado' => 'estado',
         ]);
 
-        // Normalizar datos
         $placa = strtoupper(trim($request->placa));
-
         $vin = $request->vin
             ? strtoupper(trim($request->vin))
             : null;
@@ -165,7 +163,6 @@ class VehiculoController extends Controller
             $vehiculo->placa = $placa;
             $vehiculo->color = $request->color;
             $vehiculo->tipo_vehiculo = $request->tipo_vehiculo;
-          
             $vehiculo->vin = $vin;
             $vehiculo->numero_motor = $request->numero_motor;
             $vehiculo->tipo_propulsion = $request->tipo_propulsion;
@@ -215,9 +212,7 @@ class VehiculoController extends Controller
             }
         }
 
-
         $vehiculo = new Vehiculo();
-
         $vehiculo->cliente_id = $request->cliente_id;
         $vehiculo->marca_id = $request->marca_id;
         $vehiculo->modelo = $request->modelo;
@@ -230,9 +225,7 @@ class VehiculoController extends Controller
         $vehiculo->observaciones = $request->observaciones;
         $vehiculo->estado = 'ACTIVO';
         $vehiculo->usuario_creador_id = Auth::id();
-
         $vehiculo->save();
-
         return response()->json(
             Respuesta::success(
                 $vehiculo,
@@ -259,7 +252,6 @@ class VehiculoController extends Controller
         $vehiculo->usuario_eliminador_id = Auth::id();
         $vehiculo->deleted_at = now();
         $vehiculo->estado = 'INACTIVO';
-
         $vehiculo->save();
 
         return response()->json(

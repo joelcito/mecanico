@@ -183,9 +183,7 @@ class MovimientoCajaController extends Controller
 
     public function anular($id)
     {
-        $movimiento = MovimientoCaja::with('caja')
-            ->findOrFail($id);
-
+        $movimiento = MovimientoCaja::with('caja') ->findOrFail($id);
         if ($movimiento->estado !== 'ACTIVO') {
             return response()->json([
                 'estado' => false,
@@ -244,8 +242,4 @@ class MovimientoCajaController extends Controller
             ], 500);
         }
     }
-
-
-
-
 }

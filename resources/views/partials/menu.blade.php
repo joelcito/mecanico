@@ -136,6 +136,18 @@
                             </div>
 
                             <div class="menu-item">
+                                <a class="menu-link {{ Route::currentRouteName() == 'herramienta.listado' ? 'active' : '' }}"
+                                    href="{{ route('herramienta.listado') }}">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title text-white">
+                                        Herramientas
+                                    </span>
+                                </a>
+                            </div>
+
+                            <div class="menu-item">
                                 <a class="menu-link {{ Route::currentRouteName() == 'ordenesServicio.listado' ? 'active' : '' }}"
                                     href="{{ route('ordenServicio.listado') }}">
                                     <span class="menu-bullet">

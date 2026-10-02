@@ -9,9 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class MovimientoInventario extends Model
 {
     use HasFactory, SoftDeletes;
-
     protected $table = 'movimientos_inventario';
-
     protected $fillable = [
         'producto_id',
         'tipo',

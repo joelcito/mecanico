@@ -15,9 +15,6 @@ use App\Models\ChecklistItem;
 
 class OrdenInspeccionController extends Controller
 {
-    /**
-     * Mostrar formulario de inspección.
-     */
     public function crear($id)
 {
     $orden = OrdenServicio::with([
@@ -43,14 +40,12 @@ class OrdenInspeccionController extends Controller
     }
 
     $vehiculo = $orden->vehiculo;
-
     $items = ChecklistItem::where(
         'tipo_vehiculo',
         $vehiculo->tipo_vehiculo
     )
     ->where('estado', 'ACTIVO')
     ->where(function ($query) use ($vehiculo) {
-
         $query->whereNull('tipo_propulsion')
             ->orWhere(
                 'tipo_propulsion',
@@ -62,7 +57,6 @@ class OrdenInspeccionController extends Controller
     ->get()
     ->unique('nombre')
     ->values();
-
     return view(
         'ordenServicio.inspeccion',
         compact(
@@ -91,9 +85,7 @@ class OrdenInspeccionController extends Controller
         ]);
 
         DB::beginTransaction();
-
         $orden = OrdenServicio::findOrFail($id);
-
         if (!in_array($orden->estado, [
             'RECIBIDO',
             'EN_INSPECCION',
@@ -113,13 +105,10 @@ class OrdenInspeccionController extends Controller
         ]);
 
         foreach ($request->items as $checklistId => $datos) {
-
             $checklistItem = ChecklistItem::find($checklistId);
-
             if (!$checklistItem) {
                 continue;
             }
-
             OrdenInspeccionDetalle::create([
                 'orden_inspeccion_id' => $inspeccion->id,
                 'item' => $checklistItem->nombre,
@@ -131,18 +120,14 @@ class OrdenInspeccionController extends Controller
         }
 
         if ($request->hasFile('fotos')) {
-
             foreach ($request->file('fotos') as $foto) {
-
                 if (!$foto) {
                     continue;
                 }
-
                 $ruta = $foto->store(
                     'ordenes/' . $orden->id . '/inspeccion',
                     'public'
                 );
-
                 OrdenFoto::create([
                     'orden_servicio_id' => $orden->id,
                     'orden_inspeccion_id' => $inspeccion->id,
@@ -161,7 +146,6 @@ class OrdenInspeccionController extends Controller
         ]);
 
         DB::commit();
-
         return redirect()
             ->route('ordenServicio.detalle', $orden->id)
             ->with(
@@ -170,9 +154,7 @@ class OrdenInspeccionController extends Controller
             );
 
     } catch (\Throwable $e) {
-
         DB::rollBack();
-
         return back()
             ->withInput()
             ->with(

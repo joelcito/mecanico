@@ -1,9 +1,6 @@
 @extends('layouts.app')
 @section('css')
-    <link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}"
-        rel="stylesheet"
-        type="text/css"  />
-
+    <link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css"  />
     <style>
         .tamanio_boton {
             font-size: 6px;
@@ -15,8 +12,6 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 @endsection
 @section('content')
-<!-- MODAL CLIENTE -->
-
 <div class="modal fade" id="modalCliente" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -36,7 +31,6 @@
                 <form id="formularioCliente">
                     <input type="hidden" name="id" id="id" value="0">
                     <div class="row">
-                     
                         <div class="col-md-6">
                             <div class="fv-row mb-7">
                                 <label class="required fw-semibold fs-6 mb-2">
@@ -45,49 +39,29 @@
                                 <input type="text" class="form-control form-control-sm" id="nombres" name="nombres" >
                             </div>
                         </div>
-
-                        <!-- APELLIDO PATERNO -->
-
                         <div class="col-md-6">
                             <div class="fv-row mb-7">
                                 <label class="fw-semibold fs-6 mb-2">
                                     Apellido Paterno
                                 </label>
-                                <input
-                                    type="text"
-                                    class="form-control form-control-sm"
-                                    id="ap_paterno"
-                                    name="ap_paterno"
-                                >
+                                <input type="text" class="form-control form-control-sm" id="ap_paterno" name="ap_paterno" >
                             </div>
                         </div>
-
                         <div class="col-md-6">
                             <div class="fv-row mb-7">
                                 <label class="fw-semibold fs-6 mb-2">
                                     Apellido Materno
                                 </label>
-                                <input
-                                    type="text"
-                                    class="form-control form-control-sm"
-                                    id="ap_materno"
-                                    name="ap_materno"
-                                >
+                                <input  type="text" class="form-control form-control-sm" id="ap_materno" name="ap_materno">
                             </div>
                         </div>
-                        <!-- CEDULA -->
+  
                         <div class="col-md-6">
                             <div class="fv-row mb-7">
                                 <label class="fw-semibold fs-6 mb-2">
                                     C.I.
                                 </label>
-                                <input
-                                    type="text"
-                                    class="form-control form-control-sm"
-                                    id="cedula"
-                                    name="cedula"
-                                >
-
+                                <input type="text" class="form-control form-control-sm" id="cedula" name="cedula" >
                             </div>
                         </div>
 
@@ -96,12 +70,7 @@
                                 <label class="fw-semibold fs-6 mb-2">
                                     Celular
                                 </label>
-                                <input
-                                    type="text"
-                                    class="form-control form-control-sm"
-                                    id="celular"
-                                    name="celular"
-                                >
+                                <input type="text" class="form-control form-control-sm" id="celular" name="celular">
                             </div>
                         </div>
 
@@ -110,12 +79,7 @@
                                 <label class="fw-semibold fs-6 mb-2">
                                     NIT
                                 </label>
-                                <input
-                                    type="text"
-                                    class="form-control form-control-sm"
-                                    id="nit"
-                                    name="nit"
-                                >
+                                <input type="text" class="form-control form-control-sm" id="nit" name="nit">
                             </div>
                         </div>
 
@@ -124,12 +88,7 @@
                                 <label class="fw-semibold fs-6 mb-2">
                                     Dirección
                                 </label>
-                                <input
-                                    type="text"
-                                    class="form-control form-control-sm"
-                                    id="direccion"
-                                    name="direccion"
-                                >
+                                <input type="text" class="form-control form-control-sm" id="direccion" name="direccion">
 
                             </div>
                         </div>
@@ -139,12 +98,7 @@
                                 <label class="required fw-semibold fs-6 mb-2">
                                     Correo electrónico
                                 </label>
-                                <input
-                                    type="email"
-                                    class="form-control form-control-sm"
-                                    id="email"
-                                    name="email"
-                                >
+                                <input type="email" class="form-control form-control-sm" id="email" name="email">
                             </div>
                         </div>
 
@@ -153,12 +107,7 @@
                                 <label class="fw-semibold fs-6 mb-2">
                                     Contraseña
                                 </label>
-                                <input
-                                    type="password"
-                                    class="form-control form-control-sm"
-                                    id="password"
-                                    name="password"
-                                >
+                                <input type="password" class="form-control form-control-sm" id="password" name="password">
                             </div>
                         </div>
                     </div>
@@ -180,17 +129,12 @@
     </div>
 </div>
 
-
-<!-- LISTADO -->
-
 <div class="d-flex flex-column flex-column-fluid">
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container"
             class="app-container container-xxlg">
             <div class="card shadow-sm">
-
                 <div class="card-header bg-light-info py-4 d-flex align-items-center justify-content-between">
-
                     <h3 class="card-title fw-bold">
                         Listado de Clientes
                     </h3>
@@ -217,14 +161,10 @@
 
 @stop()
 @section('js')
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
-
 <script>
-
     $.ajaxSetup({
-
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
@@ -268,12 +208,10 @@
     }
 
     function modalNuevoCliente() {
-
         $('#formularioCliente')[0].reset();
         $('#id').val(0);
         limpiarErorres();
         $('#modalCliente').modal('show');
-
     }
 
 
@@ -325,20 +263,12 @@
                         text: 'Ocurrió un error inesperado.'
 
                     });
-
                 }
-
             }
-
         });
-
     }
 
-
-    
-
     function editarCliente(cliente) {
-
         $('#id').val(cliente.id);
         $('#nit').val(cliente.nit);
         $('#direccion').val(cliente.direccion);
@@ -353,7 +283,6 @@
         $('#modalCliente').modal('show');
     }
 
-
     function eliminarCliente(cliente, nombre) {
         Swal.fire({
             title: "¿Quieres eliminar a " + nombre + "?",
@@ -367,7 +296,6 @@
             reverseButtons: true
 
         }).then((result) => {
-
             if (result.isConfirmed) {
                 $.ajax({
                     url: "{{ route('cliente.eliminar') }}",
@@ -375,7 +303,6 @@
                     data: {
                         cliente: cliente
                     },
-
                     success: function (resultado) {
                         if (resultado.estado) {
                             ajaxListado();
@@ -392,31 +319,22 @@
                             );
                         }
                     },
-
                     error: function (xhr) {
                         console.log(xhr.responseText);
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
                             text: 'Ocurrió un error inesperado.'
-
                         });
-
                     }
-
                 });
-
             }
-
         });
-
     }
 
     function limpiarErorres() {
         $('.is-invalid').removeClass('is-invalid');
         $('.invalid-feedback').remove();
     }
-
 </script>
-
 @endsection

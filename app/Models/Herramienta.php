@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Producto extends Model
+class Herramienta extends Model
 {
-    protected $table = 'productos';
+    protected $table = 'herramientas';
 
     protected $fillable = [
         'codigo',
@@ -32,8 +33,6 @@ class Producto extends Model
         'deleted_at' => 'datetime',
     ];
 
-  
-
     public function categoria(): BelongsTo
     {
         return $this->belongsTo(Categoria::class, 'categoria_id');
@@ -44,29 +43,23 @@ class Producto extends Model
         return $this->belongsTo(Marca::class, 'marca_id');
     }
 
-    public function usuarioCreador()
+    public function usuarioCreador(): BelongsTo
     {
         return $this->belongsTo(User::class, 'usuario_creador_id');
     }
 
-    public function usuarioModificador()
+    public function usuarioModificador(): BelongsTo
     {
         return $this->belongsTo(User::class, 'usuario_modificador_id');
     }
 
-    public function usuarioEliminador()
+    public function usuarioEliminador(): BelongsTo
     {
         return $this->belongsTo(User::class, 'usuario_eliminador_id');
     }
 
-    public function reparacionDetalles()
+    public function asignacionesHerramientas(): HasMany
     {
-        return $this->hasMany(ReparacionDetalle::class, 'producto_id');
+        return $this->hasMany(AsignacionHerramienta::class, 'herramienta_id');
     }
-
-    public function movimientosInventario()
-    {
-        return $this->hasMany(MovimientoInventario::class, 'producto_id');
-    }
-
 }

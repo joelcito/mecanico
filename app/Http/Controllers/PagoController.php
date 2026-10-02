@@ -18,9 +18,6 @@ class PagoController extends Controller
         return view('pagos.listado');
     }
 
-    /**
-     * Carga el listado vía AJAX.
-     */
     public function ajaxListado(Request $request)
     {
         try {
@@ -64,52 +61,37 @@ class PagoController extends Controller
             ->get();
 
         $ordenesDisponibles = $ordenes->filter(function ($orden) {
+        $cotizacion = $orden->cotizacionActual;
 
-            $cotizacion = $orden->cotizacionActual;
-
-            // Debe tener cotización
             if (!$cotizacion) {
                 return false;
             }
 
-            // La cotización debe estar aprobada
             if ($cotizacion->estado !== 'APROBADA') {
                 return false;
             }
 
             $total = (float) $cotizacion->total;
-
-            // Total pagado
             $pagado = (float) $orden->pagos()
                 ->where('estado', 'ACTIVO')
                 ->sum('monto');
-
-            // Saldo
             $saldo = $total - $pagado;
-
-            // Solo mostrar si todavía debe dinero
             return $saldo > 0;
         })->map(function ($orden) {
-
             $cotizacion = $orden->cotizacionActual;
-
             $total = (float) $cotizacion->total;
-
             $pagado = (float) $orden->pagos()
                 ->where('estado', 'ACTIVO')
                 ->sum('monto');
 
             $saldo = max(0, $total - $pagado);
-
             return [
                 'id' => $orden->id,
                 'numero_orden' => $orden->numero_orden,
-
                 'vehiculo' => $orden->vehiculo ? [
                     'id' => $orden->vehiculo->id,
                     'placa' => $orden->vehiculo->placa ?? '',
                 ] : null,
-
                 'total' => $total,
                 'pagado' => $pagado,
                 'saldo' => $saldo,
@@ -168,13 +150,10 @@ class PagoController extends Controller
         ], [
             'orden_servicio_id.required' => 'Debe seleccionar una orden de servicio.',
             'orden_servicio_id.exists' => 'La orden seleccionada no existe.',
-
             'caja_id.required' => 'Debe seleccionar una caja.',
             'caja_id.exists' => 'La caja seleccionada no existe.',
-
             'tipo_pago.required' => 'Debe seleccionar el método de pago.',
             'tipo_pago.in' => 'El método de pago no es válido.',
-
             'cambio.numeric' => 'El cambio debe ser numérico.',
             'cambio.min' => 'El cambio no puede ser negativo.',
         ]);
@@ -198,7 +177,6 @@ class PagoController extends Controller
         }
 
         $caja = Caja::findOrFail($request->caja_id);
-
         if ($caja->estado !== 'ABIERTA') {
             return response()->json([
                 'estado' => false,
@@ -207,15 +185,12 @@ class PagoController extends Controller
         }
 
         $total = (float) $orden->cotizacionActual->total;
-
         $pagado = (float) $orden->pagos()
             ->where('estado', 'ACTIVO')
             ->sum('monto');
 
         $saldo = max(0, $total - $pagado);
-
         $montoRecibido = (float) $request->monto_recibido;
-
         if ($montoRecibido <= 0) {
             return response()->json([
                 'estado' => false,
@@ -223,29 +198,18 @@ class PagoController extends Controller
             ], 422);
         }
 
-        // El pago real nunca puede superar el saldo pendiente.
         $monto = min($montoRecibido, $saldo);
-
         $cambio = 0;
-
-        // El cambio solo aplica para efectivo.
         if ($request->tipo_pago === 'EFECTIVO') {
             $cambio = max(0, $montoRecibido - $monto);
         }
 
-        /*
-         * El cambio solo corresponde a efectivo.
-         */
         if ($request->tipo_pago !== 'EFECTIVO') {
             $cambio = 0;
         }
-
         DB::beginTransaction();
-
         try {
-
             $usuarioId = Auth::id();
-
             $pago = Pago::create([
                 'orden_servicio_id' => $orden->id,
                 'caja_id' => $caja->id,
@@ -259,7 +223,6 @@ class PagoController extends Controller
                 'estado' => 'ACTIVO',
                 'usuario_creador_id' => $usuarioId,
             ]);
-
             MovimientoCaja::create([
                 'caja_id' => $caja->id,
                 'pago_id' => $pago->id,
@@ -272,14 +235,10 @@ class PagoController extends Controller
                 'estado' => 'ACTIVO',
                 'usuario_creador_id' => $usuarioId,
             ]);
-
             $caja->increment('total_ingresos', $monto);
-
             DB::commit();
-
             $nuevoPagado = $pagado + $monto;
             $nuevoSaldo = max(0, $total - $nuevoPagado);
-
             if ($nuevoPagado <= 0) {
                 $estadoPago = 'SIN_PAGO';
             } elseif ($nuevoPagado < $total) {
@@ -301,9 +260,7 @@ class PagoController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-
             DB::rollBack();
-
             return response()->json([
                 'estado' => false,
                 'message' => $e->getMessage()
@@ -311,9 +268,6 @@ class PagoController extends Controller
         }
     }
 
-    /**
-     * Ver un pago.
-     */
     public function actual($id)
     {
         $pago = Pago::with([
@@ -328,9 +282,6 @@ class PagoController extends Controller
         return view('pagos.actual', compact('pago'));
     }
 
-    /**
-     * Anular un pago.
-     */
     public function anular($id)
     {
         $pago = Pago::with([
@@ -364,35 +315,26 @@ class PagoController extends Controller
         DB::beginTransaction();
 
         try {
-
             $usuarioId = Auth::id();
-
             $pago->update([
                 'estado' => 'ANULADO',
                 'usuario_modificador_id' => $usuarioId,
             ]);
-
             if ($pago->movimientoCaja) {
-
                 $pago->movimientoCaja->update([
                     'estado' => 'ANULADO',
                     'usuario_modificador_id' => $usuarioId,
                 ]);
             }
-
             $caja->decrement('total_ingresos', $pago->monto);
-
             DB::commit();
-
             return response()->json([
                 'estado' => true,
                 'message' => 'El pago fue anulado correctamente.'
             ]);
 
         } catch (\Throwable $e) {
-
             DB::rollBack();
-
             return response()->json([
                 'estado' => false,
                 'message' => $e->getMessage()

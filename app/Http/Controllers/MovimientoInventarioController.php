@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\DB;
 
 class MovimientoInventarioController extends Controller
 {
-    
     public function guardarIngreso(Request $request)
     {
         $request->validate([
@@ -71,7 +70,6 @@ class MovimientoInventarioController extends Controller
             ]);
 
             DB::commit();
-
             return response()->json([
                 'estado' => true,
                 'message' => 'Ingreso registrado correctamente.',
@@ -84,7 +82,6 @@ class MovimientoInventarioController extends Controller
         } catch (\Throwable $e) {
 
             DB::rollBack();
-
             return response()->json([
                 'estado' => false,
                 'message' => $e->getMessage()
@@ -139,7 +136,6 @@ class MovimientoInventarioController extends Controller
         }
 
         $stockNuevo = $stockAnterior - $cantidad;
-
         $movimiento = MovimientoInventario::create([
             'producto_id' => $producto->id,
             'tipo' => 'SALIDA',
@@ -159,7 +155,6 @@ class MovimientoInventarioController extends Controller
         ]);
 
         DB::commit();
-
         return response()->json([
             'estado' => true,
             'message' => 'Salida registrada correctamente.',
@@ -171,7 +166,6 @@ class MovimientoInventarioController extends Controller
 
     } catch (\Throwable $e) {
         DB::rollBack();
-
         return response()->json([
             'estado' => false,
             'message' => $e->getMessage()

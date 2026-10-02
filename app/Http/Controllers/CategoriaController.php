@@ -9,9 +9,6 @@ use App\Utils\Respuesta;
 
 class CategoriaController extends Controller
 {
-    /**
-     * Listar categorías.
-     */
    public function listado()
 {
     return view('categoria.listado');
@@ -42,37 +39,37 @@ public function ajaxListado(Request $request)
             ]
         ]);
     }
-
-
-
     public function guardarCategoria(Request $request)
     {
-        $request->validate([
+    $request->validate([
     'nombre' => 'required|string|max:255',
     'descripcion' => 'nullable|string',
-    'tipo' => 'required|in:AUTO,HERRAMIENTA',
+    'tipo' => 'required|in:PRODUCTO,HERRAMIENTA',
     'estado' => 'nullable|string|max:50',
 ]);
-
-        
-
         if ($request->id) {
+            $categoria = Categoria::whereNull('deleted_at')->findOrFail($request->id);
 
-            $categoria = Categoria::whereNull('deleted_at')
-                ->findOrFail($request->id);
+            if (
+                $categoria->tipo !== $request->tipo &&
+                (($request->tipo === 'HERRAMIENTA' && $categoria->productos()->whereNull('deleted_at')->exists()) ||
+                    ($request->tipo === 'PRODUCTO' && $categoria->herramientas()->whereNull('deleted_at')->exists()))
+            ) {
+                return response()->json([
+                    'estado' => false,
+                    'message' => 'No se puede cambiar el tipo de una categoría con registros activos asociados.',
+                ], 422);
+            }
 
             $categoria->nombre = $request->nombre;
             $categoria->descripcion = $request->descripcion;
             $categoria->tipo = $request->tipo;
-
             if ($request->has('estado')) {
                 $categoria->estado = $request->estado;
             }
 
             $categoria->usuario_modificador_id = Auth::id();
-
             $categoria->save();
-
             return response()->json([
                 'estado' => true,
                 'mensaje' => 'Categoría actualizada correctamente.',
@@ -80,18 +77,13 @@ public function ajaxListado(Request $request)
             ]);
         }
 
-        
-
         $categoria = new Categoria();
-
         $categoria->nombre = $request->nombre;
         $categoria->descripcion = $request->descripcion;
         $categoria->tipo = $request->tipo;
         $categoria->estado = $request->estado ?? 'ACTIVO';
         $categoria->usuario_creador_id = Auth::id();
-
         $categoria->save();
-
         return response()->json([
             'estado' => true,
             'mensaje' => 'Categoría registrada correctamente.',
@@ -99,20 +91,13 @@ public function ajaxListado(Request $request)
         ]);
     }
 
-    /**
-     * Eliminar categoría.
-     */
     public function eliminarCategoria(Request $request)
     {
-        $categoria = Categoria::whereNull('deleted_at')
-            ->findOrFail($request->id);
-
+        $categoria = Categoria::whereNull('deleted_at')->findOrFail($request->id);
         $categoria->usuario_eliminador_id = Auth::id();
         $categoria->deleted_at = now();
         $categoria->estado = 'INACTIVO';
-
         $categoria->save();
-
         return response()->json([
             'estado' => true,
             'mensaje' => 'Categoría eliminada correctamente.'

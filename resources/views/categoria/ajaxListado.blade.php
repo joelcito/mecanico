@@ -52,10 +52,8 @@
         </tbody>
     </table>
 </div>
-
 <script>
     $(document).ready(function () {
-
         $('#kt_table_categorias').DataTable({
             lengthMenu: [10, 25, 50, 100],
             dom: '<"dt-head row"<"col-md-6"l><"col-md-6"f>><"clear">t<"dt-footer row"<"col-md-5"i><"col-md-7"p>>',

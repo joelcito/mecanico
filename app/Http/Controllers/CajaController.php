@@ -17,25 +17,17 @@ class CajaController extends Controller
     public function ajaxListado(Request $request)
     {
         try {
-
-            $cajas = Caja::with([
-                'usuario',
-                'sucursal'
-            ])
+            $cajas = Caja::with(['usuario', 'sucursal'])
             ->orderByDesc('id')
             ->get();
 
             $listado = view('cajas.ajaxListado', compact('cajas'))->render();
-
             return response()->json([
                 'estado' => true,
-                'data' => [
-                    'listado' => $listado
-                ]
+                'data' => ['listado' => $listado ]
             ]);
 
         } catch (\Throwable $e) {
-
             return response()->json([
                 'estado' => false,
                 'message' => $e->getMessage()
@@ -69,7 +61,6 @@ class CajaController extends Controller
         ]);
 
         $usuarioId = Auth::id();
-
         $cajaAbierta = Caja::where('usuario_id', $usuarioId)
             ->where('sucursal_id', $request->sucursal_id)
             ->where('estado', 'ABIERTA')
@@ -89,28 +80,21 @@ class CajaController extends Controller
             Caja::create([
                 'usuario_id' => $usuarioId,
                 'sucursal_id' => $request->sucursal_id,
-
                 'monto_apertura' => $request->monto_apertura,
                 'total_ingresos' => 0,
                 'total_egresos' => 0,
-
                 'fecha_apertura' => now(),
                 'estado' => 'ABIERTA',
-
                 'usuario_creador_id' => $usuarioId,
             ]);
-
             DB::commit();
-
             return response()->json([
                 'estado' => true,
                 'message' => 'La caja fue abierta correctamente.'
             ]);
 
         } catch (\Throwable $e) {
-
             DB::rollBack();
-
             return response()->json([
                 'estado' => false,
                 'message' => $e->getMessage()

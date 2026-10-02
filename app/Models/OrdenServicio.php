@@ -44,27 +44,20 @@ class OrdenServicio extends Model
         return $this->belongsTo(Vehiculo::class, 'vehiculo_id');
     }
 
-    
-
     public function usuarioCreador()
     {
         return $this->belongsTo(User::class, 'usuario_creador_id');
     }
-
-   
 
     public function usuarioModificador()
     {
         return $this->belongsTo(User::class, 'usuario_modificador_id');
     }
 
-   
-
     public function usuarioEliminador()
     {
         return $this->belongsTo(User::class, 'usuario_eliminador_id');
     }
-
 
     public function inspecciones()
     {

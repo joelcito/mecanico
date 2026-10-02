@@ -18,11 +18,9 @@ class OrdenInspeccion extends Model
         'fecha',
         'observaciones',
         'estado',
-
         'usuario_creador_id',
         'usuario_modificador_id',
         'usuario_eliminador_id',
-
         'deleted_at',
     ];
 
