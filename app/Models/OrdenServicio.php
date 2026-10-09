@@ -10,6 +10,7 @@ use App\Models\OrdenFoto;
 use App\Models\OrdenCotizacion;
 use App\Models\OrdenDiagnostico;
 use App\Models\Pago;
+use App\Models\Entrega;
 
 class OrdenServicio extends Model
 {
@@ -155,6 +156,11 @@ class OrdenServicio extends Model
             Reparacion::class,
             'orden_servicio_id'
         );
+    }
+
+    public function entrega()
+    {
+        return $this->hasOne(Entrega::class, 'orden_servicio_id');
     }
         
     }

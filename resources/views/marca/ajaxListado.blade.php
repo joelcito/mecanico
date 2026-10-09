@@ -14,15 +14,12 @@
             @forelse ($marcas as $marca)
                 <tr>
                     <td>{{ $marca->nombre }}</td>
-
                     <td>
                         {{ $marca->descripcion ?? '-' }}
                     </td>
-
                     <td>
                         {{ $marca->tipo ?? '-' }}
                     </td>
-
                     <td>
                         @if ($marca->estado == 'ACTIVO')
                             <span class="badge badge-light-success">
@@ -34,7 +31,6 @@
                             </span>
                         @endif
                     </td>
-
                     <td>
                         <button
                             class="btn btn-icon btn-sm btn-warning btn-circle"
@@ -42,7 +38,6 @@
                             onclick='editarMarca(@json($marca))'>
                             <i class="fa fa-edit"></i>
                         </button>
-
                         <button
                             class="btn btn-icon btn-sm btn-danger btn-circle"
                             title="Eliminar marca"

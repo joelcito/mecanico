@@ -2,15 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MovimientoInventario;
-use App\Models\Producto;
+use App\Services\InventarioService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class MovimientoInventarioController extends Controller
 {
-    public function guardarIngreso(Request $request)
+    public function guardarIngreso(Request $request, InventarioService $inventario)
     {
         $request->validate([
             'producto_id' => [
@@ -32,56 +30,23 @@ class MovimientoInventarioController extends Controller
             ],
         ]);
 
-        DB::beginTransaction();
-
         try {
+            $movimiento = $inventario->registrarIngreso(
+                (int) $request->producto_id,
+                (float) $request->cantidad,
+                $request->motivo,
+                $request->observaciones
+            );
 
-            $producto = Producto::whereNull('deleted_at')
-                ->lockForUpdate()
-                ->findOrFail($request->producto_id);
-
-            if ($producto->estado !== 'ACTIVO') {
-                return response()->json([
-                    'estado' => false,
-                    'message' => 'El producto se encuentra inactivo.'
-                ], 422);
-            }
-
-            $stockAnterior = (float) $producto->cantidad;
-            $cantidad = (float) $request->cantidad;
-            $stockNuevo = $stockAnterior + $cantidad;
-
-            $movimiento = MovimientoInventario::create([
-                'producto_id' => $producto->id,
-                'tipo' => 'ENTRADA',
-                'cantidad' => $cantidad,
-                'stock_anterior' => $stockAnterior,
-                'stock_nuevo' => $stockNuevo,
-                'motivo' => $request->motivo,
-                'observaciones' => $request->observaciones,
-                'fecha' => now(),
-                'estado' => 'ACTIVO',
-                'usuario_creador_id' => Auth::id(),
-            ]);
-
-            $producto->update([
-                'cantidad' => $stockNuevo,
-                'usuario_modificador_id' => Auth::id(),
-            ]);
-
-            DB::commit();
             return response()->json([
                 'estado' => true,
                 'message' => 'Ingreso registrado correctamente.',
-                'data' => [
-                    'movimiento' => $movimiento,
-                    'producto' => $producto,
-                ]
+                'data' => $movimiento->load('producto'),
             ]);
 
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Throwable $e) {
-
-            DB::rollBack();
             return response()->json([
                 'estado' => false,
                 'message' => $e->getMessage()
@@ -89,7 +54,7 @@ class MovimientoInventarioController extends Controller
         }
     }
 
-    public function guardarSalida(Request $request)
+    public function guardarSalida(Request $request, InventarioService $inventario)
 {
     $request->validate([
         'producto_id' => [
@@ -103,7 +68,7 @@ class MovimientoInventarioController extends Controller
         ],
         'motivo' => [
             'required',
-            'in:REPARACION,PERDIDA,DANIO,AJUSTE_INVENTARIO,OTRO'
+            'in:PERDIDA,DANIO,AJUSTE_INVENTARIO,OTRO'
         ],
         'observaciones' => [
             'nullable',
@@ -111,61 +76,23 @@ class MovimientoInventarioController extends Controller
         ],
     ]);
 
-    DB::beginTransaction();
-
     try {
-        $producto = Producto::whereNull('deleted_at')
-            ->lockForUpdate()
-            ->findOrFail($request->producto_id);
+        $movimiento = $inventario->registrarSalidaManual(
+            (int) $request->producto_id,
+            (float) $request->cantidad,
+            $request->motivo,
+            $request->observaciones
+        );
 
-        if ($producto->estado !== 'ACTIVO') {
-            return response()->json([
-                'estado' => false,
-                'message' => 'El producto se encuentra inactivo.'
-            ], 422);
-        }
-
-        $stockAnterior = (float) $producto->cantidad;
-        $cantidad = (float) $request->cantidad;
-
-        if ($cantidad > $stockAnterior) {
-            return response()->json([
-                'estado' => false,
-                'message' => 'La cantidad a retirar no puede ser mayor al stock disponible.'
-            ], 422);
-        }
-
-        $stockNuevo = $stockAnterior - $cantidad;
-        $movimiento = MovimientoInventario::create([
-            'producto_id' => $producto->id,
-            'tipo' => 'SALIDA',
-            'cantidad' => $cantidad,
-            'stock_anterior' => $stockAnterior,
-            'stock_nuevo' => $stockNuevo,
-            'motivo' => $request->motivo,
-            'observaciones' => $request->observaciones,
-            'fecha' => now(),
-            'estado' => 'ACTIVO',
-            'usuario_creador_id' => Auth::id(),
-        ]);
-
-        $producto->update([
-            'cantidad' => $stockNuevo,
-            'usuario_modificador_id' => Auth::id(),
-        ]);
-
-        DB::commit();
         return response()->json([
             'estado' => true,
             'message' => 'Salida registrada correctamente.',
-            'data' => [
-                'movimiento' => $movimiento,
-                'producto' => $producto,
-            ]
+            'data' => $movimiento->load('producto'),
         ]);
 
+    } catch (ValidationException $e) {
+        throw $e;
     } catch (\Throwable $e) {
-        DB::rollBack();
         return response()->json([
             'estado' => false,
             'message' => $e->getMessage()

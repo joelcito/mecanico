@@ -21,6 +21,7 @@ class Herramienta extends Model
         'stock_minimo',
         'imagen',
         'estado',
+        'estado_disponibilidad',
         'usuario_creador_id',
         'usuario_modificador_id',
         'usuario_eliminador_id',
@@ -61,5 +62,16 @@ class Herramienta extends Model
     public function asignacionesHerramientas(): HasMany
     {
         return $this->hasMany(AsignacionHerramienta::class, 'herramienta_id');
+    }
+
+    public function asignaciones(): HasMany
+    {
+        return $this->asignacionesHerramientas();
+    }
+
+    public function asignacionActiva()
+    {
+        return $this->hasOne(AsignacionHerramienta::class, 'herramienta_id')
+            ->whereIn('estado', ['ASIGNADA', 'ACTIVA']);
     }
 }

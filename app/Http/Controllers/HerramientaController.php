@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Categoria;
 use App\Models\Herramienta;
 use App\Models\Marca;
+use App\Models\AsignacionHerramienta;
 use App\Utils\Respuesta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -83,52 +85,65 @@ class HerramientaController extends Controller
             'marca_id.exists' => 'La marca seleccionada debe ser de tipo Herramienta.',
         ]);
 
-        $herramienta = $request->id
-            ? Herramienta::whereNull('deleted_at')->findOrFail($request->id)
-            : new Herramienta();
+        return DB::transaction(function () use ($request) {
+            $herramienta = $request->id
+                ? Herramienta::whereNull('deleted_at')->lockForUpdate()->findOrFail($request->id)
+                : new Herramienta();
 
-        $herramienta->codigo = $request->codigo;
-        $herramienta->nombre = $request->nombre;
-        $herramienta->descripcion = $request->descripcion;
-        $herramienta->categoria_id = $request->categoria_id;
-        $herramienta->marca_id = $request->marca_id;
-        $herramienta->unidad_medida = $request->unidad_medida;
-        $herramienta->cantidad = $request->cantidad;
-        $herramienta->stock_minimo = $request->stock_minimo;
-        $herramienta->estado = $request->estado ?? 'ACTIVO';
+            if ($herramienta->exists
+                && $request->estado === 'INACTIVO'
+                && AsignacionHerramienta::where('herramienta_id', $herramienta->id)
+                    ->whereIn('estado', ['ASIGNADA', 'ACTIVA'])
+                    ->exists()) {
+                return response()->json([
+                    'estado' => false,
+                    'message' => 'Devuelva la herramienta antes de desactivarla.',
+                ], 422);
+            }
 
-        if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
-            $imagen = $request->file('imagen');
-            $nombreImagen = uniqid() . '_' . preg_replace(
-                '/[^A-Za-z0-9._-]/',
-                '_',
-                $imagen->getClientOriginalName()
-            );
+            $herramienta->codigo = $request->codigo;
+            $herramienta->nombre = $request->nombre;
+            $herramienta->descripcion = $request->descripcion;
+            $herramienta->categoria_id = $request->categoria_id;
+            $herramienta->marca_id = $request->marca_id;
+            $herramienta->unidad_medida = $request->unidad_medida;
+            $herramienta->cantidad = $request->cantidad;
+            $herramienta->stock_minimo = $request->stock_minimo;
+            $herramienta->estado = $request->estado ?? 'ACTIVO';
 
-            Storage::disk('public')->putFileAs(
-                'uploads/herramientas',
-                $imagen,
-                $nombreImagen
-            );
+            if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
+                $imagen = $request->file('imagen');
+                $nombreImagen = uniqid() . '_' . preg_replace(
+                    '/[^A-Za-z0-9._-]/',
+                    '_',
+                    $imagen->getClientOriginalName()
+                );
 
-            $herramienta->imagen = 'storage/uploads/herramientas/' . $nombreImagen;
-        }
+                Storage::disk('public')->putFileAs(
+                    'uploads/herramientas',
+                    $imagen,
+                    $nombreImagen
+                );
 
-        if ($herramienta->exists) {
-            $herramienta->usuario_modificador_id = Auth::id();
-            $mensaje = 'Herramienta actualizada correctamente.';
-        } else {
-            $herramienta->usuario_creador_id = Auth::id();
-            $mensaje = 'Herramienta registrada correctamente.';
-        }
+                $herramienta->imagen = 'storage/uploads/herramientas/' . $nombreImagen;
+            }
 
-        $herramienta->save();
+            if ($herramienta->exists) {
+                $herramienta->usuario_modificador_id = Auth::id();
+                $mensaje = 'Herramienta actualizada correctamente.';
+            } else {
+                $herramienta->usuario_creador_id = Auth::id();
+                $mensaje = 'Herramienta registrada correctamente.';
+            }
 
-        return response()->json([
-            'estado' => true,
-            'mensaje' => $mensaje,
-            'data' => $herramienta,
-        ]);
+            $herramienta->save();
+
+            return response()->json([
+                'estado' => true,
+                'mensaje' => $mensaje,
+                'data' => $herramienta,
+            ]);
+        });
     }
 
     public function eliminarHerramienta(Request $request)
@@ -137,16 +152,29 @@ class HerramientaController extends Controller
             'id' => ['required', 'integer'],
         ]);
 
-        $herramienta = Herramienta::whereNull('deleted_at')
-            ->findOrFail($request->id);
-        $herramienta->usuario_eliminador_id = Auth::id();
-        $herramienta->deleted_at = now();
-        $herramienta->estado = 'INACTIVO';
-        $herramienta->save();
+        return DB::transaction(function () use ($request) {
+            $herramienta = Herramienta::whereNull('deleted_at')
+                ->lockForUpdate()
+                ->findOrFail($request->id);
 
-        return response()->json([
-            'estado' => true,
-            'mensaje' => 'Herramienta eliminada correctamente.',
-        ]);
+            if (AsignacionHerramienta::where('herramienta_id', $herramienta->id)
+                ->whereIn('estado', ['ASIGNADA', 'ACTIVA'])
+                ->exists()) {
+                return response()->json([
+                    'estado' => false,
+                    'message' => 'Devuelva la herramienta antes de eliminarla del catálogo.',
+                ], 422);
+            }
+
+            $herramienta->usuario_eliminador_id = Auth::id();
+            $herramienta->deleted_at = now();
+            $herramienta->estado = 'INACTIVO';
+            $herramienta->save();
+
+            return response()->json([
+                'estado' => true,
+                'mensaje' => 'Herramienta eliminada correctamente.',
+            ]);
+        });
     }
 }

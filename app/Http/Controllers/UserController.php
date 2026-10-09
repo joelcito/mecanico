@@ -21,7 +21,6 @@ class UserController extends Controller
     public function ajaxListado(Request $request)
     {
         if ($request->ajax()) {
-
             $usuarios = User::all();
             $valores = [
                 'listado' => view('user.ajaxListado')->with(compact('usuarios'))->render()
@@ -49,20 +48,15 @@ class UserController extends Controller
             $usuario = Auth::user();
 
             if ($user_id == '0') {
-
                 $user = new User();
-
                 $user->usuario_creador_id = $usuario->id;
                 $user->password = Hash::make(
                     $request->input('password')
                 );
 
             } else {
-
                 $user = User::find($user_id);
-
                 $user->usuario_modificador_id = $usuario->id;
-
                 if ($request->filled('password')) {
                     $user->password = Hash::make(
                         $request->input('password')
@@ -78,9 +72,7 @@ class UserController extends Controller
             $user->cedula = $cedula;
             $user->celular = $celular;
             $user->email = $email;
-
             $user->save();
-
             $data = Respuesta::success(
                 null,
                 "Usuario guardado correctamente"

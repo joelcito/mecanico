@@ -21,7 +21,11 @@ use App\Http\Controllers\MovimientoCajaController;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\CuentaPorCobrarController;
 use App\Http\Controllers\ReparacionController;
+use App\Http\Controllers\ReparacionDetallesController;
 use App\Http\Controllers\MovimientoInventarioController;
+use App\Http\Controllers\AsignacionHerramientaController;
+use App\Http\Controllers\ReportesController;
+use App\Http\Controllers\OrdenEntregaController;
 
 Route::get('/', function () {
     // return view('welcome');
@@ -38,6 +42,15 @@ Route::middleware('auth')->group(function () {
     // Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/home', [HomeController::class, 'index'])->middleware(['auth', 'verified'])->name('home');
+
+    Route::prefix('reportes')->name('reportes.')->group(function () {
+        Route::get('/{tipo}/exportar/{formato}', [ReportesController::class, 'exportar'])
+            ->where(['tipo' => 'ventas|movimientos|productos|pagos', 'formato' => 'pdf|xlsx'])
+            ->name('exportar');
+        Route::get('/{tipo}', [ReportesController::class, 'index'])
+            ->where('tipo', 'ventas|movimientos|productos|pagos')
+            ->name('index');
+    });
 
 
      Route::prefix('/rol')->group(function () {
@@ -103,6 +116,15 @@ Route::middleware('auth')->group(function () {
             Route::post('/eliminar', [HerramientaController::class, 'eliminarHerramienta'])->name('herramienta.eliminar');
         });
 
+        Route::prefix('asignaciones-herramientas')->name('asignacionesHerramientas.')->group(function () {
+            Route::get('/', [AsignacionHerramientaController::class, 'index'])->name('listado');
+            Route::get('/tecnico/{tecnicoId}', [AsignacionHerramientaController::class, 'porTecnico'])->name('tecnico');
+            Route::get('/herramienta/{herramientaId}/historial', [AsignacionHerramientaController::class, 'historialHerramienta'])->name('historialHerramienta');
+            Route::post('/', [AsignacionHerramientaController::class, 'store'])->name('guardar');
+            Route::put('/{id}/devolver', [AsignacionHerramientaController::class, 'devolver'])->name('devolver');
+            Route::put('/herramienta/{herramientaId}/estado', [AsignacionHerramientaController::class, 'actualizarEstado'])->name('actualizarEstado');
+        });
+
         Route::prefix('vehiculo')->group(function () {
 
             Route::get('/listado', [VehiculoController::class, 'listado'])->name('vehiculo.listado');
@@ -128,6 +150,9 @@ Route::middleware('auth')->group(function () {
     
             Route::post('/{id}/cotizacion/aprobar',[OrdenServicioController::class, 'aprobarCotizacion'])->name('ordenServicio.cotizacion.aprobar');
             Route::post('/{id}/cotizacion/rechazar',[OrdenServicioController::class, 'rechazarCotizacion'])->name('ordenServicio.cotizacion.rechazar');
+            Route::get('/{id}/verificar-deuda', [OrdenEntregaController::class, 'verificarDeuda'])->name('ordenServicio.verificarDeuda');
+            Route::put('/{id}/entregar', [OrdenEntregaController::class, 'entregar'])->name('ordenServicio.entregar');
+            Route::get('/{id}/boleta-entrega', [OrdenEntregaController::class, 'boleta'])->name('ordenServicio.entrega.boleta');
            
             Route::post( '/{id}/reparacion/iniciar', [OrdenServicioController::class, 'iniciarReparacion'])->name('ordenServicio.reparacion.iniciar');
            
@@ -169,8 +194,15 @@ Route::middleware('auth')->group(function () {
 
             Route::prefix('reparaciones')->group(function () {
                 Route::get('/{id}/datos', [ReparacionController::class, 'datos'])->name('reparaciones.datos');
-                Route::post('/{id}/guardar', [ReparacionController::class, 'guardar'])->name('reparaciones.guardar');
-                Route::post('/{id}/finalizar', [ReparacionController::class,'finalizar'])->name('reparaciones.finalizar');
+                Route::put('/{id}/guardar', [ReparacionController::class, 'guardar'])->name('reparaciones.guardar');
+                Route::put('/{id}/finalizar', [ReparacionController::class,'finalizar'])->name('reparaciones.finalizar');
+                Route::get('/{id}/avances', [ReparacionController::class, 'avances'])->name('reparaciones.avances');
+                Route::post('/{id}/avances', [ReparacionController::class, 'guardarAvance'])->name('reparaciones.avances.store');
+                Route::get('/{ordenId}/productos', [ReparacionDetallesController::class, 'productosDisponibles'])->name('reparaciones.productos');
+                Route::get('/{ordenId}/detalles', [ReparacionDetallesController::class, 'index'])->name('reparaciones.detalles');
+                Route::post('/{ordenId}/detalles', [ReparacionDetallesController::class, 'store'])->name('reparaciones.detalles.store');
+                Route::put('/{ordenId}/detalles/{detalleId}', [ReparacionDetallesController::class, 'update'])->name('reparaciones.detalles.update');
+                Route::delete('/{ordenId}/detalles/{detalleId}', [ReparacionDetallesController::class, 'destroy'])->name('reparaciones.detalles.destroy');
             });
 
 

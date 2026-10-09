@@ -216,9 +216,6 @@
                             <option value="">
                                 Seleccione...
                             </option>
-                            <option value="REPARACION">
-                                Reparación
-                            </option>
                             <option value="PERDIDA">
                                 Pérdida
                             </option>

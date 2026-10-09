@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class OrdenCotizacion extends Model
 {
     use HasFactory, SoftDeletes;
-
     protected $table = 'orden_cotizaciones';
 
     protected $fillable = [

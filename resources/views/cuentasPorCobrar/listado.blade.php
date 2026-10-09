@@ -124,15 +124,13 @@
                     <button
                         type="button"
                         class="btn btn-light"
-                        data-bs-dismiss="modal"
-                    >
+                        data-bs-dismiss="modal" >
                         Cancelar
                     </button>
                     <button
                         type="submit"
                         class="btn btn-primary"
-                        id="btnGuardarPago"
-                    >
+                        id="btnGuardarPago">
                         Registrar pago
                     </button>
                 </div>
@@ -143,32 +141,21 @@
 
 @endsection
 @section('css')
-<link
-    href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}"
-    rel="stylesheet"
-    type="text/css"
-/>
+<link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}"
+    rel="stylesheet" type="text/css"/>
 @endsection
 @section('js')
-
 <script src="{{ asset('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
-
 <script>
-
 const BASE_URL = "{{ url('/') }}";
-
 let ordenPagoSeleccionada = null;
-
 function ajaxListado() {
     $.ajax({
         url: "{{ route('cuentasPorCobrar.ajaxListado') }}",
         type: "POST",
         dataType: "json",
-
         success: function(response) {
-
             if (response.estado) {
-
                 $('#table_listado').html(
                     response.data.listado
                 );

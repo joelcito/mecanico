@@ -15,6 +15,7 @@ class AsignacionHerramienta extends Model
     protected $fillable = [
         'producto_id',
         'herramienta_id',
+        'reparacion_id',
         'mecanico_id',
         'cantidad',
         'fecha_asignacion',
@@ -23,6 +24,7 @@ class AsignacionHerramienta extends Model
         'observaciones',
         'usuario_creador_id',
         'usuario_modificador_id',
+        'usuario_devolucion_id',
         'usuario_eliminador_id',
         'deleted_at',
     ];
@@ -44,9 +46,29 @@ class AsignacionHerramienta extends Model
         return $this->belongsTo(Herramienta::class, 'herramienta_id');
     }
 
+    public function reparacion()
+    {
+        return $this->belongsTo(Reparacion::class, 'reparacion_id');
+    }
+
     public function mecanico()
     {
         return $this->belongsTo(User::class, 'mecanico_id');
+    }
+
+    public function tecnico()
+    {
+        return $this->belongsTo(User::class, 'mecanico_id');
+    }
+
+    public function usuarioAsignador()
+    {
+        return $this->belongsTo(User::class, 'usuario_creador_id');
+    }
+
+    public function usuarioDevolucion()
+    {
+        return $this->belongsTo(User::class, 'usuario_devolucion_id');
     }
 
     public function usuarioCreador()

@@ -107,7 +107,6 @@
         });
     });
 
-
     function verMovimiento(id) {
         Swal.fire({
             icon: 'info',
@@ -115,5 +114,4 @@
             text: 'Movimiento #' + id
         });
     }
-
 </script>

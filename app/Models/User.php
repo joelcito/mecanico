@@ -63,14 +63,24 @@ class User extends Authenticatable
             return $this->belongsTo('App\Models\Rol', 'rol_id');
         }
 
+    public function sucursal()
+    {
+        return $this->belongsTo(Sucursal::class, 'sucursal_id');
+    }
+
     public function cliente()
         {
             return $this->hasOne(Cliente::class, 'user_id');
         }
 
-        public function asignacionesHerramientas()
+        public function herramientasAsignadas()
         {
             return $this->hasMany(AsignacionHerramienta::class, 'mecanico_id');
+        }
+
+        public function asignacionesHerramientas()
+        {
+            return $this->herramientasAsignadas();
         }
 
 

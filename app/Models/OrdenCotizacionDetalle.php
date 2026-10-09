@@ -11,7 +11,6 @@ class OrdenCotizacionDetalle extends Model
     use HasFactory, SoftDeletes;
 
     protected $table = 'orden_cotizacion_detalles';
-
     protected $fillable = [
         'orden_cotizacion_id',
         'tipo',
@@ -47,6 +46,14 @@ class OrdenCotizacionDetalle extends Model
         return $this->belongsTo(
             Producto::class,
             'producto_id'
+        );
+    }
+
+    public function reparacionDetalles()
+    {
+        return $this->hasMany(
+            ReparacionDetalle::class,
+            'orden_cotizacion_detalle_id'
         );
     }
 

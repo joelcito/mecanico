@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\DB;
 
 class OrdenDiagnosticoController extends Controller
 {
-    
     public function crear($id)
     {
         $orden = OrdenServicio::with([

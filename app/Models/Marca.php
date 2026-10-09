@@ -24,8 +24,6 @@ class Marca extends Model
         'deleted_at' => 'datetime',
     ];
 
-    
-
     public function productos(): HasMany
     {
         return $this->hasMany(Producto::class, 'marca_id');

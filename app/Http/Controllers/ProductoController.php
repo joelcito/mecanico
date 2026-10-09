@@ -39,9 +39,6 @@ class ProductoController extends Controller
     ));
     }
 
-    /**
-     * Listado AJAX.
-     */
     public function ajaxListado(Request $request)
     {
         if (!$request->ajax()) {

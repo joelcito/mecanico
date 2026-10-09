@@ -21,9 +21,7 @@ class RolController extends Controller
             $valores = [
                 'listado' => view('rol.ajaxListado')->with(compact('roles'))->render()
             ];
-
             $data = Respuesta::success($valores, "Datos Obtenidos correctamente");
-
         } else {
             $data = Respuesta::error(null, "Error al obtener los datos");
         }
@@ -65,14 +63,10 @@ class RolController extends Controller
             $rol->usuario_eliminador_id = $usuario->id;
             $rol->save();
             Rol::destroy($rol_id);
-
             $data = Respuesta::success(null, "Se elimino con exito");
-
         } else {
-
             $data = Respuesta::error(null, "Error al obtener los datos");
         }
-
         return $data;
 
     }

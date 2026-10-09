@@ -15,7 +15,6 @@ class MovimientoCajaController extends Controller
         return view('movimientosCaja.listado');
     }
 
-
     public function ajaxListado(Request $request)
     {
         try {
@@ -49,22 +48,21 @@ class MovimientoCajaController extends Controller
         }
     }
 
-
     public function crear()
-{
-    $cajas = Caja::where('estado', 'ABIERTA')
-        ->with([
-            'usuario',
-            'sucursal'
-        ])
-        ->orderByDesc('id')
-        ->get();
+        {
+            $cajas = Caja::where('estado', 'ABIERTA')
+                ->with([
+                    'usuario',
+                    'sucursal'
+                ])
+                ->orderByDesc('id')
+                ->get();
 
-    return response()->json([
-        'estado' => true,
-        'cajas' => $cajas
-    ]);
-}
+            return response()->json([
+                'estado' => true,
+                'cajas' => $cajas
+            ]);
+        }
 
 
     public function guardar(Request $request)

@@ -121,6 +121,24 @@
                                 </a>                            
                             </div>
 
+                            <div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ str_starts_with(Route::currentRouteName(), 'reportes.') ? 'here show' : '' }}">
+                                <span class="menu-link">
+                                    <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                    <span class="menu-title text-white">Reportes</span>
+                                    <span class="menu-arrow"></span>
+                                </span>
+                                <div class="menu-sub menu-sub-accordion">
+                                    @foreach(['ventas' => 'Ventas', 'movimientos' => 'Movimientos', 'productos' => 'Productos / Stock', 'pagos' => 'Pagos'] as $tipoReporte => $nombreReporte)
+                                        <div class="menu-item">
+                                            <a class="menu-link {{ request()->route('tipo') === $tipoReporte ? 'active' : '' }}" href="{{ route('reportes.index', $tipoReporte) }}">
+                                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                <span class="menu-title text-white">{{ $nombreReporte }}</span>
+                                            </a>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
                             <div class="menu-item">
                                 <a class="menu-link {{ Route::currentRouteName() == 'producto.listado' ? 'active' : '' }}"
                                     href="{{ route('producto.listado') }}">
@@ -146,6 +164,16 @@
                                     </span>
                                 </a>
                             </div>
+
+                            @if(in_array((int) Auth::user()->rol_id, [1, 2, 3], true))
+                                <div class="menu-item">
+                                    <a class="menu-link {{ str_starts_with(Route::currentRouteName(), 'asignacionesHerramientas.') ? 'active' : '' }}"
+                                        href="{{ route('asignacionesHerramientas.listado') }}">
+                                        <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                        <span class="menu-title text-white">Asignaciones de herramientas</span>
+                                    </a>
+                                </div>
+                            @endif
 
                             <div class="menu-item">
                                 <a class="menu-link {{ Route::currentRouteName() == 'ordenesServicio.listado' ? 'active' : '' }}"

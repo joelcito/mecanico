@@ -94,7 +94,6 @@
                 </form>
             </div>
 
-
             <div class="modal-footer">
                 <div class="row w-100">
                     <div class="col-md-12">
@@ -164,14 +163,10 @@
                 method: "POST",
                 data: datos,
                 success: function (resultado) {
-
                     if (resultado.estado) {
-
                         $('#table_listado')
                             .html(resultado.data.listado);
-
                     }
-
                 },
 
                 error: function (xhr) {
@@ -180,9 +175,7 @@
                         icon: 'error',
                         title: 'Error',
                         text: 'No se pudo cargar el listado de marcas.'
-
                     });
-
                 }
             });
         }
@@ -259,19 +252,14 @@
 
         function editarMarca(marca) {
             limpiarErrores();
-
             $('#id').val(marca.id);
-
             $('#nombre').val(marca.nombre);
-
             $('#descripcion').val(
                 marca.descripcion ?? ''
             );
-
             $('#estado').val(
                 marca.estado ?? 'ACTIVO'
             );
-
             $('#modalMarca').modal('show');
 
         }
@@ -307,11 +295,8 @@
                                     'Eliminado!',
                                     'La marca ha sido eliminada correctamente.',
                                     'success'
-
                                 );
-
                             } else {
-
                                 Swal.fire(
                                     'Error',
                                     resultado.message ||

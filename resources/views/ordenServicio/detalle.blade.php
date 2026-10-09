@@ -91,6 +91,45 @@
         font-weight: 600;
         color: #181c32;
     }
+
+    .repair-timeline {
+        border-left: 2px solid #b8e5ea;
+        margin-left: 8px;
+        padding-left: 22px;
+    }
+
+    .repair-timeline-item {
+        position: relative;
+        padding: 0 0 22px;
+    }
+
+    .repair-timeline-item:last-child {
+        padding-bottom: 0;
+    }
+
+    .repair-timeline-item::before {
+        content: "";
+        position: absolute;
+        left: -29px;
+        top: 4px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #12a6b4;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 2px #12a6b4;
+    }
+
+    .repair-timeline-date {
+        color: #087f8c;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .repair-timeline-content {
+        color: #3f4b5b;
+    }
 </style>
 
 @endsection
@@ -157,11 +196,11 @@
                         ],
                         [
                             'nombre' => 'Reparación',
-                            'estado' => ['AUTORIZADO', 'EN_REPARACION', 'LISTO'],
+                            'estado' => ['AUTORIZADO', 'EN_REPARACION'],
                         ],
                         [
                             'nombre' => 'Entrega',
-                            'estado' => ['ENTREGADO'],
+                            'estado' => ['LISTO', 'ENTREGADO'],
                         ],
                     ];
 
@@ -174,10 +213,12 @@
                         $etapaActual = 2;
                     } elseif (in_array($estado, ['EN_COTIZACION'])) {
                         $etapaActual = 3;
-                    } elseif (in_array($estado, ['AUTORIZADO', 'EN_REPARACION', 'LISTO'])) {
+                    } elseif (in_array($estado, ['AUTORIZADO', 'EN_REPARACION'])) {
                         $etapaActual = 4;
-                    } elseif (in_array($estado, ['ENTREGADO'])) {
+                    } elseif ($estado === 'LISTO') {
                         $etapaActual = 5;
+                    } elseif ($estado === 'ENTREGADO') {
+                        $etapaActual = 6;
                     } else {
                         $etapaActual = 0;
                     }
@@ -264,6 +305,13 @@
                                 {{ $orden->vehiculo?->marca?->nombre ?? '-' }}
                                 {{ $orden->vehiculo?->modelo ?? '-' }}
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 mb-4">
+                        <div class="info-box">
+                            <div class="info-box-title">Tipo de vehículo</div>
+                            <div class="info-box-value">{{ $orden->vehiculo?->tipo_vehiculo ?? '-' }}</div>
                         </div>
                     </div>
 
@@ -557,86 +605,410 @@
         @endif
 
 
-        @if($orden->estado === 'EN_REPARACION')
-        <div class="card shadow-sm mb-5">
-            <div class="card-header">
-                <h3 class="card-title fw-bold">
-                    <i class="fa fa-wrench text-primary me-2"></i>
-                    Reparación
-                </h3>
-                <div class="card-toolbar">
-                    <span class="badge badge-light-warning">
-                        EN PROCESO
-                    </span>
+        @if($orden->estado === 'EN_REPARACION' && $orden->reparacion?->estado !== 'FINALIZADA')
+            <div class="card shadow-sm mb-5">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div>
+                            <h3 class="fw-bold mb-1">
+                                <i class="fa fa-wrench text-primary me-2"></i>
+                                Reparación del vehículo
+                            </h3>
+
+                            <span class="text-muted">
+                                Registre los trabajos realizados y el avance de la reparación.
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-toolbar">
+                        <span class="badge badge-light-warning fs-6">
+                            <i class="fa fa-cog fa-spin me-1"></i>
+                            EN PROCESO
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div id="erroresReparacion"
+                        class="alert alert-danger d-none">
+                    </div>
+
+                    <div class="row mb-6">
+                        <div class="col-md-4 mb-4">
+                            <div class="info-box">
+                                <div class="info-box-title">
+                                    Técnico responsable
+                                </div>
+
+                                <div class="info-box-value">
+                                    <span id="tecnicoActual">
+                                        Sin asignar
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-4">
+                            <div class="info-box">
+                                <div class="info-box-title">
+                                    Fecha de inicio
+                                </div>
+
+                                <div class="info-box-value">
+                                    <span id="fechaInicioActual">
+                                        -
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-4">
+                            <div class="info-box">
+                                <div class="info-box-title">Estado de reparación</div>
+                                <div class="info-box-value"><span id="estadoReparacionActual" class="badge badge-light-warning">EN_PROCESO</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="separator separator-dashed my-6"></div>
+                    <div class="row">
+                        <div class="col-md-6 mb-5">
+                            <label class="form-label fw-semibold">
+                                Técnico responsable
+                            </label>
+
+                            <select id="tecnico_id" class="form-select">
+                                <option value="">
+                                    Seleccione un técnico
+                                </option>
+                            </select>
+                        </div>
+
+
+                        <div class="col-md-12 mb-5">
+                            <label class="form-label fw-semibold">
+                                Trabajos realizados
+                            </label>
+                            <textarea
+                                id="trabajos_realizados"
+                                class="form-control"
+                                rows="6"
+                                placeholder="Describa detalladamente los trabajos realizados en el vehículo..."
+                            ></textarea>
+                            <div class="form-text">
+                                Registre las actividades realizadas, reparaciones,
+                                ajustes, cambios y verificaciones efectuadas.
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 mb-5">
+                            <label class="form-label fw-semibold">
+                                Observaciones de reparación
+                            </label>
+                            <textarea
+                                id="observaciones_reparacion"
+                                class="form-control"
+                                rows="4"
+                                placeholder="Ingrese observaciones, recomendaciones o detalles adicionales..."
+                            ></textarea>
+                        </div>
+                    </div>
+                    <div class="separator separator-dashed my-6"></div>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-bold mb-1">Productos / Repuestos utilizados</h4>
+                            <span class="text-muted">Se registra el consumo real; sin precios de venta.</span>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="btnAbrirAgregarProducto" data-bs-toggle="modal" data-bs-target="#modalAgregarProductoReparacion">
+                            <i class="fa fa-plus me-2"></i>Agregar producto
+                        </button>
+                    </div>
+                    <div class="table-responsive mb-6">
+                        <table class="table table-row-dashed align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Unidad</th>
+                                    <th class="text-end">Utilizado</th>
+                                    <th class="text-end">Stock actual</th>
+                                    <th>Observación</th>
+                                    <th class="text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productosUtilizadosBody">
+                                <tr><td colspan="6" class="text-center text-muted">Cargando productos utilizados...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-bold mb-1">Avances de reparación</h4>
+                            <span class="text-muted">Registro cronológico del trabajo realizado.</span>
+                        </div>
+                        <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#modalAvanceReparacion">
+                            <i class="fa fa-plus me-2"></i>Registrar avance
+                        </button>
+                    </div>
+                    <div id="avancesReparacionTimeline" class="repair-timeline mb-6">
+                        <div class="text-muted">Cargando avances...</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <h4 class="fw-bold">Historial de inventario</h4>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-row-dashed align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Producto</th>
+                                    <th>Tipo</th>
+                                    <th>Motivo</th>
+                                    <th class="text-end">Cantidad</th>
+                                    <th class="text-end">Stock anterior</th>
+                                    <th class="text-end">Stock nuevo</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody id="movimientosReparacionBody">
+                                <tr><td colspan="8" class="text-center text-muted">Cargando movimientos...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="separator separator-dashed my-6"></div>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <span class="text-muted">
+                                <i class="fa fa-info-circle me-1"></i>
+                                Los avances individuales se conservan en el historial cronológico.
+                            </span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button
+                                type="button"
+                                class="btn btn-light-primary"
+                                id="btnGuardarReparacion">
+                                <i class="fa fa-save me-2"></i>
+                                Guardar reparación
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-success"
+                                id="btnFinalizarReparacion">
+                                <i class="fa fa-check-circle me-2"></i>
+                                Finalizar reparación
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
+            @endif
 
-            <div class="card-body">
-                <div id="erroresReparacion"
-                     class="alert alert-danger d-none">
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-5">
-                        <label class="form-label fw-semibold">
-                            Técnico responsable
-                        </label>
-                        <select id="tecnico_id"
-                                class="form-select">
-                            <option value="">
-                                Seleccione un técnico
-                            </option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-5">
-                        <label class="form-label fw-semibold">
-                            Fecha de inicio
-                        </label>
-                        <input type="date"
-                               id="fecha_inicio_reparacion"
-                               class="form-control">
-                    </div>
-
-                    <div class="col-md-12 mb-5">
-                        <label class="form-label fw-semibold">
-                            Trabajos realizados
-                        </label>
-                        <textarea
-                            id="trabajos_realizados"
-                            class="form-control"
-                            rows="5"
-                            placeholder="Describa los trabajos realizados en el vehículo..."></textarea>
-                    </div>
-
-                    <div class="col-md-12 mb-5">
-                        <label class="form-label fw-semibold">
-                            Observaciones de reparación
-                        </label>
-                        <textarea
-                            id="observaciones_reparacion"
-                            class="form-control"
-                            rows="4"
-                            placeholder="Ingrese observaciones, recomendaciones o detalles adicionales..."></textarea>
+            @if($orden->estado === 'EN_REPARACION' && $orden->reparacion?->estado !== 'FINALIZADA')
+                <div class="modal fade" id="modalAgregarProductoReparacion" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header"><h3 class="modal-title fw-bold">Agregar producto utilizado</h3><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+                            <div class="modal-body">
+                                <div class="mb-4">
+                                    <label for="buscarProductoReparacion" class="form-label fw-semibold">Buscar por código, nombre o marca</label>
+                                    <input type="search" id="buscarProductoReparacion" class="form-control" placeholder="Escriba para buscar">
+                                </div>
+                                <div class="mb-4">
+                                    <label for="productoReparacion" class="form-label fw-semibold">Producto</label>
+                                    <select id="productoReparacion" class="form-select"><option value="">Seleccione un producto</option></select>
+                                    <div id="stockProductoReparacion" class="form-text">Stock disponible: - | Unidad: -</div>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="cantidadProductoReparacion" class="form-label fw-semibold">Cantidad utilizada</label>
+                                    <input type="number" id="cantidadProductoReparacion" class="form-control" min="0.01" step="0.01" placeholder="0.00">
+                                    <div id="acumuladoProductoReparacion" class="form-text">Si el producto ya está en la reparación, esta cantidad se sumará al consumo existente.</div>
+                                </div>
+                                <div>
+                                    <label for="observacionProductoReparacion" class="form-label fw-semibold">Observación</label>
+                                    <input type="text" id="observacionProductoReparacion" class="form-control" maxlength="1000" placeholder="Opcional">
+                                </div>
+                                <div id="errorModalProductoReparacion" class="alert alert-danger d-none mt-4 mb-0"></div>
+                            </div>
+                            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-primary" id="btnAgregarProductoReparacion"><i class="fa fa-plus me-2"></i>Agregar consumo</button></div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-end gap-2">
-                    <button type="button"
-                            class="btn btn-light-primary"
-                            id="btnGuardarReparacion">
-
-                        <i class="fa fa-save me-2"></i>
-                        Guardar avance
-                    </button>
-                    <button type="button"
-                            class="btn btn-success"
-                            id="btnFinalizarReparacion">
-                        <i class="fa fa-check me-2"></i>
-                        Finalizar reparación
-                   </button>
+                <div class="modal fade" id="modalEditarProductoReparacion" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header"><h3 class="modal-title fw-bold">Editar consumo</h3><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+                            <div class="modal-body">
+                                <input type="hidden" id="detalleProductoReparacionId">
+                                <div class="info-box mb-4"><div class="info-box-title">Producto</div><div class="info-box-value" id="editarProductoNombre"></div></div>
+                                <div class="mb-4"><label for="editarCantidadProducto" class="form-label fw-semibold">Cantidad utilizada</label><input type="number" id="editarCantidadProducto" class="form-control" min="0.01" step="0.01"><div id="impactoCantidadProducto" class="form-text">El inventario se ajustará solamente por la diferencia.</div></div>
+                                <div><label for="editarObservacionProducto" class="form-label fw-semibold">Observación</label><input type="text" id="editarObservacionProducto" class="form-control" maxlength="1000"></div>
+                                <div id="errorEditarProductoReparacion" class="alert alert-danger d-none mt-4 mb-0"></div>
+                            </div>
+                            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-primary" id="btnGuardarEdicionProducto">Guardar cambios</button></div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        @endif
+
+                <div class="modal fade" id="modalAvanceReparacion" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header"><h3 class="modal-title fw-bold">Registrar avance</h3><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+                            <div class="modal-body">
+                                <div class="mb-4"><label for="descripcionAvanceReparacion" class="form-label fw-semibold">Descripción del avance</label><textarea id="descripcionAvanceReparacion" class="form-control" rows="3" maxlength="5000" required></textarea></div>
+                                <div><label for="observacionAvanceReparacion" class="form-label fw-semibold">Observación</label><textarea id="observacionAvanceReparacion" class="form-control" rows="2" maxlength="5000"></textarea></div>
+                                <div id="errorAvanceReparacion" class="alert alert-danger d-none mt-4 mb-0"></div>
+                            </div>
+                            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-primary" id="btnGuardarAvanceReparacion">Registrar avance</button></div>
+                        </div>
+                    </div>
+                </div>
+
+            @endif
+
+            @if($orden->reparacion?->estado === 'FINALIZADA')
+                <div class="card shadow-sm mb-5">
+                    <div class="card-header">
+                        <h3 class="card-title fw-bold"><i class="fa fa-wrench text-primary me-2"></i>Reparación finalizada</h3>
+                        <span class="badge badge-light-success">FINALIZADA</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-5">
+                            <div class="col-md-4"><div class="info-box"><div class="info-box-title">Técnico</div><div class="info-box-value">{{ $orden->reparacion->tecnico?->nombres ?? '-' }} {{ $orden->reparacion->tecnico?->ap_paterno ?? '' }}</div></div></div>
+                            <div class="col-md-4"><div class="info-box"><div class="info-box-title">Inicio</div><div class="info-box-value">{{ $orden->reparacion->fecha_inicio?->format('d/m/Y H:i') ?? '-' }}</div></div></div>
+                            <div class="col-md-4"><div class="info-box"><div class="info-box-title">Finalización</div><div class="info-box-value">{{ $orden->reparacion->fecha_fin?->format('d/m/Y H:i') ?? '-' }}</div></div></div>
+                        </div>
+                        <h5 class="fw-bold">Trabajos realizados</h5>
+                        <p class="text-gray-700">{{ $orden->reparacion->trabajos_realizados }}</p>
+                        @if($orden->reparacion->observaciones)
+                            <h5 class="fw-bold mt-4">Observaciones</h5>
+                            <p class="text-gray-700">{{ $orden->reparacion->observaciones }}</p>
+                        @endif
+                        <div class="table-responsive mt-5">
+                            <table class="table table-row-dashed align-middle">
+                                <thead><tr><th>Producto</th><th>Tipo de uso</th><th class="text-end">Cantidad</th><th>Unidad</th><th>Observación</th></tr></thead>
+                                <tbody>
+                                    @forelse($orden->reparacion->detalles as $detalle)
+                                        <tr>
+                                            <td>{{ $detalle->producto?->nombre ?? 'Producto eliminado' }}</td>
+                                            <td>{{ $detalle->tipo_uso }}</td>
+                                            <td class="text-end">{{ number_format((float) $detalle->cantidad, 2, ',', '.') }}</td>
+                                            <td>{{ $detalle->producto?->unidad_medida ?? '-' }}</td>
+                                            <td>{{ $detalle->observaciones ?? '-' }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr><td colspan="5" class="text-center text-muted">No se registraron productos utilizados.</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        <h5 class="fw-bold mt-6">Historial de movimientos</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-row-dashed align-middle">
+                                <thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Motivo</th><th class="text-end">Cantidad</th><th class="text-end">Stock anterior</th><th class="text-end">Stock nuevo</th><th>Usuario</th></tr></thead>
+                                <tbody>
+                                    @forelse($orden->reparacion->movimientosInventario->whereIn('motivo', ['REPARACION', 'DEVOLUCION_REPARACION'])->sortByDesc('fecha') as $movimiento)
+                                        <tr>
+                                            <td>{{ $movimiento->fecha?->format('d/m/Y H:i') ?? '-' }}</td>
+                                            <td>{{ $movimiento->producto?->nombre ?? 'Producto eliminado' }}</td>
+                                            <td><span class="badge {{ $movimiento->tipo === 'SALIDA' ? 'badge-light-danger' : 'badge-light-success' }}">{{ $movimiento->tipo }}</span></td>
+                                            <td>{{ $movimiento->motivo }}</td>
+                                            <td class="text-end">{{ number_format((float) $movimiento->cantidad, 2, ',', '.') }}</td>
+                                            <td class="text-end">{{ number_format((float) $movimiento->stock_anterior, 2, ',', '.') }}</td>
+                                            <td class="text-end">{{ number_format((float) $movimiento->stock_nuevo, 2, ',', '.') }}</td>
+                                            <td>{{ $movimiento->usuarioCreador?->nombres ?? '-' }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr><td colspan="8" class="text-center text-muted">No hay movimientos de inventario.</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        <h5 class="fw-bold mt-6">Avances de reparación</h5>
+                        <div class="repair-timeline mt-4">
+                            @forelse($orden->reparacion->avances as $avance)
+                                <div class="repair-timeline-item">
+                                    <div class="repair-timeline-date">{{ $avance->fecha?->format('d/m/Y H:i') ?? '-' }}</div>
+                                    <div class="repair-timeline-content">
+                                        <div class="fw-bold">{{ $avance->descripcion }}</div>
+                                        <div class="text-muted small">{{ $avance->usuario?->nombres ?? $avance->tecnico?->nombres ?? 'Usuario no disponible' }}</div>
+                                        @if($avance->observaciones)<div class="mt-2">{{ $avance->observaciones }}</div>@endif
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="text-muted">No se registraron avances individuales.</div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @if($orden->estado === 'LISTO')
+                <div class="card shadow-sm mb-5">
+                    <div class="card-header">
+                        <h3 class="card-title fw-bold"><i class="fa fa-clipboard-check text-primary me-2"></i>Verificación previa a entrega</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-5">
+                            <div class="col-md-6 mb-3">
+                                <div class="info-box">
+                                    <div class="info-box-title">Reparación</div>
+                                    <div class="info-box-value">
+                                        @if($orden->reparacion?->estado === 'FINALIZADA')
+                                            <span class="badge badge-light-success">FINALIZADA</span>
+                                        @else
+                                            <span class="badge badge-light-warning">NO FINALIZADA</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="info-box">
+                                    <div class="info-box-title">Estado de orden</div>
+                                    <div class="info-box-value">LISTO</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3"><div class="info-box"><div class="info-box-title">Estado de pago</div><div class="info-box-value" id="estadoPagoEntrega">PENDIENTE DE VERIFICACIÓN</div></div></div>
+                            <div class="col-md-3 mb-3"><div class="info-box"><div class="info-box-title">Total</div><div class="info-box-value">Bs. <span id="totalEntrega">{{ number_format((float) ($orden->cotizacionActual?->total ?? 0), 2, ',', '.') }}</span></div></div></div>
+                            <div class="col-md-3 mb-3"><div class="info-box"><div class="info-box-title">Pagado</div><div class="info-box-value">Bs. <span id="pagadoEntrega">{{ number_format((float) $orden->total_pagado, 2, ',', '.') }}</span></div></div></div>
+                            <div class="col-md-3 mb-3"><div class="info-box"><div class="info-box-title">Saldo pendiente</div><div class="info-box-value text-danger">Bs. <span id="saldoEntrega">{{ number_format((float) $orden->saldo_pendiente, 2, ',', '.') }}</span></div></div></div>
+                        </div>
+
+                        @if($orden->reparacion?->estado !== 'FINALIZADA')
+                            <div class="alert alert-warning">La reparación de esta orden todavía no ha finalizado.</div>
+                        @endif
+                        <div id="resultadoVerificacionEntrega" class="alert alert-info" role="status">Verifique los pagos para habilitar la entrega.</div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            @if($orden->reparacion?->estado === 'FINALIZADA')
+                                <button type="button" class="btn btn-light-primary" id="btnVerificarDeuda"><i class="fa fa-rotate me-2"></i>Verificar pagos</button>
+                            @endif
+                            <button type="button" class="btn btn-success" id="btnRealizarEntrega" disabled><i class="fa fa-check me-2"></i>Realizar entrega</button>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @if($orden->estado === 'ENTREGADO')
+                <div class="card shadow-sm mb-5">
+                    <div class="card-header">
+                        <h3 class="card-title fw-bold"><i class="fa fa-check-circle text-success me-2"></i>Orden entregada</h3>
+                        <span class="badge badge-light-success">ENTREGADO</span>
+                    </div>
+                    <div class="card-body">
+                        @if($orden->entrega)
+                            <div class="row mb-5">
+                                <div class="col-md-6 mb-3"><div class="info-box"><div class="info-box-title">Fecha de entrega</div><div class="info-box-value">{{ $orden->entrega->fecha_entrega?->format('d/m/Y H:i') ?? '-' }}</div></div></div>
+                                <div class="col-md-6 mb-3"><div class="info-box"><div class="info-box-title">Entregado por</div><div class="info-box-value">{{ trim(($orden->entrega->usuario?->nombres ?? '') . ' ' . ($orden->entrega->usuario?->ap_paterno ?? '') . ' ' . ($orden->entrega->usuario?->ap_materno ?? '')) ?: 'Usuario no disponible' }}</div></div></div>
+                            </div>
+                            <a href="{{ route('ordenServicio.entrega.boleta', $orden->id) }}" target="_blank" rel="noopener" class="btn btn-light-primary"><i class="fa fa-file-pdf me-2"></i>Ver boleta</a>
+                            <a href="{{ route('ordenServicio.entrega.boleta', $orden->id) }}" target="_blank" rel="noopener" class="btn btn-light"><i class="fa fa-print me-2"></i>Imprimir</a>
+                        @else
+                            <div class="alert alert-danger mb-0">La orden figura como entregada, pero no tiene un registro de entrega asociado.</div>
+                        @endif
+                    </div>
+                </div>
+            @endif
         
         <div class="card shadow-sm">
             <div class="card-body">
@@ -1331,8 +1703,102 @@ function iniciarReparacion(id) {
     });
 }
 
+@if($orden->estado === 'LISTO')
+const numeroOrdenEntrega = @json($orden->numero_orden);
+const nombreClienteEntrega = @json(trim(($orden->vehiculo?->cliente?->user?->nombres ?? '') . ' ' . ($orden->vehiculo?->cliente?->user?->ap_paterno ?? '') . ' ' . ($orden->vehiculo?->cliente?->user?->ap_materno ?? '')));
+const nombreVehiculoEntrega = @json(trim(($orden->vehiculo?->marca?->nombre ?? '') . ' ' . ($orden->vehiculo?->modelo ?? '')));
+const placaVehiculoEntrega = @json($orden->vehiculo?->placa ?? '-');
 
-@if($orden->estado === 'EN_REPARACION')
+function formatoMonedaEntrega(valor)
+{
+    return Number(valor ?? 0).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+$('#btnVerificarDeuda').on('click', function() {
+    const btn = $(this);
+    btn.prop('disabled', true);
+    $('#resultadoVerificacionEntrega').removeClass('alert-warning alert-danger alert-success').addClass('alert-info').text('Consultando pagos registrados...');
+    $('#btnRealizarEntrega').prop('disabled', true);
+
+    $.get("{{ route('ordenServicio.verificarDeuda', $orden->id) }}")
+        .done(function(response) {
+            const resumen = response.data;
+            $('#totalEntrega').text(formatoMonedaEntrega(resumen.total));
+            $('#pagadoEntrega').text(formatoMonedaEntrega(resumen.pagado));
+            $('#saldoEntrega').text(formatoMonedaEntrega(resumen.saldo));
+
+            if (resumen.motivo) {
+                $('#estadoPagoEntrega').text('NO VERIFICADO');
+                $('#resultadoVerificacionEntrega').removeClass('alert-info alert-success alert-warning').addClass('alert-danger').text(resumen.motivo);
+                return;
+            }
+
+            if (resumen.puede_entregar) {
+                $('#estadoPagoEntrega').text('PAGADO');
+                $('#resultadoVerificacionEntrega').removeClass('alert-info alert-danger alert-warning').addClass('alert-success').text('Pago verificado. La orden está habilitada para entrega.');
+                $('#btnRealizarEntrega').prop('disabled', false);
+            } else {
+                $('#estadoPagoEntrega').text('CON SALDO PENDIENTE');
+                $('#resultadoVerificacionEntrega').removeClass('alert-info alert-danger alert-success').addClass('alert-warning').text('No se puede realizar la entrega mientras exista un saldo pendiente.');
+            }
+        })
+        .fail(function(xhr) {
+            $('#resultadoVerificacionEntrega').removeClass('alert-info alert-success alert-warning').addClass('alert-danger').text(xhr.responseJSON?.message ?? 'No fue posible verificar los pagos.');
+        })
+        .always(function() {
+            btn.prop('disabled', false).html('<i class="fa fa-rotate me-2"></i>Verificar nuevamente');
+        });
+});
+
+$('#btnRealizarEntrega').on('click', function() {
+    const escapeHtml = function(value) {
+        return $('<div>').text(value ?? '').html();
+    };
+    const total = $('#totalEntrega').text();
+    const pagado = $('#pagadoEntrega').text();
+    const saldo = $('#saldoEntrega').text();
+
+    Swal.fire({
+        title: '¿Confirmar entrega?',
+        html: `La orden no podrá volver a estado LISTO después de confirmar la entrega.<br><br><strong>Cliente:</strong> ${escapeHtml(nombreClienteEntrega)}<br><strong>Vehículo:</strong> ${escapeHtml(nombreVehiculoEntrega)}<br><strong>Placa:</strong> ${escapeHtml(placaVehiculoEntrega)}<br><strong>Orden:</strong> ${escapeHtml(numeroOrdenEntrega)}<br><br><strong>Total:</strong> Bs. ${escapeHtml(total)}<br><strong>Pagado:</strong> Bs. ${escapeHtml(pagado)}<br><strong>Saldo:</strong> Bs. ${escapeHtml(saldo)}`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Confirmar entrega',
+        cancelButtonText: 'Cancelar'
+    }).then(function(result) {
+        if (!result.isConfirmed) return;
+
+        const btn = $('#btnRealizarEntrega');
+        btn.prop('disabled', true);
+        $.ajax({
+            url: "{{ route('ordenServicio.entregar', $orden->id) }}",
+            type: 'PUT',
+            headers: { 'Accept': 'application/json' },
+            data: { _token: "{{ csrf_token() }}" }
+        }).done(function(response) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Entrega registrada',
+                text: response.message,
+                confirmButtonText: 'Continuar'
+            }).then(function() {
+                window.location.reload();
+            });
+        }).fail(function(xhr) {
+            const errores = Object.values(xhr.responseJSON?.errors ?? {}).flat();
+            Swal.fire({
+                icon: 'error',
+                title: 'No se pudo registrar la entrega',
+                text: xhr.responseJSON?.message ?? errores[0] ?? 'Verifique nuevamente el saldo de la orden.'
+            });
+            btn.prop('disabled', false);
+        });
+    });
+});
+@endif
+
+
+@if($orden->estado === 'EN_REPARACION' && $orden->reparacion?->estado !== 'FINALIZADA')
 
 function cargarDatosReparacion()
 {
@@ -1373,11 +1839,10 @@ function cargarDatosReparacion()
                 .filter(Boolean)
                 .join(' ');
 
-                selectTecnico.append(`
-                    <option value="${tecnico.id}">
-                        ${nombre}
-                    </option>
-                `);
+                selectTecnico.append($('<option>', {
+                    value: tecnico.id,
+                    text: nombre
+                }));
 
             });
 
@@ -1389,6 +1854,11 @@ function cargarDatosReparacion()
                     );
                 }
 
+                const tecnico = reparacion.tecnico;
+                $('#tecnicoActual').text(tecnico
+                    ? [tecnico.nombres, tecnico.ap_paterno, tecnico.ap_materno].filter(Boolean).join(' ')
+                    : 'Sin asignar');
+
                 $('#trabajos_realizados').val(
                     reparacion.trabajos_realizados ?? ''
                 );
@@ -1397,20 +1867,17 @@ function cargarDatosReparacion()
                     reparacion.observaciones ?? ''
                 );
 
-                if (reparacion.fecha_inicio) {
-
-                    $('#fecha_inicio_reparacion').val(
-                        new Date(reparacion.fecha_inicio)
-                            .toLocaleString('es-BO')
-                    );
-                }
+                $('#fechaInicioActual').text(formatearFechaReparacion(reparacion.fecha_inicio));
+                $('#estadoReparacionActual')
+                    .text(reparacion.estado ?? 'EN_PROCESO')
+                    .toggleClass('badge-light-warning', reparacion.estado !== 'FINALIZADA')
+                    .toggleClass('badge-light-success', reparacion.estado === 'FINALIZADA');
 
                 if (reparacion.estado === 'FINALIZADA') {
 
                     $('#tecnico_id').prop('disabled', true);
                     $('#trabajos_realizados').prop('readonly', true);
                     $('#observaciones_reparacion').prop('readonly', true);
-
                     $('#btnGuardarReparacion').hide();
                     $('#btnFinalizarReparacion').hide();
                 }
@@ -1418,11 +1885,7 @@ function cargarDatosReparacion()
         },
 
         error: function(xhr) {
-
-            mostrarErrorReparacion(
-                xhr.responseJSON?.message ??
-                'No se pudieron cargar los datos de reparación.'
-            );
+            mostrarErrorReparacion(mensajeErrorReparacion(xhr));
         }
     });
 }
@@ -1435,62 +1898,353 @@ function mostrarErrorReparacion(mensaje)
         .html(mensaje);
 }
 
+function escaparHtml(valor)
+{
+    return $('<div>').text(valor ?? '').html();
+}
 
-$('#btnGuardarReparacion').on('click', function() {
+function formatearFechaReparacion(valor)
+{
+    if (!valor) return '-';
+    const fecha = new Date(String(valor).replace(' ', 'T'));
+    return Number.isNaN(fecha.getTime()) ? '-' : fecha.toLocaleString('es-BO');
+}
+
+function mensajeErrorReparacion(xhr)
+{
+    const errores = xhr.responseJSON?.errors;
+    if (errores) {
+        return Object.values(errores).flat().map(escaparHtml).join('<br>');
+    }
+
+    if (xhr.status === 422) {
+        return escaparHtml(xhr.responseJSON?.message ?? 'Revise los datos ingresados.');
+    }
+
+    return 'No fue posible completar la operación. La solicitud fue revertida; intente nuevamente.';
+}
+
+function buscarCatalogoReparacion(termino = '')
+{
+    $.get("{{ route('reparaciones.productos', $orden->id) }}", { q: termino })
+        .done(function(response) {
+            const select = $('#productoReparacion');
+            select.html('<option value="">Seleccione un producto</option>');
+
+            response.data.forEach(function(producto) {
+                const codigo = producto.codigo ? producto.codigo + ' - ' : '';
+                const marca = producto.marca?.nombre ? ` · ${producto.marca.nombre}` : '';
+                const label = `${codigo}${producto.nombre}${marca} (${producto.cantidad} ${producto.unidad_medida})`;
+                select.append(
+                    $('<option>', {
+                        value: producto.id,
+                        text: label,
+                        'data-stock': producto.cantidad,
+                        'data-unidad': producto.unidad_medida
+                    })
+                );
+            });
+        })
+        .fail(function(xhr) {
+            mostrarErrorReparacion(mensajeErrorReparacion(xhr));
+        });
+}
+
+function cargarProductosUtilizados()
+{
+    $.get("{{ route('reparaciones.detalles', $orden->id) }}")
+        .done(function(response) {
+            const detalles = response.data.detalles;
+            const movimientos = response.data.movimientos;
+            const tablaDetalles = $('#productosUtilizadosBody');
+            const tablaMovimientos = $('#movimientosReparacionBody');
+
+            window.detallesReparacionPorProducto = {};
+            detalles.forEach(function(detalle) {
+                window.detallesReparacionPorProducto[detalle.producto_id] = detalle;
+            });
+
+            if (!detalles.length) {
+                tablaDetalles.html('<tr><td colspan="6" class="text-center text-muted">Aún no se registraron productos.</td></tr>');
+            } else {
+                tablaDetalles.html(detalles.map(function(detalle) {
+                    const producto = detalle.producto ?? {};
+                    return `<tr data-id="${detalle.id}" data-producto="${producto.id ?? detalle.producto_id}" data-nombre="${escaparHtml(producto.nombre ?? 'Producto eliminado')}" data-unidad="${escaparHtml(producto.unidad_medida ?? '')}" data-cantidad="${escaparHtml(detalle.cantidad)}" data-stock="${escaparHtml(producto.cantidad ?? 0)}" data-observacion="${escaparHtml(detalle.observaciones ?? '')}">
+                        <td>${escaparHtml(producto.nombre ?? 'Producto eliminado')}</td>
+                        <td>${escaparHtml(producto.unidad_medida ?? '-')}</td>
+                        <td class="text-end fw-semibold">${escaparHtml(detalle.cantidad)}</td>
+                        <td class="text-end">${escaparHtml(producto.cantidad ?? '-')}</td>
+                        <td>${escaparHtml(detalle.observaciones ?? '-')}</td>
+                        <td class="text-end text-nowrap">
+                            <button type="button" class="btn btn-sm btn-light-primary btnEditarDetalleReparacion" title="Editar consumo"><i class="fa fa-pen"></i> Editar</button>
+                            <button type="button" class="btn btn-sm btn-light-danger btnEliminarDetalleReparacion" title="Devolver y eliminar"><i class="fa fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+                }).join(''));
+            }
+
+            if (!movimientos.length) {
+                tablaMovimientos.html('<tr><td colspan="8" class="text-center text-muted">No hay movimientos de inventario.</td></tr>');
+            } else {
+                tablaMovimientos.html(movimientos.map(function(movimiento) {
+                    const badge = movimiento.tipo === 'SALIDA' ? 'badge-light-danger' : 'badge-light-success';
+                    const fecha = formatearFechaReparacion(movimiento.fecha);
+                    return `<tr>
+                        <td>${escaparHtml(fecha)}</td>
+                        <td>${escaparHtml(movimiento.producto?.nombre ?? 'Producto eliminado')}</td>
+                        <td><span class="badge ${badge}">${escaparHtml(movimiento.tipo)}</span></td>
+                        <td>${escaparHtml(movimiento.motivo)}</td>
+                        <td class="text-end">${escaparHtml(movimiento.cantidad)}</td>
+                        <td class="text-end">${escaparHtml(movimiento.stock_anterior)}</td>
+                        <td class="text-end">${escaparHtml(movimiento.stock_nuevo)}</td>
+                        <td>${escaparHtml(movimiento.usuario_creador?.nombres ?? '-')}</td>
+                    </tr>`;
+                }).join(''));
+            }
+        })
+        .fail(function(xhr) {
+            mostrarErrorReparacion(mensajeErrorReparacion(xhr));
+        });
+}
+
+$('#modalAgregarProductoReparacion').on('show.bs.modal', function() {
+    $('#buscarProductoReparacion').val('');
+    $('#cantidadProductoReparacion, #observacionProductoReparacion').val('');
+    $('#errorModalProductoReparacion').addClass('d-none').empty();
+    buscarCatalogoReparacion();
+});
+
+$('#buscarProductoReparacion').on('input', function() {
+    clearTimeout(window.temporizadorBusquedaReparacion);
+    const termino = $(this).val();
+    window.temporizadorBusquedaReparacion = setTimeout(function() {
+        buscarCatalogoReparacion(termino);
+    }, 250);
+});
+
+$('#productoReparacion').on('change', function() {
+    const opcion = $(this).find(':selected');
+    const stock = Number(opcion.data('stock'));
+    const unidad = opcion.data('unidad') ?? '-';
+    const detalleExistente = window.detallesReparacionPorProducto?.[$(this).val()];
+    $('#stockProductoReparacion').text(
+        $(this).val() ? `Stock disponible: ${stock} | Unidad: ${unidad}` : 'Stock disponible: - | Unidad: -'
+    );
+    $('#cantidadProductoReparacion').attr('max', stock || '');
+    $('#acumuladoProductoReparacion').text(detalleExistente
+        ? `Ya se utilizaron ${detalleExistente.cantidad} ${unidad}. La cantidad agregada se sumará; el inventario descontará solo lo nuevo.`
+        : 'Si agrega el mismo producto más adelante, se acumulará en esta línea.');
+});
+
+$('#btnAgregarProductoReparacion').on('click', function() {
     const btn = $(this);
-    const tecnicoId =  $('#tecnico_id').val();
-    const trabajos =  $('#trabajos_realizados').val();
-    const observaciones = $('#observaciones_reparacion').val();
-    $('#erroresReparacion')
-        .addClass('d-none')
-        .html('');
+    const productoId = $('#productoReparacion').val();
+    const cantidad = Number($('#cantidadProductoReparacion').val());
+    const opcion = $('#productoReparacion').find(':selected');
+    const disponible = Number(opcion.data('stock'));
+    const unidad = opcion.data('unidad') ?? '';
+    const error = $('#errorModalProductoReparacion');
+
+    error.addClass('d-none').empty();
+    if (!productoId || !Number.isFinite(cantidad) || cantidad <= 0) {
+        error.removeClass('d-none').text('Seleccione un producto e indique una cantidad mayor que cero.');
+        return;
+    }
+    if (cantidad > disponible) {
+        error.removeClass('d-none').text(`Stock insuficiente. Disponible: ${disponible} ${unidad}; solicitado: ${cantidad} ${unidad}.`);
+        return;
+    }
 
     btn.prop('disabled', true);
     $.ajax({
-        url: "{{ route('reparaciones.guardar', $orden->id) }}",
-        type: "POST",
+        url: "{{ route('reparaciones.detalles.store', $orden->id) }}",
+        type: 'POST',
+        headers: { 'Accept': 'application/json' },
         data: {
             _token: "{{ csrf_token() }}",
-            tecnico_id: tecnicoId,
-            trabajos_realizados: trabajos,
-            observaciones: observaciones
-        },
+            producto_id: productoId,
+            cantidad: cantidad,
+            observaciones: $('#observacionProductoReparacion').val()
+        }
+    }).done(function() {
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAgregarProductoReparacion')).hide();
+        cargarProductosUtilizados();
+        buscarCatalogoReparacion();
+    }).fail(function(xhr) {
+        error.removeClass('d-none').html(mensajeErrorReparacion(xhr));
+    }).always(function() {
+        btn.prop('disabled', false);
+    });
+});
 
-        success: function(response) {
-            if (response.estado) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Guardado',
-                    text: response.message,
-                    timer: 1500,
-                    showConfirmButton: false
-                }).then(function() {
-                    location.reload();
-                });
-            } else {
-                mostrarErrorReparacion(
-                    response.message
-                );
-                btn.prop('disabled', false);
-            }
-        },
+$('#productosUtilizadosBody').on('click', '.btnEditarDetalleReparacion', function() {
+    const fila = $(this).closest('tr');
+    const cantidadActual = Number(fila.attr('data-cantidad'));
+    const stockActual = Number(fila.attr('data-stock'));
+    $('#detalleProductoReparacionId').val(fila.data('id'));
+    $('#editarProductoNombre').text(`${fila.attr('data-nombre')} · ${fila.attr('data-unidad')}`);
+    $('#editarCantidadProducto').val(cantidadActual).attr('max', stockActual + cantidadActual);
+    $('#editarObservacionProducto').val(fila.attr('data-observacion'));
+    $('#impactoCantidadProducto').text('Sin cambios en el inventario.');
+    $('#errorEditarProductoReparacion').addClass('d-none').empty();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditarProductoReparacion')).show();
+});
 
-        error: function(xhr) {
-            mostrarErrorReparacion(
-                xhr.responseJSON?.message ??
-                'No se pudo guardar la reparación.'
-            );
-            btn.prop('disabled', false);
+$('#editarCantidadProducto').on('input', function() {
+    const fila = $(`#productosUtilizadosBody tr[data-id="${$('#detalleProductoReparacionId').val()}"]`);
+    const anterior = Number(fila.attr('data-cantidad'));
+    const nueva = Number($(this).val());
+    const diferencia = Math.round((nueva - anterior) * 100) / 100;
+    let mensaje = 'Sin cambios en el inventario.';
+    if (diferencia > 0) mensaje = `Se utilizarán ${diferencia} ${fila.attr('data-unidad')} adicionales del inventario.`;
+    if (diferencia < 0) mensaje = `Se devolverán ${Math.abs(diferencia)} ${fila.attr('data-unidad')} al inventario.`;
+    $('#impactoCantidadProducto').text(mensaje);
+});
+
+$('#btnGuardarEdicionProducto').on('click', function() {
+    const btn = $(this);
+    const detalleId = $('#detalleProductoReparacionId').val();
+    const error = $('#errorEditarProductoReparacion');
+    error.addClass('d-none').empty();
+    btn.prop('disabled', true);
+    $.ajax({
+        url: `{{ url('/reparaciones') }}/{{ $orden->id }}/detalles/${detalleId}`,
+        type: 'PUT',
+        headers: { 'Accept': 'application/json' },
+        data: {
+            _token: "{{ csrf_token() }}",
+            cantidad: $('#editarCantidadProducto').val(),
+            observaciones: $('#editarObservacionProducto').val()
+        }
+    }).done(function() {
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditarProductoReparacion')).hide();
+        cargarProductosUtilizados();
+        buscarCatalogoReparacion();
+    }).fail(function(xhr) {
+        error.removeClass('d-none').html(mensajeErrorReparacion(xhr));
+    }).always(function() {
+        btn.prop('disabled', false);
+    });
+});
+
+$('#productosUtilizadosBody').on('click', '.btnEliminarDetalleReparacion', function() {
+    const fila = $(this).closest('tr');
+    const detalleId = fila.data('id');
+    const nombre = fila.attr('data-nombre');
+    const cantidad = fila.attr('data-cantidad');
+    const unidad = fila.attr('data-unidad');
+    Swal.fire({
+        title: '¿Desea eliminar este producto de la reparación?',
+        html: `${escaparHtml(nombre)}<br>Cantidad: ${escaparHtml(cantidad)} ${escaparHtml(unidad)}<br><br>Esto devolverá la cantidad utilizada al inventario.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Devolver y eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then(function(resultado) {
+        if (!resultado.isConfirmed) return;
+        $.ajax({
+            url: `{{ url('/reparaciones') }}/{{ $orden->id }}/detalles/${detalleId}`,
+            type: 'DELETE',
+            headers: { 'Accept': 'application/json' },
+            data: { _token: "{{ csrf_token() }}" }
+        }).done(function() {
+            cargarProductosUtilizados();
+            buscarCatalogoReparacion();
+        }).fail(function(xhr) {
+            mostrarErrorReparacion(mensajeErrorReparacion(xhr));
+        });
+    });
+});
+
+function cargarAvancesReparacion()
+{
+    $.get("{{ route('reparaciones.avances', $orden->id) }}").done(function(response) {
+        const avances = response.data ?? [];
+        if (!avances.length) {
+            $('#avancesReparacionTimeline').html('<div class="text-muted">Aún no se registran avances.</div>');
+            return;
+        }
+        $('#avancesReparacionTimeline').html(avances.map(function(avance) {
+            const actor = avance.usuario ?? avance.tecnico;
+            const nombre = actor ? [actor.nombres, actor.ap_paterno, actor.ap_materno].filter(Boolean).join(' ') : 'Usuario no disponible';
+            return `<div class="repair-timeline-item"><div class="repair-timeline-date">${escaparHtml(formatearFechaReparacion(avance.fecha))}</div><div class="repair-timeline-content"><div class="fw-bold">${escaparHtml(avance.descripcion)}</div><div class="text-muted small">${escaparHtml(nombre)}</div>${avance.observaciones ? `<div class="mt-2">${escaparHtml(avance.observaciones)}</div>` : ''}</div></div>`;
+        }).join(''));
+    }).fail(function(xhr) {
+        mostrarErrorReparacion(mensajeErrorReparacion(xhr));
+    });
+}
+
+$('#btnGuardarAvanceReparacion').on('click', function() {
+    const btn = $(this);
+    const error = $('#errorAvanceReparacion');
+    error.addClass('d-none').empty();
+    btn.prop('disabled', true);
+    $.ajax({
+        url: "{{ route('reparaciones.avances.store', $orden->id) }}",
+        type: 'POST',
+        headers: { 'Accept': 'application/json' },
+        data: {
+            _token: "{{ csrf_token() }}",
+            descripcion: $('#descripcionAvanceReparacion').val(),
+            observaciones: $('#observacionAvanceReparacion').val()
+        }
+    }).done(function() {
+        $('#descripcionAvanceReparacion, #observacionAvanceReparacion').val('');
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAvanceReparacion')).hide();
+        cargarAvancesReparacion();
+    }).fail(function(xhr) {
+        error.removeClass('d-none').html(mensajeErrorReparacion(xhr));
+    }).always(function() {
+        btn.prop('disabled', false);
+    });
+});
+
+function guardarDatosReparacion()
+{
+    return $.ajax({
+        url: "{{ route('reparaciones.guardar', $orden->id) }}",
+        type: 'PUT',
+        headers: { 'Accept': 'application/json' },
+        data: {
+            _token: "{{ csrf_token() }}",
+            tecnico_id: $('#tecnico_id').val(),
+            trabajos_realizados: $('#trabajos_realizados').val(),
+            observaciones: $('#observaciones_reparacion').val()
         }
     });
+}
 
+$('#btnGuardarReparacion').on('click', function() {
+    const btn = $(this);
+    $('#erroresReparacion').addClass('d-none').empty();
+    btn.prop('disabled', true);
+    guardarDatosReparacion()
+        .done(function(response) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Reparación guardada',
+                text: response.message,
+                timer: 1500,
+                showConfirmButton: false
+            });
+            const tecnico = response.data?.tecnico;
+            $('#tecnicoActual').text(tecnico
+                ? [tecnico.nombres, tecnico.ap_paterno, tecnico.ap_materno].filter(Boolean).join(' ')
+                : 'Sin asignar');
+        })
+        .fail(function(xhr) {
+            mostrarErrorReparacion(mensajeErrorReparacion(xhr));
+        })
+        .always(function() {
+            btn.prop('disabled', false);
+        });
 });
 
 
 $('#btnFinalizarReparacion').on('click', function() {
     Swal.fire({
-        title: '¿Finalizar reparación?',
-        text: 'La orden pasará al estado LISTO.',
+        title: '¿Está seguro de finalizar esta reparación?',
+        text: 'Una vez finalizada no podrá modificar los productos utilizados, cantidades ni avances.',
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Sí, finalizar',
@@ -1501,14 +2255,14 @@ $('#btnFinalizarReparacion').on('click', function() {
         }
         const btn = $('#btnFinalizarReparacion');
         btn.prop('disabled', true);
-        $.ajax({
-            url: "{{ route('reparaciones.finalizar', $orden->id) }}",
-            type: "POST",
-            data: {
-                _token: "{{ csrf_token() }}"
-            },
-            success: function(response) {
-                if (response.estado) {
+        guardarDatosReparacion()
+            .done(function() {
+                $.ajax({
+                    url: "{{ route('reparaciones.finalizar', $orden->id) }}",
+                    type: 'PUT',
+                    headers: { 'Accept': 'application/json' },
+                    data: { _token: "{{ csrf_token() }}" }
+                }).done(function(response) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Reparación finalizada',
@@ -1517,32 +2271,31 @@ $('#btnFinalizarReparacion').on('click', function() {
                     }).then(function() {
                         location.reload();
                     });
-                } else {
+                }).fail(function(xhr) {
                     Swal.fire({
                         icon: 'error',
                         title: 'No se puede finalizar',
-                        text: response.message
+                        html: mensajeErrorReparacion(xhr),
+                        confirmButtonText: 'Entendido'
                     });
                     btn.prop('disabled', false);
-                }
-            },
-
-            error: function(xhr) {
+                });
+            })
+            .fail(function(xhr) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error',
-                    text:
-                        xhr.responseJSON?.message ??
-                        'No se pudo finalizar la reparación.'
+                    title: 'No se puede guardar la reparación',
+                    html: mensajeErrorReparacion(xhr)
                 });
                 btn.prop('disabled', false);
-            }
-        });
+            });
     });
 });
 
 $(document).ready(function() {
     cargarDatosReparacion();
+    cargarProductosUtilizados();
+    cargarAvancesReparacion();
 });
 @endif
 

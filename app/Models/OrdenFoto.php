@@ -31,7 +31,6 @@ class OrdenFoto extends Model
         'deleted_at' => 'datetime',
     ];
 
-
     public function ordenServicio()
     {
         return $this->belongsTo(

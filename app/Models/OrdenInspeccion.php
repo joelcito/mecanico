@@ -11,7 +11,6 @@ class OrdenInspeccion extends Model
     use HasFactory, SoftDeletes;
 
     protected $table = 'orden_inspecciones';
-
     protected $fillable = [
         'orden_servicio_id',
         'usuario_inspector_id',

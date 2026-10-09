@@ -22,17 +22,14 @@ class ClienteController extends Controller
         if (!$request->ajax()) {
             return Respuesta::error(null, 'Error al obtener los datos');
         }
-
         $clientes = Cliente::with('user')
             ->where('estado', 'ACTIVO')
             ->get();
-
         $valores = [
             'listado' => view('cliente.ajaxListado')
                 ->with(compact('clientes'))
                 ->render()
         ];
-
         return Respuesta::success(
             $valores,
             'Datos obtenidos correctamente'

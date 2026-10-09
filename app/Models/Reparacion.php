@@ -82,4 +82,15 @@ class Reparacion extends Model
     {
         return $this->hasMany(MovimientoInventario::class, 'reparacion_id');
     }
+
+    public function avances()
+    {
+        return $this->hasMany(ReparacionAvance::class, 'reparacion_id')
+            ->orderBy('fecha');
+    }
+
+    public function asignacionesHerramientas()
+    {
+        return $this->hasMany(AsignacionHerramienta::class, 'reparacion_id');
+    }
 }

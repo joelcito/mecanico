@@ -92,9 +92,7 @@
             <label class="fw-bold fs-6 mb-2">
                 Ingresos
             </label>
-
             <div class="fw-bold text-success">
-
                 Bs.
                 {{ number_format(
                     $caja->total_ingresos,
@@ -102,9 +100,7 @@
                     '.',
                     ','
                 ) }}
-
             </div>
-
         </div>
 
 
@@ -112,9 +108,7 @@
             <label class="fw-bold fs-6 mb-2">
                 Egresos
             </label>
-
             <div class="fw-bold text-danger">
-
                 Bs.
                 {{ number_format(
                     $caja->total_egresos,
@@ -122,20 +116,15 @@
                     '.',
                     ','
                 ) }}
-
             </div>
-
         </div>
 
 
         <div class="col-md-3 mb-7">
-
             <label class="fw-bold fs-6 mb-2">
                 Saldo
             </label>
-
             <div class="fw-bold text-primary">
-
                 Bs.
                 {{ number_format(
                     $caja->monto_apertura

@@ -99,6 +99,12 @@
                 <div class="card-header bg-light-info py-4 d-flex align-items-center justify-content-between">
                     <h3 class="card-title fw-bold">Listado de Herramientas</h3>
                     <div class="card-toolbar">
+                        @if(in_array((int) Auth::user()->rol_id, [1, 2, 3], true))
+                            <a href="{{ route('asignacionesHerramientas.listado') }}" class="btn btn-light-primary btn-sm me-2">
+                                <i class="fa fa-people-arrows-left-right"></i>
+                                Asignaciones
+                            </a>
+                        @endif
                         <button type="button" class="btn btn-primary btn-sm" onclick="modalNuevaHerramienta()">
                             <i class="fa fa-plus"></i>
                             Nueva Herramienta
@@ -183,7 +189,11 @@
                 },
                 error: function (xhr) {
                     if (xhr.status === 422) {
-                        mostrarErroresHerramienta(xhr);
+                        if (xhr.responseJSON?.errors) {
+                            mostrarErroresHerramienta(xhr);
+                        } else {
+                            Swal.fire({ icon: 'warning', title: 'No se puede actualizar', text: xhr.responseJSON?.message || 'Revise el estado de la herramienta.' });
+                        }
                         return;
                     }
                     Swal.fire({ icon: 'error', title: 'Error', text: 'Ocurrió un error inesperado.' });
@@ -231,8 +241,8 @@
                         }
                         Swal.fire('Error', resultado.message || 'No se pudo eliminar la herramienta.', 'error');
                     },
-                    error: function () {
-                        Swal.fire({ icon: 'error', title: 'Error', text: 'Ocurrió un error inesperado.' });
+                    error: function (xhr) {
+                        Swal.fire({ icon: 'error', title: 'No se pudo eliminar', text: xhr.responseJSON?.message || 'Ocurrió un error inesperado.' });
                     }
                 });
             });

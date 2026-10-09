@@ -12,12 +12,16 @@ class ReparacionDetalle extends Model
 
     protected $table = 'reparacion_detalles';
 
+    protected $hidden = [
+        'precio_unitario',
+        'subtotal',
+    ];
+
     protected $fillable = [
         'reparacion_id',
         'producto_id',
+        'orden_cotizacion_detalle_id',
         'cantidad',
-        'precio_unitario',
-        'subtotal',
         'tipo_uso',
         'origen',
         'observaciones',
@@ -29,8 +33,6 @@ class ReparacionDetalle extends Model
 
     protected $casts = [
         'cantidad' => 'decimal:2',
-        'precio_unitario' => 'decimal:2',
-        'subtotal' => 'decimal:2',
         'deleted_at' => 'datetime',
     ];
 
@@ -42,6 +44,14 @@ class ReparacionDetalle extends Model
     public function producto()
     {
         return $this->belongsTo(Producto::class, 'producto_id');
+    }
+
+    public function detalleCotizacion()
+    {
+        return $this->belongsTo(
+            OrdenCotizacionDetalle::class,
+            'orden_cotizacion_detalle_id'
+        );
     }
 
     public function usuarioCreador()
