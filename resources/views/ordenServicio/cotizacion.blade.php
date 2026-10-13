@@ -121,9 +121,39 @@
                                         as $detalle
                                     )
                                         <tr>
-                                            <td>
+                                           <td>
+                                            <div class="fw-bold">
                                                 {{ $detalle->descripcion }}
-                                            </td>
+                                            </div>
+
+                                            @if($detalle->fotos && $detalle->fotos->isNotEmpty())
+                                                <div class="d-flex flex-wrap gap-3 mt-3">
+                                                    @foreach($detalle->fotos as $foto)
+                                                        <div style="width: 110px;">
+                                                            <a
+                                                                href="{{ asset('storage/' . ltrim($foto->ruta, '/')) }}"
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                            >
+                                                                <img
+                                                                    src="{{ asset('storage/' . ltrim($foto->ruta, '/')) }}"
+                                                                    alt="{{ $foto->descripcion ?: 'Foto del diagnóstico' }}"
+                                                                    class="rounded border w-100"
+                                                                    style="height: 85px; object-fit: cover;"
+                                                                    loading="lazy"
+                                                                >
+                                                            </a>
+
+                                                            @if($foto->descripcion)
+                                                                <small class="text-muted d-block mt-1">
+                                                                    {{ $foto->descripcion }}
+                                                                </small>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </td>
                                             <td>
                                                 <span class="badge badge-light-info">
                                                     {{ $detalle->tipo }}

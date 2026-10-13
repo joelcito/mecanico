@@ -392,6 +392,133 @@
             </div>
         </div>
 
+@if($orden->diagnosticoActual)
+    @php
+        $diagnostico = $orden->diagnosticoActual;
+        $detallesDiagnostico = $diagnostico->detalles ?? collect();
+    @endphp
+
+    <div class="card shadow-sm mb-5">
+        <div class="card-header">
+            <h3 class="card-title fw-bold">
+                <i class="fa fa-stethoscope text-primary me-2"></i>
+                Diagnóstico del vehículo
+            </h3>
+
+            <span class="badge badge-light-success">
+                {{ $diagnostico->estado }}
+            </span>
+        </div>
+
+        <div class="card-body">
+            <div class="mb-5">
+                <label class="fw-bold text-gray-800">
+                    Descripción general
+                </label>
+                <p class="text-gray-700 mt-2">
+                    {{ $diagnostico->descripcion ?: 'Sin descripción registrada.' }}
+                </p>
+            </div>
+
+            @if($diagnostico->observaciones)
+                <div class="mb-5">
+                    <label class="fw-bold text-gray-800">
+                        Observaciones generales
+                    </label>
+                    <p class="text-gray-700 mt-2">
+                        {{ $diagnostico->observaciones }}
+                    </p>
+                </div>
+            @endif
+
+            <div class="separator separator-dashed my-5"></div>
+
+            <h4 class="fw-bold mb-4">Hallazgos y recomendaciones</h4>
+
+            @forelse($detallesDiagnostico as $indice => $detalle)
+                <div class="border rounded p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                        <h5 class="fw-bold mb-0">
+                            {{ $indice + 1 }}. {{ $detalle->descripcion }}
+                        </h5>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <span class="badge badge-light-info">
+                                {{ $detalle->tipo === 'HALLAZGO' ? 'Hallazgo' : 'Recomendación' }}
+                            </span>
+
+                            <span class="badge
+                                {{ $detalle->prioridad === 'CRITICA' ? 'badge-light-danger' :
+                                    ($detalle->prioridad === 'ALTA' ? 'badge-light-warning' : 'badge-light-secondary') }}">
+                                Prioridad: {{ $detalle->prioridad }}
+                            </span>
+                        </div>
+                    </div>
+
+                    @if($detalle->observacion)
+                        <p class="text-gray-600 mb-4">
+                            <strong>Observación:</strong>
+                            {{ $detalle->observacion }}
+                        </p>
+                    @endif
+
+                    @php
+                        $fotosDiagnostico = $detalle->fotos ?? collect();
+                    @endphp
+
+                    @if($fotosDiagnostico->isNotEmpty())
+                        <div class="mt-4">
+                            <h6 class="fw-bold mb-3">
+                                <i class="fa fa-camera text-primary me-2"></i>
+                                Fotografías del hallazgo
+                            </h6>
+
+                            <div class="row g-4">
+                                @foreach($fotosDiagnostico as $foto)
+                                    <div class="col-6 col-md-4 col-xl-3">
+                                        <a href="{{ asset('storage/' . ltrim($foto->ruta, '/')) }}"
+                                           target="_blank"
+                                           rel="noopener noreferrer"
+                                           class="d-block text-decoration-none">
+
+                                            <img
+                                                src="{{ asset('storage/' . ltrim($foto->ruta, '/')) }}"
+                                                alt="{{ $foto->descripcion ?: 'Fotografía del diagnóstico' }}"
+                                                class="img-fluid rounded border w-100"
+                                                style="height: 190px; object-fit: cover;"
+                                                loading="lazy">
+                                        </a>
+
+                                        @if($foto->descripcion)
+                                            <div class="text-muted small mt-2">
+                                                {{ $foto->descripcion }}
+                                            </div>
+                                        @else
+                                            <div class="text-muted small mt-2">
+                                                Fotografía {{ $loop->iteration }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <div class="text-muted small mt-3">
+                            <i class="fa fa-image me-1"></i>
+                            Este detalle no tiene fotografías.
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <div class="alert alert-light">
+                    No hay hallazgos ni recomendaciones registrados.
+                </div>
+            @endforelse
+        </div>
+    </div>
+@endif
+
+
          @if($orden->cotizacionActual)
             <div class="card shadow-sm mb-5">
                 <div class="card-header">
@@ -556,6 +683,8 @@
                             @endif
                         </div>
                     </div>
+
+                
                 @elseif($orden->cotizacionActual->estado === 'RECHAZADA')
                     <div class="separator separator-dashed my-5"></div>
                     <div class="alert alert-danger d-flex align-items-center">
@@ -572,6 +701,17 @@
                         </div>
                     </div>
                 @endif
+                <div class="d-flex justify-content-end mt-4">
+                    <a
+                        href="{{ route('ordenServicio.cotizacion.pdf', $orden->id) }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="btn btn-danger"
+                    >
+                        <i class="fa fa-file-pdf me-2"></i>
+                        Ver PDF de cotización
+                    </a>
+                </div>
                     @if($orden->cotizacionActual->estado === 'PENDIENTE')
                     <div class="separator separator-dashed my-5"></div>
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">

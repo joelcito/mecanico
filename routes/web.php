@@ -156,8 +156,9 @@ Route::middleware('auth')->group(function () {
            
             Route::post( '/{id}/reparacion/iniciar', [OrdenServicioController::class, 'iniciarReparacion'])->name('ordenServicio.reparacion.iniciar');
            
+            Route::get('/{id}/cotizacion/pdf', [OrdenCotizacionController::class, 'pdf'])->name('ordenServicio.cotizacion.pdf');
             });
-
+        
        Route::prefix('cajas')->group(function () {
             Route::get('/listado', [CajaController::class, 'listado'])->name('cajas.listado');
             Route::post('/ajaxListado', [CajaController::class, 'ajaxListado'])->name('cajas.ajaxListado');

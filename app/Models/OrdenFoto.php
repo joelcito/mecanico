@@ -70,4 +70,14 @@ class OrdenFoto extends Model
             'usuario_eliminador_id'
         );
     }
+    
+public function detalleDiagnostico()
+{
+    return $this->belongsTo(
+        OrdenDiagnosticoDetalle::class,
+        'orden_diagnostico_detalle_id'
+    );
+}
+
+
 }

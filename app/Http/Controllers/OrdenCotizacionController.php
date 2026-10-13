@@ -19,7 +19,7 @@ class OrdenCotizacionController extends Controller
         $orden = OrdenServicio::with([
             'vehiculo.cliente.user',
             'vehiculo.marca',
-            'diagnosticoActual.detalles',
+            'diagnosticoActual.detalles.fotos',
             'cotizacionActual.detalles.producto',
         ])->findOrFail($id);
 
@@ -57,6 +57,7 @@ class OrdenCotizacionController extends Controller
         $request->validate([
             'observaciones' => 'nullable|string',
             'detalles' => 'required|array|min:1',
+            'descuento' => 'nullable|numeric|min:0',
             'detalles.*.tipo' => 'required|in:PRODUCTO,SERVICIO',
             'detalles.*.producto_id' => [
                 'nullable',
@@ -85,8 +86,19 @@ class OrdenCotizacionController extends Controller
                 $subtotalDetalle = $cantidad * $precio;
                 $subtotal += $subtotalDetalle;
             }
-            $descuento = 0;
-            $total = $subtotal - $descuento;
+           $descuento = (float) $request->input('descuento', 0);
+
+                if ($descuento > $subtotal) {
+                    DB::rollBack();
+
+                    return back()
+                        ->withInput()
+                        ->withErrors([
+                            'descuento' => 'El descuento no puede ser mayor al subtotal.',
+                        ]);
+                }
+
+                $total = $subtotal - $descuento;
             $cotizacion = OrdenCotizacion::create([
                 'orden_servicio_id' => $orden->id,
                 'usuario_cotizador_id' => Auth::id(),
@@ -141,4 +153,33 @@ class OrdenCotizacionController extends Controller
                 );
         }
     }
+
+    
+public function pdf($id)
+{
+    $orden = OrdenServicio::with([
+        'vehiculo.cliente.user',
+        'vehiculo.marca',
+        'diagnosticoActual.detalles.fotos',
+        'cotizacionActual.detalles.producto',
+    ])->findOrFail($id);
+
+    $cotizacion = $orden->cotizacionActual;
+
+    if (!$cotizacion) {
+        return redirect()
+            ->route('ordenServicio.detalle', $orden->id)
+            ->with('error', 'Esta orden todavía no tiene una cotización.');
+    }
+
+    $pdf = Pdf::loadView(
+        'ordenServicio.cotizacionPdf',
+        compact('orden', 'cotizacion')
+    )->setPaper('a4', 'portrait');
+
+    return $pdf->stream(
+        'cotizacion-orden-' . $orden->id . '.pdf'
+    );
+}
+
 }

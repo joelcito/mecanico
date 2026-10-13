@@ -60,4 +60,14 @@ class OrdenDiagnosticoDetalle extends Model
             'usuario_eliminador_id'
         );
     }
+
+    
+public function fotos()
+{
+    return $this->hasMany(
+        OrdenFoto::class,
+        'orden_diagnostico_detalle_id'
+    )->where('tipo', 'DIAGNOSTICO');
+}
+
 }
