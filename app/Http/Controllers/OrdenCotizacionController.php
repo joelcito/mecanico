@@ -7,6 +7,7 @@ use App\Models\OrdenCotizacion;
 use App\Models\OrdenCotizacionDetalle;
 use App\Models\Producto;
 use App\Models\Categoria;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -154,7 +155,7 @@ class OrdenCotizacionController extends Controller
         }
     }
 
-    
+
 public function pdf($id)
 {
     $orden = OrdenServicio::with([
