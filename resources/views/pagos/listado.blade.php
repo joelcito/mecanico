@@ -1,241 +1,240 @@
 @extends('layouts.app')
 @section('title', 'Pagos')
+@section('css')
+<link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
+@endsection
+@section('metadatos')
+<meta name="csrf-token" content="{{ csrf_token() }}" />
+@endsection
 @section('content')
-<div class="card">
-    <div class="card-header border-0 pt-6">
-        <div class="card-title">
-            <h3 class="fw-bold">
-                Listado de Pagos
-            </h3>
-        </div>
-        <div class="card-toolbar">
-            <button
-                type="button"
-                class="btn btn-primary"
-                onclick="modalNuevoPago()">
-                <i class="ki-duotone ki-plus fs-2"></i>
-                Nuevo Pago
-            </button>
-        </div>
-    </div>
-    <div class="card-body py-4">
-        <div id="table_listado"></div>
-    </div>
-</div>
-
-<div class="modal fade"
-     id="modalPago"
-     tabindex="-1"
-     aria-hidden="true">
-
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="fw-bold">
-                    Registrar Pago
-                </h2>
-                <div
-                    class="btn btn-icon btn-sm btn-active-light-primary ms-2"
-                    data-bs-dismiss="modal">
-                    <i class="ki-duotone ki-cross fs-1"></i>
-                </div>
+    <div class="card">
+        <div class="card-header border-0 pt-6">
+            <div class="card-title">
+                <h3 class="fw-bold">
+                    Listado de Pagos
+                </h3>
             </div>
-            <form id="formPago">
-                @csrf
-                <div class="modal-body">
-                    <div id="erroresPago"></div>
-                    <div class="row">
-                        <div class="col-md-12 mb-5">
-                            <label class="form-label fw-bold">
-                                Orden de Servicio
-                            </label>
-                            <select
-                                class="form-select"
-                                id="orden_servicio_id"
-                                name="orden_servicio_id">
+            <div class="card-toolbar">
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    onclick="modalNuevoPago()">
+                    <i class="ki-duotone ki-plus fs-2"></i>
+                    Nuevo Pago
+                </button>
+            </div>
+        </div>
+        <div class="card-body py-4">
+            <div id="table_listado"></div>
+        </div>
+    </div>
 
-                                <option value="">
-                                    Seleccione una orden
-                                </option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 mb-5">
-                            <label class="form-label fw-bold">
-                                Total Cotización
-                            </label>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="total_cotizacion"
-                                readonly>
-                        </div>
-                        <div class="col-md-4 mb-5">
-                            <label class="form-label fw-bold">
-                                Total Pagado
-                            </label>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="total_pagado"
-                                readonly>
+    <div class="modal fade"
+        id="modalPago"
+        tabindex="-1"
+        aria-hidden="true">
 
-                        </div>
-                        <div class="col-md-4 mb-5">
-                            <label class="form-label fw-bold">
-                                Saldo Pendiente
-                            </label>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="saldo_pendiente"
-                                readonly>
-                        </div>
-
-                        <div class="col-md-6 mb-5">
-                            <label class="form-label fw-bold">
-                                Caja
-                            </label>
-
-                            <select
-                                class="form-select"
-                                id="caja_id"
-                                name="caja_id">
-                                <option value="">
-                                    Seleccione una caja
-                                </option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 mb-5">
-                            <label class="form-label fw-bold">
-                                Método de Pago
-                            </label>
-                            <select
-                                class="form-select"
-                                id="tipo_pago"
-                                name="tipo_pago">
-                                <option value="">
-                                    Seleccione
-                                </option>
-                                <option value="EFECTIVO">
-                                    Efectivo
-                                </option>
-
-                                <option value="QR">
-                                    QR
-                                </option>
-
-                                <option value="TRANSFERENCIA">
-                                    Transferencia
-                                </option>
-                            </select>
-                        </div>
-                        {{-- MONTO A PAGAR --}}
-                        <div class="col-md-4 mb-5">
-
-                            <label class="form-label fw-bold">
-                                Monto a pagar
-                            </label>
-
-                            <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                class="form-control"
-                                id="monto"
-                                name="monto"
-                                placeholder="0.00">
-
-                        </div>
-
-
-                        {{-- MONTO RECIBIDO --}}
-                        <div class="col-md-4 mb-5">
-
-                            <label class="form-label fw-bold">
-                                Monto recibido
-                            </label>
-
-                            <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                class="form-control"
-                                id="monto_recibido"
-                                name="monto_recibido"
-                                placeholder="0.00">
-
-                        </div>
-
-
-                        {{-- CAMBIO --}}
-                        <div class="col-md-4 mb-5">
-
-                            <label class="form-label fw-bold">
-                                Cambio
-                            </label>
-
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="cambio"
-                                name="cambio"
-                                value="0.00"
-                                readonly>
-
-                        </div>
-
-                        <div class="col-md-12 mb-5">
-                            <label class="form-label fw-bold">
-                                Descripción
-                            </label>
-                            <textarea
-                                class="form-control"
-                                id="descripcion"
-                                name="descripcion"
-                                rows="3"
-                                placeholder="Descripción del pago"></textarea>
-                        </div>
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="fw-bold">
+                        Registrar Pago
+                    </h2>
+                    <div
+                        class="btn btn-icon btn-sm btn-active-light-primary ms-2"
+                        data-bs-dismiss="modal">
+                        <i class="ki-duotone ki-cross fs-1"></i>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button
-                        type="button"
-                        class="btn btn-light"
-                        data-bs-dismiss="modal">
-                        Cancelar
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-primary"
-                        onclick="guardarPago()">
-                        <i class="ki-duotone ki-check fs-2"></i>
-                        Registrar Pago
-                    </button>
-                </div>
-            </form>
+                <form id="formPago">
+                    @csrf
+                    <div class="modal-body">
+                        <div id="erroresPago"></div>
+                        <div class="row">
+                            <div class="col-md-12 mb-5">
+                                <label class="form-label fw-bold">
+                                    Orden de Servicio
+                                </label>
+                                <select
+                                    class="form-select"
+                                    id="orden_servicio_id"
+                                    name="orden_servicio_id">
+
+                                    <option value="">
+                                        Seleccione una orden
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-5">
+                                <label class="form-label fw-bold">
+                                    Total Cotización
+                                </label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="total_cotizacion"
+                                    readonly>
+                            </div>
+                            <div class="col-md-4 mb-5">
+                                <label class="form-label fw-bold">
+                                    Total Pagado
+                                </label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="total_pagado"
+                                    readonly>
+
+                            </div>
+                            <div class="col-md-4 mb-5">
+                                <label class="form-label fw-bold">
+                                    Saldo Pendiente
+                                </label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="saldo_pendiente"
+                                    readonly>
+                            </div>
+
+                            <div class="col-md-6 mb-5">
+                                <label class="form-label fw-bold">
+                                    Caja
+                                </label>
+
+                                <select
+                                    class="form-select"
+                                    id="caja_id"
+                                    name="caja_id">
+                                    <option value="">
+                                        Seleccione una caja
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-5">
+                                <label class="form-label fw-bold">
+                                    Método de Pago
+                                </label>
+                                <select
+                                    class="form-select"
+                                    id="tipo_pago"
+                                    name="tipo_pago">
+                                    <option value="">
+                                        Seleccione
+                                    </option>
+                                    <option value="EFECTIVO">
+                                        Efectivo
+                                    </option>
+
+                                    <option value="QR">
+                                        QR
+                                    </option>
+
+                                    <option value="TRANSFERENCIA">
+                                        Transferencia
+                                    </option>
+                                </select>
+                            </div>
+                            {{-- MONTO A PAGAR --}}
+                            <div class="col-md-4 mb-5">
+
+                                <label class="form-label fw-bold">
+                                    Monto a pagar
+                                </label>
+
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    class="form-control"
+                                    id="monto"
+                                    name="monto"
+                                    placeholder="0.00">
+
+                            </div>
+
+
+                            {{-- MONTO RECIBIDO --}}
+                            <div class="col-md-4 mb-5">
+
+                                <label class="form-label fw-bold">
+                                    Monto recibido
+                                </label>
+
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    class="form-control"
+                                    id="monto_recibido"
+                                    name="monto_recibido"
+                                    placeholder="0.00">
+
+                            </div>
+
+
+                            {{-- CAMBIO --}}
+                            <div class="col-md-4 mb-5">
+
+                                <label class="form-label fw-bold">
+                                    Cambio
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="cambio"
+                                    name="cambio"
+                                    value="0.00"
+                                    readonly>
+
+                            </div>
+
+                            <div class="col-md-12 mb-5">
+                                <label class="form-label fw-bold">
+                                    Descripción
+                                </label>
+                                <textarea
+                                    class="form-control"
+                                    id="descripcion"
+                                    name="descripcion"
+                                    rows="3"
+                                    placeholder="Descripción del pago"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-light"
+                            data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            onclick="guardarPago()">
+                            <i class="ki-duotone ki-check fs-2"></i>
+                            Registrar Pago
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="modal fade"
-     id="modalVerPago"
-     tabindex="-1"
-     aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+    <div class="modal fade"
+        id="modalVerPago"
+        tabindex="-1"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+            </div>
         </div>
     </div>
-</div>
+@endsection
 
-@endsection
-@section('css')
-<link
-    href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}"
-    rel="stylesheet"
-    type="text/css"
-/>
-@endsection
 @section('js')
 <script src="{{ asset('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
 <script>
