@@ -272,8 +272,6 @@
                 </div>
             </div>
         </div>
-
-
         <div class="card shadow-sm mb-5">
             <div class="card-header">
                 <h3 class="card-title fw-bold">
@@ -517,8 +515,6 @@
         </div>
     </div>
 @endif
-
-
          @if($orden->cotizacionActual)
             <div class="card shadow-sm mb-5">
                 <div class="card-header">
@@ -1547,11 +1543,8 @@ function cargarDatosPagoOrden()
     $.ajax({
         url: "{{ route('pagos.crear') }}",
         type: "GET",
-
         success: function(response) {
-
             console.log('DATOS PAGO:', response);
-
             if (!response.estado) {
                 Swal.fire({
                     icon: 'error',
@@ -1559,44 +1552,34 @@ function cargarDatosPagoOrden()
                     text: response.message ??
                         'No se pudieron cargar los datos del pago.'
                 });
-
                 return;
             }
-
             let opcionesCaja = `
                 <option value="">
                     Seleccione una caja
                 </option>
             `;
-
             if (response.cajas && response.cajas.length > 0) {
-
                 response.cajas.forEach(function(caja) {
-
                     opcionesCaja += `
                         <option value="${caja.id}">
                             Caja #${caja.id}
                         </option>
                     `;
-
                 });
 
             } else {
-
                 opcionesCaja = `
                     <option value="">
                         No hay cajas abiertas
                     </option>
                 `;
             }
-
             $('#caja_id_pago').html(opcionesCaja);
         },
 
         error: function(xhr) {
-
             console.error('ERROR CARGANDO PAGO:', xhr);
-
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -1607,37 +1590,24 @@ function cargarDatosPagoOrden()
     });
 }
 
-
 $(document).on(
     'input change',
     '#monto_recibido_orden, #tipo_pago_orden',
     function() {
-
         const tipo = $('#tipo_pago_orden').val();
-
         const montoRecibido = parseFloat(
             $('#monto_recibido_orden').val()
         ) || 0;
-
         const saldoPendiente = parseFloat(
             '{{ number_format($orden->saldo_pendiente, 2, '.', '') }}'
         ) || 0;
-
         let cambio = 0;
-
         if (tipo === 'EFECTIVO') {
-
-            cambio = Math.max(
-                0,
-                montoRecibido - saldoPendiente
-            );
-
+            cambio = Math.max( 0, montoRecibido - saldoPendiente );
             $('#cambio_pago_orden').val(
                 'Bs. ' + cambio.toFixed(2)
             );
-
         } else {
-
             $('#cambio_pago_orden').val(
                 'Bs. 0.00'
             );
@@ -1646,13 +1616,8 @@ $(document).on(
 );
 
 $(document).on('submit', '#formPagoOrden', function(e) {
-
     e.preventDefault();
-
-    console.log('SUBMIT PAGO EJECUTADO');
-
     const btn = $('#btnGuardarPagoOrden');
-
     const ordenId = $('#orden_servicio_id_pago').val();
     const cajaId = $('#caja_id_pago').val();
     const tipoPago = $('#tipo_pago_orden').val();
@@ -1661,54 +1626,38 @@ let montoRecibido = parseFloat(
     $('#monto_recibido_orden').val()
 ) || 0;
 
-
-
 const saldoPendiente = parseFloat(
     '{{ number_format($orden->saldo_pendiente, 2, '.', '') }}'
 ) || 0;
 
-
-
-    const descripcion =
-        $('#descripcion_pago_orden').val();
-
-    
-
+const descripcion =
+    $('#descripcion_pago_orden').val();
     $('#erroresPagoOrden')
         .addClass('d-none')
         .html('');
 
     if (!cajaId) {
-
         $('#erroresPagoOrden')
             .removeClass('d-none')
             .html('Debe seleccionar una caja.');
-
         return;
     }
 
     if (!tipoPago) {
-
         $('#erroresPagoOrden')
             .removeClass('d-none')
             .html('Debe seleccionar el tipo de pago.');
-
         return;
     }
 
    if (montoRecibido <= 0) {
-
     $('#erroresPagoOrden')
         .removeClass('d-none')
         .html('El monto recibido debe ser mayor a cero.');
-
     return;
 }
 
-
-
     btn.prop('disabled', true);
-
     $.ajax({
         url: "{{ route('pagos.guardar') }}",
         type: "POST",
@@ -1722,11 +1671,7 @@ const saldoPendiente = parseFloat(
         },
 
         success: function(response) {
-
-            console.log('RESPUESTA GUARDAR:', response);
-
             if (response.estado) {
-
                 bootstrap.Modal
                     .getInstance(
                         document.getElementById('modalPagoOrden')
@@ -1742,11 +1687,8 @@ const saldoPendiente = parseFloat(
                 }).then(() => {
 
                     location.reload();
-
                 });
-
             } else {
-
                 $('#erroresPagoOrden')
                     .removeClass('d-none')
                     .html(response.message);
@@ -1756,14 +1698,6 @@ const saldoPendiente = parseFloat(
         },
 
         error: function(xhr) {
-
-            console.error('ERROR GUARDAR:', xhr);
-
-            console.error(
-                'STATUS:',
-                xhr.status
-            );
-
             console.error(
                 'RESPONSE:',
                 xhr.responseText
@@ -1775,7 +1709,6 @@ const saldoPendiente = parseFloat(
                     xhr.responseJSON?.message ??
                     'No se pudo registrar el pago.'
                 );
-
             btn.prop('disabled', false);
         }
 
@@ -1796,18 +1729,14 @@ function iniciarReparacion(id) {
         if (!result.isConfirmed) {
             return;
         }
-
         $.ajax({
             url: "{{ url('/ordenServicio') }}/" + id + "/reparacion/iniciar",
             type: "POST",
             data: {
                 _token: "{{ csrf_token() }}"
             },
-
             success: function(response) {
-
                 if (response.estado) {
-
                     Swal.fire({
                         icon: 'success',
                         title: 'Reparación iniciada',
@@ -1817,20 +1746,16 @@ function iniciarReparacion(id) {
                     }).then(() => {
                         location.reload();
                     });
-
                 } else {
-
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
                         text: response.message
                     });
-
                 }
             },
 
             error: function(xhr) {
-
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
@@ -1945,24 +1870,18 @@ function cargarDatosReparacion()
     $.ajax({
         url: "{{ route('reparaciones.datos', $orden->id) }}",
         type: "GET",
-
         success: function(response) {
-
             if (!response.estado) {
-
                 mostrarErrorReparacion(
                     response.message ??
                     'No se pudieron cargar los datos de reparación.'
                 );
-
                 return;
             }
 
             const reparacion = response.data.reparacion;
             const tecnicos = response.data.tecnicos;
-
             const selectTecnico = $('#tecnico_id');
-
             selectTecnico.html(`
                 <option value="">
                     Seleccione un técnico
@@ -1970,7 +1889,6 @@ function cargarDatosReparacion()
             `);
 
             tecnicos.forEach(function(tecnico) {
-
                 const nombre = [
                     tecnico.nombres,
                     tecnico.ap_paterno,
@@ -1978,7 +1896,6 @@ function cargarDatosReparacion()
                 ]
                 .filter(Boolean)
                 .join(' ');
-
                 selectTecnico.append($('<option>', {
                     value: tecnico.id,
                     text: nombre
@@ -1987,13 +1904,11 @@ function cargarDatosReparacion()
             });
 
             if (reparacion) {
-
                 if (reparacion.tecnico_id) {
                     selectTecnico.val(
                         reparacion.tecnico_id
                     );
                 }
-
                 const tecnico = reparacion.tecnico;
                 $('#tecnicoActual').text(tecnico
                     ? [tecnico.nombres, tecnico.ap_paterno, tecnico.ap_materno].filter(Boolean).join(' ')
@@ -2030,7 +1945,6 @@ function cargarDatosReparacion()
     });
 }
 
-
 function mostrarErrorReparacion(mensaje)
 {
     $('#erroresReparacion')
@@ -2056,7 +1970,6 @@ function mensajeErrorReparacion(xhr)
     if (errores) {
         return Object.values(errores).flat().map(escaparHtml).join('<br>');
     }
-
     if (xhr.status === 422) {
         return escaparHtml(xhr.responseJSON?.message ?? 'Revise los datos ingresados.');
     }

@@ -41,54 +41,54 @@ public function ajaxListado(Request $request)
     }
     public function guardarCategoria(Request $request)
     {
-    $request->validate([
-    'nombre' => 'required|string|max:255',
-    'descripcion' => 'nullable|string',
-    'tipo' => 'required|in:PRODUCTO,HERRAMIENTA',
-    'estado' => 'nullable|string|max:50',
-]);
-        if ($request->id) {
-            $categoria = Categoria::whereNull('deleted_at')->findOrFail($request->id);
-
-            if (
-                $categoria->tipo !== $request->tipo &&
-                (($request->tipo === 'HERRAMIENTA' && $categoria->productos()->whereNull('deleted_at')->exists()) ||
-                    ($request->tipo === 'PRODUCTO' && $categoria->herramientas()->whereNull('deleted_at')->exists()))
-            ) {
-                return response()->json([
-                    'estado' => false,
-                    'message' => 'No se puede cambiar el tipo de una categoría con registros activos asociados.',
-                ], 422);
-            }
-
-            $categoria->nombre = $request->nombre;
-            $categoria->descripcion = $request->descripcion;
-            $categoria->tipo = $request->tipo;
-            if ($request->has('estado')) {
-                $categoria->estado = $request->estado;
-            }
-
-            $categoria->usuario_modificador_id = Auth::id();
-            $categoria->save();
-            return response()->json([
-                'estado' => true,
-                'mensaje' => 'Categoría actualizada correctamente.',
-                'data' => $categoria
-            ]);
-        }
-
-        $categoria = new Categoria();
-        $categoria->nombre = $request->nombre;
-        $categoria->descripcion = $request->descripcion;
-        $categoria->tipo = $request->tipo;
-        $categoria->estado = $request->estado ?? 'ACTIVO';
-        $categoria->usuario_creador_id = Auth::id();
-        $categoria->save();
-        return response()->json([
-            'estado' => true,
-            'mensaje' => 'Categoría registrada correctamente.',
-            'data' => $categoria
+            $request->validate([
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'nullable|string',
+            'tipo' => 'required|in:PRODUCTO,HERRAMIENTA',
+            'estado' => 'nullable|string|max:50',
         ]);
+                if ($request->id) {
+                    $categoria = Categoria::whereNull('deleted_at')->findOrFail($request->id);
+
+                    if (
+                        $categoria->tipo !== $request->tipo &&
+                        (($request->tipo === 'HERRAMIENTA' && $categoria->productos()->whereNull('deleted_at')->exists()) ||
+                            ($request->tipo === 'PRODUCTO' && $categoria->herramientas()->whereNull('deleted_at')->exists()))
+                    ) {
+                        return response()->json([
+                            'estado' => false,
+                            'message' => 'No se puede cambiar el tipo de una categoría con registros activos asociados.',
+                        ], 422);
+                    }
+
+                    $categoria->nombre = $request->nombre;
+                    $categoria->descripcion = $request->descripcion;
+                    $categoria->tipo = $request->tipo;
+                    if ($request->has('estado')) {
+                        $categoria->estado = $request->estado;
+                    }
+
+                    $categoria->usuario_modificador_id = Auth::id();
+                    $categoria->save();
+                    return response()->json([
+                        'estado' => true,
+                        'mensaje' => 'Categoría actualizada correctamente.',
+                        'data' => $categoria
+                    ]);
+                }
+
+                $categoria = new Categoria();
+                $categoria->nombre = $request->nombre;
+                $categoria->descripcion = $request->descripcion;
+                $categoria->tipo = $request->tipo;
+                $categoria->estado = $request->estado ?? 'ACTIVO';
+                $categoria->usuario_creador_id = Auth::id();
+                $categoria->save();
+                return response()->json([
+                    'estado' => true,
+                    'mensaje' => 'Categoría registrada correctamente.',
+                    'data' => $categoria
+                ]);
     }
 
     public function eliminarCategoria(Request $request)

@@ -175,15 +175,14 @@
                 data: datos,
                 success: function (resultado) {
                     if (resultado.estado) {
+                        $('#modalCategoria').modal('hide');
+                        ajaxListado();
                         Swal.fire({
-                            title: "EL REGISTRO FUE EXITOSO.",
+                            title: "¡Registro exitoso!",
                             icon: "success",
                             timer: 3000,
                             showConfirmButton: false
-
                         });
-                        ajaxListado();
-                        $('#modalCategoria').modal('hide');
                     } else {
                         Swal.fire({
                             icon: 'error',
@@ -195,28 +194,36 @@
 
                 error: function (xhr) {
                     limpiarErrores();
+                    const respuesta = xhr.responseJSON || {};
                     if (xhr.status === 422) {
-                        let errores = xhr.responseJSON.errors;
-                        for (let campo in errores) {
-                            let mensaje = errores[campo][0];
-                            let input = $(`[name="${campo}"]`);
-                            input.addClass('is-invalid');
-                            input.after(
-                                `<div class="invalid-feedback">
-                                    ${mensaje}
-                                </div>`
-                            );
+                        if (respuesta.errors) {
+                            let errores = respuesta.errors;
+                            for (let campo in errores) {
+                                let mensaje = errores[campo][0];
+                                let input = $(`#formularioCategoria [name="${campo}"]`);
+                                input.addClass('is-invalid');
+                                $('<div class="invalid-feedback"></div>')
+                                    .text(mensaje)
+                                    .insertAfter(input);
+                            }
+                            return;
                         }
-
-                    } else {
                         Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Ocurrió un error inesperado.'
+                            icon: 'warning',
+                            title: 'No se puede realizar la operación',
+                            text: respuesta.message || 'No se pudo guardar la categoría.',
+                            confirmButtonText: 'Entendido'
                         });
+                        return;
                     }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: respuesta.message || 'Ocurrió un error inesperado.'
+                    });
                 }
             });
+
         }
 
         function editarCategoria(categoria) {

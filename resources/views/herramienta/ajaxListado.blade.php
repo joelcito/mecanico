@@ -8,7 +8,6 @@
                 <th>Marca</th>
                 <th>Unidad</th>
                 <th>Cantidad</th>
-                <th>Stock mínimo</th>
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
@@ -22,7 +21,6 @@
                     <td>{{ $herramienta->marca->nombre ?? '-' }}</td>
                     <td>{{ $herramienta->unidad_medida ?? '-' }}</td>
                     <td>{{ $herramienta->cantidad }}</td>
-                    <td>{{ $herramienta->stock_minimo }}</td>
                     <td>
                         @if ($herramienta->estado === 'ACTIVO')
                             <span class="badge badge-light-success">Activo</span>

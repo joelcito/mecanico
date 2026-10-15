@@ -47,7 +47,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4 fv-row mb-7">
+                        <div class="col-md-6 fv-row mb-7">
                             <label class="required fw-semibold fs-6 mb-2">Unidad de medida</label>
                             <select class="form-select form-select-sm" name="unidad_medida" id="herramienta_unidad_medida">
                                 <option value="">Seleccione...</option>
@@ -56,14 +56,11 @@
                                 <option value="PAR">Par</option>
                             </select>
                         </div>
-                        <div class="col-md-4 fv-row mb-7">
+                        <div class="col-md-6 fv-row mb-7">
                             <label class="required fw-semibold fs-6 mb-2">Cantidad</label>
                             <input type="number" class="form-control form-control-sm" name="cantidad" id="herramienta_cantidad" min="0" step="0.01" value="0">
                         </div>
-                        <div class="col-md-4 fv-row mb-7">
-                            <label class="required fw-semibold fs-6 mb-2">Stock mínimo</label>
-                            <input type="number" class="form-control form-control-sm" name="stock_minimo" id="herramienta_stock_minimo" min="0" step="0.01" value="0">
-                        </div>
+                       
                     </div>
                     <div class="row">
                         <div class="col-md-6 fv-row mb-7">
@@ -165,7 +162,6 @@
             limpiarErroresHerramienta();
             $('#formularioHerramienta')[0].reset();
             $('#herramienta_id').val(0);
-            $('#herramienta_cantidad, #herramienta_stock_minimo').val(0);
             $('#herramienta_estado').val('ACTIVO');
             $('#modalHerramienta').modal('show');
         }
@@ -211,7 +207,6 @@
             $('#herramienta_marca_id').val(herramienta.marca_id ?? '');
             $('#herramienta_unidad_medida').val(herramienta.unidad_medida);
             $('#herramienta_cantidad').val(herramienta.cantidad ?? 0);
-            $('#herramienta_stock_minimo').val(herramienta.stock_minimo ?? 0);
             $('#herramienta_estado').val(herramienta.estado ?? 'ACTIVO');
             $('#herramienta_imagen').val('');
             $('#modalHerramienta').modal('show');

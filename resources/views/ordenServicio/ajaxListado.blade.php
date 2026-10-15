@@ -9,7 +9,7 @@
                 <th>Placa</th>
                 <th>Kilometraje</th>
                 <th>Estado</th>
-                <th>Actions</th>
+                <th>Acciones</th>
             </tr>
         </thead>
 
