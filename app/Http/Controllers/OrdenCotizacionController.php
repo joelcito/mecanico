@@ -13,9 +13,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
-use Barryvdh\DomPDF\Facade\Pdf;
-
-
 class OrdenCotizacionController extends Controller
 {
     public function crear($id)
