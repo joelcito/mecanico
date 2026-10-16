@@ -27,6 +27,9 @@ use App\Http\Controllers\AsignacionHerramientaController;
 use App\Http\Controllers\ReportesController;
 use App\Http\Controllers\OrdenEntregaController;
 
+use App\Http\Controllers\PortalClienteController;
+use App\Http\Middleware\VerificarRol;
+
 Route::get('/', function () {
     // return view('welcome');
     return redirect('home');
@@ -210,6 +213,10 @@ Route::middleware('auth')->group(function () {
             Route::prefix('inventario')->group(function () {
                 Route::post('/ingresos/guardar', [MovimientoInventarioController::class,'guardarIngreso'])->name('inventario.ingresos.guardar');
                 Route::post('/salidas/guardar', [MovimientoInventarioController::class,'guardarSalida'])->name('inventario.salidas.guardar');
+            });
+
+            Route::middleware(['auth', VerificarRol::class . ':4',])->group(function () {
+            Route::get('/mi-portal', [ PortalClienteController::class, 'index',])->name('portal-cliente.inicio');
             });
 
     

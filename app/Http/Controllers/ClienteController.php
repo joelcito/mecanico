@@ -61,26 +61,37 @@ class ClienteController extends Controller
         DB::beginTransaction();
         try {
             $clienteId = $request->input('id');
-            if ($clienteId == '0') {
-                $user = new User();
-                $user->email = $request->input('email');
-                $user->password = Hash::make($request->input('password', '12345678'));
-                $user->nombres = $request->input('nombres');
-                $user->ap_paterno = $request->input('ap_paterno');
-                $user->ap_materno = $request->input('ap_materno');
-                $user->cedula = $request->input('cedula');
-                $user->celular = $request->input('celular');
-                $user->usuario_creador_id = $usuario->id;
-                $user->save();
-                $cliente = new Cliente();
-                $cliente->user_id = $user->id;
-                $cliente->nit = $request->input('nit');
-                $cliente->direccion = $request->input('direccion');
-                $cliente->razon_social = $request->input('razon_social');
-                $cliente->estado = 'ACTIVO';
-                $cliente->usuario_creador_id = $usuario->id;
-                $cliente->save();
-            } else {
+           
+           if ($clienteId == '0') {
+            $user = new User();
+
+            $user->email = $request->input('email');
+            $user->password = Hash::make(
+                $request->input('password', '12345678')
+            );
+
+            $user->nombres = $request->input('nombres');
+            $user->ap_paterno = $request->input('ap_paterno');
+            $user->ap_materno = $request->input('ap_materno');
+            $user->cedula = $request->input('cedula');
+            $user->celular = $request->input('celular');
+
+            // ASIGNAR ROL DE CLIENTE
+            $user->rol_id = 4;
+            $user->estado = 'ACTIVO';
+
+            $user->usuario_creador_id = $usuario->id;
+            $user->save();
+
+            $cliente = new Cliente();
+            $cliente->user_id = $user->id;
+            $cliente->nit = $request->input('nit');
+            $cliente->direccion = $request->input('direccion');
+            $cliente->razon_social = $request->input('razon_social');
+            $cliente->estado = 'ACTIVO';
+            $cliente->usuario_creador_id = $usuario->id;
+            $cliente->save();
+        } else {
                 $cliente = Cliente::with('user')->find($clienteId);
                 if (!$cliente) {
                     DB::rollBack();
@@ -101,11 +112,14 @@ class ClienteController extends Controller
                 $user->nombres = $request->input('nombres');
                 $user->ap_paterno = $request->input('ap_paterno');
                 $user->ap_materno = $request->input('ap_materno');
+                
                 $user->cedula = $request->input('cedula');
                 $user->celular = $request->input('celular');
-                $user->email = $request->input('email');
-                $user->usuario_modificador_id = $usuario->id;
+                $user->rol_id = 4; // Rol Cliente
+                $user->estado = 'ACTIVO';
+                $user->usuario_creador_id = $usuario->id;
                 $user->save();
+
                 $cliente->nit = $request->input('nit');
                 $cliente->direccion = $request->input('direccion');
                 $cliente->razon_social = $request->input('razon_social');

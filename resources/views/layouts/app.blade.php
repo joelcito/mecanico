@@ -1636,7 +1636,7 @@ body {
     <div class="col-md-12 text-center">
         <img 
             alt="Logo" 
-            src="{{ asset('assets/img/logo.jpg') }}" 
+            src="{{ asset('assets/img/logo3.png') }}" 
             class="logo-img"
         >
     </div>
