@@ -642,237 +642,124 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Elegir fotos desde la galería, pudiendo agregar más después.
-    inputGaleria.addEventListener('change', function () {
-        agregarArchivos(inputGaleria.files);
-        inputGaleria.value = '';
-    });
-
-    // Cámara.
-    async function iniciarCamara() {
-        detenerCamara();
-
-        archivoCapturado = null;
-        captura.classList.add('d-none');
-        video.classList.remove('d-none');
-        botonCapturar.classList.remove('d-none');
-        botonUsar.classList.add('d-none');
-        botonRepetir.classList.add('d-none');
-        errorCamara.classList.add('d-none');
-
-        if (!navigator.mediaDevices?.getUserMedia) {
-            mostrarErrorCamara(
-                'La cámara necesita HTTPS o localhost. Abre el sistema desde una conexión segura.'
-            );
-            return;
-        }
-
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({
-                audio: false,
-                video: { facingMode: { ideal: 'environment' } }
+            inputGaleria.addEventListener('change', function () {
+                agregarArchivos(inputGaleria.files);
+                inputGaleria.value = '';
             });
 
-            video.srcObject = stream;
-            await video.play();
-        } catch (error) {
-            mostrarErrorCamara(
-                'No se pudo abrir la cámara. Comprueba los permisos de Chrome.'
-            );
-        }
-    }
+            // Cámara.
+            async function iniciarCamara() {
+                detenerCamara();
 
-    if (botonAbrirCamara && modal) {
-        botonAbrirCamara.addEventListener('click', function () {
-            modal.show();
-        });
+                archivoCapturado = null;
+                captura.classList.add('d-none');
+                video.classList.remove('d-none');
+                botonCapturar.classList.remove('d-none');
+                botonUsar.classList.add('d-none');
+                botonRepetir.classList.add('d-none');
+                errorCamara.classList.add('d-none');
 
-        elementoModal.addEventListener('shown.bs.modal', iniciarCamara);
-        elementoModal.addEventListener('hidden.bs.modal', detenerCamara);
-    }
+                if (!navigator.mediaDevices?.getUserMedia) {
+                    mostrarErrorCamara(
+                        'La cámara necesita HTTPS o localhost. Abre el sistema desde una conexión segura.'
+                    );
+                    return;
+                }
 
-    botonCapturar.addEventListener('click', function () {
-        if (!video.videoWidth) {
-            mostrarErrorCamara('Espera a que la cámara esté lista.');
-            return;
-        }
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        audio: false,
+                        video: { facingMode: { ideal: 'environment' } }
+                    });
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+                    video.srcObject = stream;
+                    await video.play();
+                } catch (error) {
+                    mostrarErrorCamara(
+                        'No se pudo abrir la cámara. Comprueba los permisos de Chrome.'
+                    );
+                }
+            }
 
-        canvas.getContext('2d').drawImage(
-            video, 0, 0, canvas.width, canvas.height
-        );
+            if (botonAbrirCamara && modal) {
+                botonAbrirCamara.addEventListener('click', function () {
+                    modal.show();
+                });
 
-        canvas.toBlob(function (blob) {
-            if (!blob) {
-                mostrarErrorCamara('No se pudo capturar la fotografía.');
+                elementoModal.addEventListener('shown.bs.modal', iniciarCamara);
+                elementoModal.addEventListener('hidden.bs.modal', detenerCamara);
+            }
+
+            botonCapturar.addEventListener('click', function () {
+                if (!video.videoWidth) {
+                    mostrarErrorCamara('Espera a que la cámara esté lista.');
+                    return;
+                }
+
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                canvas.getContext('2d').drawImage(
+                    video, 0, 0, canvas.width, canvas.height
+                );
+
+                canvas.toBlob(function (blob) {
+                    if (!blob) {
+                        mostrarErrorCamara('No se pudo capturar la fotografía.');
+                        return;
+                    }
+
+                    archivoCapturado = new File(
+                        [blob],
+                        'inspeccion-' + Date.now() + '.jpg',
+                        { type: 'image/jpeg' }
+                    );
+
+                    captura.src = URL.createObjectURL(blob);
+                    captura.classList.remove('d-none');
+                    video.classList.add('d-none');
+
+                    botonCapturar.classList.add('d-none');
+                    botonUsar.classList.remove('d-none');
+                    botonRepetir.classList.remove('d-none');
+
+                    detenerCamara();
+                }, 'image/jpeg', 0.9);
+            });
+
+            botonRepetir.addEventListener('click', iniciarCamara);
+
+            botonUsar.addEventListener('click', function () {
+            console.log('[Inspección] Usar foto pulsado');
+
+            if (!archivoCapturado) {
+                console.error('[Inspección] No existe una foto capturada');
                 return;
             }
 
-            archivoCapturado = new File(
-                [blob],
-                'inspeccion-' + Date.now() + '.jpg',
-                { type: 'image/jpeg' }
-            );
+            const archivo = archivoCapturado;
 
-            captura.src = URL.createObjectURL(blob);
-            captura.classList.remove('d-none');
-            video.classList.add('d-none');
+            try {
+                agregarArchivos([archivo]);
 
-            botonCapturar.classList.add('d-none');
-            botonUsar.classList.remove('d-none');
-            botonRepetir.classList.remove('d-none');
+                // Limpiar la captura después de agregarla.
+                archivoCapturado = null;
 
-            detenerCamara();
-        }, 'image/jpeg', 0.9);
-    });
+                modal?.hide();
 
-    botonRepetir.addEventListener('click', iniciarCamara);
+                console.log('[Inspección] Foto agregada correctamente');
+            } catch (error) {
+                console.error('[Inspección] Error al agregar foto:', error);
 
-    botonUsar.addEventListener('click', function () {
-        if (!archivoCapturado) return;
-
-        // Se incorpora a la misma lista que las fotos de la galería.
-        agregarArchivos([archivoCapturado]);
-        modal.hide();
-    });
+                mostrarErrorCamara(
+                    'No se pudo agregar la fotografía. Intenta nuevamente.'
+                );
+            }
+        });
 
     mostrarPrevia();
 });
 
-
-
-
-
-(function () {
-    const modalElemento = document.getElementById('modalCamaraInspeccion');
-    const botonAbrir = document.getElementById('btnAbrirCamaraInspeccion');
-    if (!modalElemento || !botonAbrir) return;
-
-    const modal = new bootstrap.Modal(modalElemento);
-    const video = document.getElementById('videoCamaraInspeccion');
-    const canvas = document.getElementById('canvasCamaraInspeccion');
-    const captura = document.getElementById('capturaCamaraInspeccion');
-    const botonCapturar = document.getElementById('btnCapturarInspeccion');
-    const botonUsar = document.getElementById('btnUsarCapturaInspeccion');
-    const botonRepetir = document.getElementById('btnRepetirCapturaInspeccion');
-    const error = document.getElementById('errorCamaraInspeccion');
-
-    let stream = null;
-    let archivoCapturado = null;
-
-    function detenerCamara() {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            stream = null;
-        }
-        video.srcObject = null;
-    }
-
-    function mostrarError(mensaje) {
-        error.textContent = mensaje;
-        error.classList.remove('d-none');
-    }
-
-    function reiniciarVista() {
-        captura.classList.add('d-none');
-        video.classList.remove('d-none');
-        botonCapturar.classList.remove('d-none');
-        botonUsar.classList.add('d-none');
-        botonRepetir.classList.add('d-none');
-        archivoCapturado = null;
-    }
-
-    async function iniciarCamara() {
-        error.classList.add('d-none');
-        reiniciarVista();
-
-        if (!navigator.mediaDevices?.getUserMedia) {
-            mostrarError(
-                'La cámara requiere HTTPS o localhost. Abre esta página desde una conexión segura.'
-            );
-            return;
-        }
-
-        try {
-            detenerCamara();
-
-            stream = await navigator.mediaDevices.getUserMedia({
-                audio: false,
-                video: {
-                    facingMode: { ideal: 'environment' }
-                }
-            });
-
-            video.srcObject = stream;
-            await video.play();
-        } catch (e) {
-            mostrarError(
-                'No se pudo abrir la cámara. Verifica los permisos de Chrome y que ninguna otra aplicación la esté usando.'
-            );
-        }
-    }
-
-    botonAbrir.addEventListener('click', function () {
-        modal.show();
-    });
-
-    modalElemento.addEventListener('shown.bs.modal', iniciarCamara);
-
-    modalElemento.addEventListener('hidden.bs.modal', detenerCamara);
-
-    botonCapturar.addEventListener('click', function () {
-        if (!video.videoWidth || !video.videoHeight) {
-            mostrarError('Espera a que la cámara esté lista.');
-            return;
-        }
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        const contexto = canvas.getContext('2d');
-        contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        canvas.toBlob(function (blob) {
-            if (!blob) {
-                mostrarError('No se pudo capturar la fotografía.');
-                return;
-            }
-
-            archivoCapturado = new File(
-                [blob],
-                'inspeccion-' + Date.now() + '.jpg',
-                { type: 'image/jpeg' }
-            );
-
-            captura.src = URL.createObjectURL(blob);
-            captura.classList.remove('d-none');
-            video.classList.add('d-none');
-
-            botonCapturar.classList.add('d-none');
-            botonUsar.classList.remove('d-none');
-            botonRepetir.classList.remove('d-none');
-
-            detenerCamara();
-        }, 'image/jpeg', 0.9);
-    });
-
-    botonRepetir.addEventListener('click', iniciarCamara);
-
-    botonUsar.addEventListener('click', function () {
-        if (!archivoCapturado) return;
-
-        // Agrega la foto a la misma selección que utiliza el formulario.
-        if (typeof agregarArchivos === 'function') {
-            agregarArchivos([archivoCapturado]);
-        } else {
-            mostrarError('No se encontró la función para agregar la foto a la vista previa.');
-            return;
-        }
-
-        modal.hide();
-    });
-})();
 
 </script>
 

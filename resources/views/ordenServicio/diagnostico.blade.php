@@ -639,7 +639,8 @@ function crearFilaFoto(indice, archivoInicial = null) {
     function mostrarArchivo(archivo) {
         if (!archivo) return;
 
-        if (!TIPOS_PERMITIDOS.includes(archivo.type)) {
+        if (!TIPOS_PERMITIDOS.includes(archivo.type) ||
+    archivo.size > MAX_TAMANO_FOTO) {
             Swal.fire(
                 'Formato no válido',
                 'Usa JPG, PNG o WEBP.',
@@ -677,7 +678,7 @@ function crearFilaFoto(indice, archivoInicial = null) {
         vista.appendChild(imagen);
         nombre.textContent = archivo.name;
 
-        actualizarEstadoFotos(contenedor);
+        contenedor.querySelector('.texto-sin-fotos')?.classList.add('d-none');
     }
 
     input.addEventListener('change', function () {
@@ -874,55 +875,6 @@ function crearFilaFoto(indice, archivoInicial = null) {
         );
     });
 
-
-    // Vista previa y validación de cada fotografía.
-    contenedorDetalles.addEventListener('change', function (event) {
-        if (!event.target.matches('.inputFotoDiagnostico')) return;
-
-        const input = event.target;
-        const fila = input.closest('.fila-foto');
-        const vistaPrevia = fila.querySelector('.vista-previa-foto');
-        const imagen = vistaPrevia.querySelector('img');
-
-        if (imagen.dataset.urlTemporal) {
-            URL.revokeObjectURL(imagen.dataset.urlTemporal);
-            delete imagen.dataset.urlTemporal;
-        }
-
-        vistaPrevia.classList.add('d-none');
-        imagen.removeAttribute('src');
-
-        const archivo = input.files?.[0];
-
-        if (!archivo) return;
-
-        if (!TIPOS_PERMITIDOS.includes(archivo.type)) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Formato no permitido',
-                text: 'Selecciona una imagen JPG, PNG o WEBP.'
-            });
-            input.value = '';
-            return;
-        }
-
-        if (archivo.size > MAX_TAMANO_FOTO) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Archivo demasiado grande',
-                text: 'La fotografía supera los 5 MB permitidos.'
-            });
-            input.value = '';
-            return;
-        }
-
-        const urlTemporal = URL.createObjectURL(archivo);
-
-        imagen.src = urlTemporal;
-        imagen.dataset.urlTemporal = urlTemporal;
-        vistaPrevia.classList.remove('d-none');
-    });
-
     // Evitar envíos repetidos.
     form.addEventListener('submit', function (event) {
         const detalles = contenedorDetalles.querySelectorAll('.detalle-diagnostico');
@@ -1104,16 +1056,119 @@ function crearFilaFoto(indice, archivoInicial = null) {
     botonRepetir.addEventListener('click', iniciarCamara);
 
     botonUsar.addEventListener('click', function () {
-        if (!fotoTemporal || detalleDestino === null) return;
+    console.log('[Cámara] Botón Usar foto pulsado');
 
-        crearFilaFoto(detalleDestino, fotoTemporal);
-        modal.hide();
-    });
+    if (!fotoTemporal || detalleDestino === null) {
+        console.error('[Cámara] No hay foto o detalle seleccionado');
+        return;
+    }
+
+    // Buscar el detalle donde se tomó la fotografía.
+    const tarjeta = document.querySelector(
+        `.detalle-diagnostico[data-detalle-index="${detalleDestino}"]`
+    );
+
+    if (!tarjeta) {
+        console.error('[Cámara] No se encontró el detalle:', detalleDestino);
+        return;
+    }
+
+    const contenedor = tarjeta.querySelector('.contenedor-fotos');
+    const filas = contenedor.querySelectorAll('.fila-foto');
+
+    if (filas.length >= 10) {
+        Swal.fire(
+            'Límite alcanzado',
+            'Puedes agregar máximo 10 fotografías por detalle.',
+            'warning'
+        );
+        return;
+    }
+
+    // Crear una fila directamente, sin depender de crearFilaFoto().
+    const numeroFoto = filas.length;
+    const fila = document.createElement('div');
+
+    fila.className = 'fila-foto border rounded p-3 mb-3';
+
+    fila.innerHTML = `
+        <div class="row align-items-start">
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold">Vista previa</label>
+                <div class="vista-previa-foto"></div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Descripción de la foto</label>
+                <input type="text"
+                       name="detalles[${detalleDestino}][fotos][${numeroFoto}][descripcion]"
+                       class="form-control"
+                       maxlength="255"
+                       placeholder="Ej. Desgaste de una pieza">
+                <div class="nombre-foto small text-muted mt-2"></div>
+            </div>
+
+            <div class="col-md-2 mb-3">
+                <label class="form-label d-block">Acción</label>
+                <button type="button"
+                        class="btn btn-sm btn-light-danger btnEliminarFoto">
+                    <i class="fa fa-trash me-1"></i>Quitar
+                </button>
+            </div>
+        </div>
+
+        <input type="file"
+               name="detalles[${detalleDestino}][fotos][${numeroFoto}][archivo]"
+               class="form-control inputFotoDiagnostico d-none"
+               accept="image/jpeg,image/png,image/webp">
+    `;
+
+    const input = fila.querySelector('.inputFotoDiagnostico');
+    const vista = fila.querySelector('.vista-previa-foto');
+    const nombre = fila.querySelector('.nombre-foto');
+
+    const archivo = fotoTemporal;
+
+    if (!TIPOS_PERMITIDOS.includes(archivo.type) ||
+        archivo.size > MAX_TAMANO_FOTO) {
+        Swal.fire(
+            'Fotografía inválida',
+            'Usa JPG, PNG o WEBP de máximo 5 MB.',
+            'warning'
+        );
+        return;
+    }
+
+    // Asignar el archivo al formulario.
+    const transferencia = new DataTransfer();
+    transferencia.items.add(archivo);
+    input.files = transferencia.files;
+
+    // Mostrar la vista previa.
+    const url = URL.createObjectURL(archivo);
+    const img = document.createElement('img');
+
+    img.src = url;
+    img.dataset.urlTemporal = url;
+    img.className = 'img-thumbnail';
+    img.style.cssText =
+        'max-height:190px;max-width:100%;object-fit:contain';
+
+    vista.appendChild(img);
+    nombre.textContent = archivo.name;
+
+    contenedor.appendChild(fila);
+    actualizarEstadoFotos(contenedor);
+
+    console.log('[Cámara] Fotografía agregada correctamente');
+
+    // Limpiar la captura y cerrar la cámara.
+    fotoTemporal = null;
+    modal.hide();
+});
 })();
 
-// ==========================================
-// DICTADO POR VOZ - DIAGNÓSTICO
-// ==========================================
+
 (function () {
     console.log('[Dictado] Script cargado');
 
