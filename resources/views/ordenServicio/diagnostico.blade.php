@@ -576,29 +576,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
     
 
+
+
 function crearFilaFoto(indice, archivoInicial = null) {
     const tarjeta = document.querySelector(
         `.detalle-diagnostico[data-detalle-index="${indice}"]`
     );
 
-    if (!tarjeta) return;
+    if (!tarjeta) {
+        console.error('[Diagnóstico] No se encontró el detalle:', indice);
+        return;
+    }
 
     const contenedor = tarjeta.querySelector('.contenedor-fotos');
     const filasActuales = contenedor.querySelectorAll('.fila-foto');
 
     if (filasActuales.length >= MAX_FOTOS_POR_DETALLE) {
-        Swal.fire(
-            'Límite alcanzado',
-            'Puedes agregar máximo 10 fotografías por detalle.',
-            'warning'
-        );
+        Swal.fire('Límite alcanzado', 'Máximo 10 fotografías por detalle.', 'warning');
         return;
     }
 
     const numeroFoto = filasActuales.length;
     const fila = document.createElement('div');
 
-    fila.className = 'fila-foto border rounded p-3 mb-3';
+    input.className = 'form-control inputFotoDiagnostico';
+input.style.position = 'absolute';
+input.style.width = '1px';
+input.style.height = '1px';
+input.style.opacity = '0';
+input.style.overflow = 'hidden';
 
     fila.innerHTML = `
         <div class="row align-items-start">
@@ -606,30 +612,27 @@ function crearFilaFoto(indice, archivoInicial = null) {
                 <label class="form-label fw-bold">Vista previa</label>
                 <div class="vista-previa-foto"></div>
             </div>
-
             <div class="col-md-6 mb-3">
                 <label class="form-label fw-bold">Descripción de la foto</label>
                 <input type="text"
-                       name="detalles[${indice}][fotos][${numeroFoto}][descripcion]"
-                       class="form-control"
-                       maxlength="255"
-                       placeholder="Ej. Desgaste de la pastilla de freno">
+                    name="detalles[${indice}][fotos][${numeroFoto}][descripcion]"
+                    class="form-control"
+                    maxlength="255"
+                    placeholder="Describe el hallazgo de la fotografía">
                 <div class="nombre-foto small text-muted mt-2"></div>
             </div>
-
             <div class="col-md-2 mb-3">
                 <label class="form-label d-block">Acción</label>
                 <button type="button"
-                        class="btn btn-sm btn-light-danger btnEliminarFoto">
+                    class="btn btn-sm btn-light-danger btnEliminarFoto">
                     <i class="fa fa-trash me-1"></i>Quitar
                 </button>
             </div>
         </div>
-
         <input type="file"
-               name="detalles[${indice}][fotos][${numeroFoto}][archivo]"
-               class="form-control inputFotoDiagnostico d-none"
-               accept="image/jpeg,image/png,image/webp">
+            name="detalles[${indice}][fotos][${numeroFoto}][archivo]"
+            class="form-control inputFotoDiagnostico d-none"
+            accept="image/jpeg,image/png,image/webp">
     `;
 
     const input = fila.querySelector('.inputFotoDiagnostico');
@@ -639,30 +642,25 @@ function crearFilaFoto(indice, archivoInicial = null) {
     function mostrarArchivo(archivo) {
         if (!archivo) return;
 
-        if (!TIPOS_PERMITIDOS.includes(archivo.type) ||
-    archivo.size > MAX_TAMANO_FOTO) {
-            Swal.fire(
-                'Formato no válido',
-                'Usa JPG, PNG o WEBP.',
-                'warning'
-            );
-            input.value = '';
+        if (!TIPOS_PERMITIDOS.includes(archivo.type)) {
+            Swal.fire('Formato no válido', 'Selecciona una imagen JPG, PNG o WEBP.', 'warning');
             return;
         }
 
         if (archivo.size > MAX_TAMANO_FOTO) {
-            Swal.fire(
-                'Archivo demasiado grande',
-                'El máximo es 5 MB por foto.',
-                'warning'
-            );
-            input.value = '';
+            Swal.fire('Archivo demasiado grande', 'El máximo es 5 MB por fotografía.', 'warning');
             return;
         }
 
         const transferencia = new DataTransfer();
         transferencia.items.add(archivo);
         input.files = transferencia.files;
+
+        const imagenAnterior = vista.querySelector('img');
+
+        if (imagenAnterior?.dataset.urlTemporal) {
+            URL.revokeObjectURL(imagenAnterior.dataset.urlTemporal);
+        }
 
         vista.innerHTML = '';
 
@@ -672,23 +670,21 @@ function crearFilaFoto(indice, archivoInicial = null) {
         imagen.src = url;
         imagen.dataset.urlTemporal = url;
         imagen.className = 'img-thumbnail';
-        imagen.style.cssText =
-            'max-height:190px;max-width:100%;object-fit:contain';
+        imagen.style.cssText = 'max-height:190px;max-width:100%;object-fit:contain';
 
         vista.appendChild(imagen);
         nombre.textContent = archivo.name;
 
-        contenedor.querySelector('.texto-sin-fotos')?.classList.add('d-none');
+        actualizarEstadoFotos(contenedor);
     }
 
     input.addEventListener('change', function () {
-        if (input.files && input.files.length > 0) {
+        if (input.files?.[0]) {
             mostrarArchivo(input.files[0]);
         }
     });
 
     contenedor.appendChild(fila);
-    contenedor.querySelector('.texto-sin-fotos')?.classList.add('d-none');
 
     if (archivoInicial) {
         mostrarArchivo(archivoInicial);
@@ -697,6 +693,12 @@ function crearFilaFoto(indice, archivoInicial = null) {
     actualizarEstadoFotos(contenedor);
 }
 
+
+document.addEventListener('diagnostico:agregar-foto', function (event) {
+    const { indice, archivo } = event.detail;
+
+    crearFilaFoto(indice, archivo);
+});
 
 
     btnAgregarDetalle.addEventListener('click', function () {
@@ -809,145 +811,48 @@ function crearFilaFoto(indice, archivoInicial = null) {
     // Agregar fotografía al detalle correspondiente.
     
     
-    // Vista previa y validación de cada fotografía.
-    contenedorDetalles.addEventListener('change', function (event) {
-        if (!event.target.matches('.inputFotoDiagnostico')) return;
+contenedorDetalles.addEventListener('click', function (event) {
+    const botonGaleria = event.target.closest('.btnAgregarFoto');
+    const botonEliminar = event.target.closest('.btnEliminarFoto');
 
-        const input = event.target;
-        const fila = input.closest('.fila-foto');
-        const vistaPrevia = fila?.querySelector('.vista-previa-foto');
-        const nombre = fila?.querySelector('.nombre-foto');
-        const archivo = input.files?.[0];
+    if (botonGaleria) {
+        const tarjeta = botonGaleria.closest('.detalle-diagnostico');
+        const indice = Number(tarjeta.dataset.detalleIndex);
+        const contenedor = tarjeta.querySelector('.contenedor-fotos');
 
-        if (!fila || !vistaPrevia) return;
-
-        // Liberar la URL de una imagen anterior, si existe.
-        const imagenAnterior = vistaPrevia.querySelector('img');
-
-        if (imagenAnterior?.dataset.urlTemporal) {
-            URL.revokeObjectURL(imagenAnterior.dataset.urlTemporal);
-        }
-
-        vistaPrevia.innerHTML = '';
-
-        if (!archivo) {
-            if (nombre) nombre.textContent = '';
+        if (contenedor.querySelectorAll('.fila-foto').length >= MAX_FOTOS_POR_DETALLE) {
+            Swal.fire('Límite alcanzado', 'Máximo 10 fotografías por detalle.', 'warning');
             return;
         }
 
-        if (!TIPOS_PERMITIDOS.includes(archivo.type)) {
-            input.value = '';
+        crearFilaFoto(indice);
 
-            Swal.fire({
-                icon: 'warning',
-                title: 'Formato no permitido',
-                text: 'Selecciona una imagen JPG, PNG o WEBP.'
-            });
-            return;
+        const filas = contenedor.querySelectorAll('.fila-foto');
+        const nuevaFila = filas[filas.length - 1];
+
+        nuevaFila?.querySelector('.inputFotoDiagnostico')?.click();
+    }
+
+   if (botonEliminar) {
+    const fila = botonEliminar.closest('.fila-foto');
+    const tarjeta = botonEliminar.closest('.detalle-diagnostico');
+    const contenedor = tarjeta?.querySelector('.contenedor-fotos');
+
+    fila?.querySelectorAll('img').forEach(function (img) {
+        if (img.dataset.urlTemporal) {
+            URL.revokeObjectURL(img.dataset.urlTemporal);
         }
-
-        if (archivo.size > MAX_TAMANO_FOTO) {
-            input.value = '';
-
-            Swal.fire({
-                icon: 'warning',
-                title: 'Archivo demasiado grande',
-                text: 'La fotografía supera los 5 MB permitidos.'
-            });
-            return;
-        }
-
-        const urlTemporal = URL.createObjectURL(archivo);
-        const imagen = document.createElement('img');
-
-        imagen.src = urlTemporal;
-        imagen.dataset.urlTemporal = urlTemporal;
-        imagen.className = 'img-thumbnail';
-        imagen.style.cssText =
-            'max-height:190px;max-width:100%;object-fit:contain';
-
-        vistaPrevia.appendChild(imagen);
-
-        if (nombre) nombre.textContent = archivo.name;
-
-        actualizarEstadoFotos(
-            fila.closest('.contenedor-fotos')
-        );
     });
 
-    // Evitar envíos repetidos.
-    form.addEventListener('submit', function (event) {
-        const detalles = contenedorDetalles.querySelectorAll('.detalle-diagnostico');
+    fila?.remove();
 
-        if (detalles.length === 0) {
-            event.preventDefault();
-            Swal.fire({
-                icon: 'warning',
-                title: 'Faltan detalles',
-                text: 'Debes registrar al menos un hallazgo o recomendación.'
-            });
-            return;
-        }
+    if (contenedor) {
+        actualizarEstadoFotos(contenedor);
+    }
+}
+});
 
-        let fotoInvalida = false;
-
-            contenedorDetalles.querySelectorAll('.fila-foto').forEach(function (fila) {
-                const input = fila.querySelector('.inputFotoDiagnostico');
-                const archivo = input?.files?.[0];
-
-                // Si se canceló el selector de archivos, eliminar la fila vacía.
-                if (!archivo) {
-                    fila.querySelectorAll('img').forEach(function (imagen) {
-                        if (imagen.dataset.urlTemporal) {
-                            URL.revokeObjectURL(imagen.dataset.urlTemporal);
-                        }
-                    });
-
-                    fila.remove();
-                    return;
-                }
-
-                if (
-                    !TIPOS_PERMITIDOS.includes(archivo.type) ||
-                    archivo.size > MAX_TAMANO_FOTO
-                ) {
-                    fotoInvalida = true;
-                }
-            });
-
-            if (fotoInvalida) {
-                event.preventDefault();
-
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Fotografía inválida',
-                    text: 'Cada fotografía debe ser JPG, PNG o WEBP y pesar máximo 5 MB.'
-                });
-
-                return;
-            }
-
-        if (fotoInvalida) {
-            event.preventDefault();
-            Swal.fire({
-                icon: 'warning',
-                title: 'Fotografía inválida',
-                text: 'Revisa las fotografías: cada una debe ser JPG, PNG o WEBP y pesar máximo 5 MB.'
-            });
-            return;
-        }
-
-        if (!form.checkValidity()) {
-            event.preventDefault();
-            form.reportValidity();
-            return;
-        }
-
-        btnGuardar.disabled = true;
-        btnGuardar.innerHTML =
-            '<span class="spinner-border spinner-border-sm me-2"></span> Guardando diagnóstico...';
-    });
-
+   
     actualizarTitulos();
 });
 
@@ -1055,117 +960,30 @@ function crearFilaFoto(indice, archivoInicial = null) {
 
     botonRepetir.addEventListener('click', iniciarCamara);
 
-    botonUsar.addEventListener('click', function () {
-    console.log('[Cámara] Botón Usar foto pulsado');
+    
+
+botonUsar.addEventListener('click', function () {
+    console.log('[Cámara] Usar foto pulsado');
 
     if (!fotoTemporal || detalleDestino === null) {
-        console.error('[Cámara] No hay foto o detalle seleccionado');
+        console.error('[Cámara] No hay fotografía o detalle seleccionado');
         return;
     }
 
-    // Buscar el detalle donde se tomó la fotografía.
-    const tarjeta = document.querySelector(
-        `.detalle-diagnostico[data-detalle-index="${detalleDestino}"]`
-    );
+    // La función está dentro del primer DOMContentLoaded.
+    // Se invoca mediante un evento para mantener el alcance correcto.
+    document.dispatchEvent(new CustomEvent('diagnostico:agregar-foto', {
+        detail: {
+            indice: detalleDestino,
+            archivo: fotoTemporal
+        }
+    }));
 
-    if (!tarjeta) {
-        console.error('[Cámara] No se encontró el detalle:', detalleDestino);
-        return;
-    }
-
-    const contenedor = tarjeta.querySelector('.contenedor-fotos');
-    const filas = contenedor.querySelectorAll('.fila-foto');
-
-    if (filas.length >= 10) {
-        Swal.fire(
-            'Límite alcanzado',
-            'Puedes agregar máximo 10 fotografías por detalle.',
-            'warning'
-        );
-        return;
-    }
-
-    // Crear una fila directamente, sin depender de crearFilaFoto().
-    const numeroFoto = filas.length;
-    const fila = document.createElement('div');
-
-    fila.className = 'fila-foto border rounded p-3 mb-3';
-
-    fila.innerHTML = `
-        <div class="row align-items-start">
-            <div class="col-md-4 mb-3">
-                <label class="form-label fw-bold">Vista previa</label>
-                <div class="vista-previa-foto"></div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <label class="form-label fw-bold">Descripción de la foto</label>
-                <input type="text"
-                       name="detalles[${detalleDestino}][fotos][${numeroFoto}][descripcion]"
-                       class="form-control"
-                       maxlength="255"
-                       placeholder="Ej. Desgaste de una pieza">
-                <div class="nombre-foto small text-muted mt-2"></div>
-            </div>
-
-            <div class="col-md-2 mb-3">
-                <label class="form-label d-block">Acción</label>
-                <button type="button"
-                        class="btn btn-sm btn-light-danger btnEliminarFoto">
-                    <i class="fa fa-trash me-1"></i>Quitar
-                </button>
-            </div>
-        </div>
-
-        <input type="file"
-               name="detalles[${detalleDestino}][fotos][${numeroFoto}][archivo]"
-               class="form-control inputFotoDiagnostico d-none"
-               accept="image/jpeg,image/png,image/webp">
-    `;
-
-    const input = fila.querySelector('.inputFotoDiagnostico');
-    const vista = fila.querySelector('.vista-previa-foto');
-    const nombre = fila.querySelector('.nombre-foto');
-
-    const archivo = fotoTemporal;
-
-    if (!TIPOS_PERMITIDOS.includes(archivo.type) ||
-        archivo.size > MAX_TAMANO_FOTO) {
-        Swal.fire(
-            'Fotografía inválida',
-            'Usa JPG, PNG o WEBP de máximo 5 MB.',
-            'warning'
-        );
-        return;
-    }
-
-    // Asignar el archivo al formulario.
-    const transferencia = new DataTransfer();
-    transferencia.items.add(archivo);
-    input.files = transferencia.files;
-
-    // Mostrar la vista previa.
-    const url = URL.createObjectURL(archivo);
-    const img = document.createElement('img');
-
-    img.src = url;
-    img.dataset.urlTemporal = url;
-    img.className = 'img-thumbnail';
-    img.style.cssText =
-        'max-height:190px;max-width:100%;object-fit:contain';
-
-    vista.appendChild(img);
-    nombre.textContent = archivo.name;
-
-    contenedor.appendChild(fila);
-    actualizarEstadoFotos(contenedor);
-
-    console.log('[Cámara] Fotografía agregada correctamente');
-
-    // Limpiar la captura y cerrar la cámara.
     fotoTemporal = null;
     modal.hide();
 });
+
+
 })();
 
 
