@@ -806,54 +806,74 @@ function crearFilaFoto(indice, archivoInicial = null) {
     });
 
     // Agregar fotografía al detalle correspondiente.
-    contenedorDetalles.addEventListener('click', function (event) {
-        const botonAgregarFoto = event.target.closest('.btnAgregarFoto');
+    
+    
+    // Vista previa y validación de cada fotografía.
+    contenedorDetalles.addEventListener('change', function (event) {
+        if (!event.target.matches('.inputFotoDiagnostico')) return;
 
-if (botonAgregarFoto) {
-    const tarjeta = botonAgregarFoto.closest('.detalle-diagnostico');
-    const indice = Number(tarjeta.dataset.detalleIndex);
+        const input = event.target;
+        const fila = input.closest('.fila-foto');
+        const vistaPrevia = fila?.querySelector('.vista-previa-foto');
+        const nombre = fila?.querySelector('.nombre-foto');
+        const archivo = input.files?.[0];
 
-    crearFilaFoto(indice);
+        if (!fila || !vistaPrevia) return;
 
-    const filas = tarjeta.querySelectorAll('.fila-foto');
-    const ultimaFila = filas[filas.length - 1];
+        // Liberar la URL de una imagen anterior, si existe.
+        const imagenAnterior = vistaPrevia.querySelector('img');
 
-    ultimaFila?.querySelector('.inputFotoDiagnostico')?.click();
-    return;
-}
+        if (imagenAnterior?.dataset.urlTemporal) {
+            URL.revokeObjectURL(imagenAnterior.dataset.urlTemporal);
+        }
 
-        const botonEliminarFoto = event.target.closest('.btnEliminarFoto');
+        vistaPrevia.innerHTML = '';
 
-        if (botonEliminarFoto) {
-            const fila = botonEliminarFoto.closest('.fila-foto');
-            const contenedorFotos = fila.closest('.contenedor-fotos');
-
-            const imagen = fila.querySelector('.vista-previa-foto img');
-
-            if (imagen?.dataset.urlTemporal) {
-                URL.revokeObjectURL(imagen.dataset.urlTemporal);
-            }
-
-            fila.remove();
-            actualizarEstadoFotos(contenedorFotos);
+        if (!archivo) {
+            if (nombre) nombre.textContent = '';
             return;
         }
 
-        const botonEliminarDetalle = event.target.closest('.btnEliminarDetalle');
+        if (!TIPOS_PERMITIDOS.includes(archivo.type)) {
+            input.value = '';
 
-        if (botonEliminarDetalle) {
-            const tarjeta = botonEliminarDetalle.closest('.detalle-diagnostico');
-
-            tarjeta.querySelectorAll('.vista-previa-foto img').forEach(function (imagen) {
-                if (imagen.dataset.urlTemporal) {
-                    URL.revokeObjectURL(imagen.dataset.urlTemporal);
-                }
+            Swal.fire({
+                icon: 'warning',
+                title: 'Formato no permitido',
+                text: 'Selecciona una imagen JPG, PNG o WEBP.'
             });
-
-            tarjeta.remove();
-            actualizarTitulos();
+            return;
         }
+
+        if (archivo.size > MAX_TAMANO_FOTO) {
+            input.value = '';
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Archivo demasiado grande',
+                text: 'La fotografía supera los 5 MB permitidos.'
+            });
+            return;
+        }
+
+        const urlTemporal = URL.createObjectURL(archivo);
+        const imagen = document.createElement('img');
+
+        imagen.src = urlTemporal;
+        imagen.dataset.urlTemporal = urlTemporal;
+        imagen.className = 'img-thumbnail';
+        imagen.style.cssText =
+            'max-height:190px;max-width:100%;object-fit:contain';
+
+        vistaPrevia.appendChild(imagen);
+
+        if (nombre) nombre.textContent = archivo.name;
+
+        actualizarEstadoFotos(
+            fila.closest('.contenedor-fotos')
+        );
     });
+
 
     // Vista previa y validación de cada fotografía.
     contenedorDetalles.addEventListener('change', function (event) {
