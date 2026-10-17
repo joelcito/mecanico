@@ -125,8 +125,8 @@
                         <button
                             type="button"
                             class="btn btn-icon btn-sm btn-warning btn-circle"
-                            title="Editar orden"
-                            onclick="editarOrden('{{ $orden->id }}')" >
+                            title="Editar recepción"
+                            onclick="editarOrden('{{ route('ordenServicio.recepcion.editar', $orden->id) }}')">
                             <i class="fa fa-edit"></i>
                         </button>
                     </td>
@@ -179,6 +179,10 @@
 
         console.log('Editar orden:', id);
 
+    }
+
+    function editarOrden(url) {
+        window.location.href = url;
     }
 
 </script>

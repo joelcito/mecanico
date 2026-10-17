@@ -124,7 +124,7 @@
                                 <!--begin::Username-->
                                 <div class="d-flex flex-column">
                                     <div class="fw-bold d-flex align-items-center fs-5">{{ Auth::user()->nombres." ".Auth::user()->ap_paterno." ".Auth::user()->ap_materno }}
-                                    <span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">Pro</span></div>
+                                    <span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2"></span></div>
                                     <a href="#" class="fw-semibold text-muted text-hover-primary fs-7">{{ Auth::user()->email }}</a>
                                 </div>
                                 <!--end::Username-->

@@ -2,6 +2,26 @@
 @section('title', 'Cotización')
 @section('content')
 
+@php
+    $cotizacionActual = $orden->cotizacionActual;
+
+    $detallesIniciales = old(
+        'detalles',
+        $cotizacionActual
+            ? $cotizacionActual->detalles->map(function ($detalle) {
+                return [
+                    'id' => $detalle->id,
+                    'tipo' => $detalle->tipo,
+                    'producto_id' => $detalle->producto_id,
+                    'descripcion' => $detalle->descripcion,
+                    'cantidad' => $detalle->cantidad,
+                    'precio_unitario' => $detalle->precio_unitario,
+                ];
+            })->values()->all()
+            : []
+    );
+@endphp
+
 <div class="container-fluid">
     <div class="card shadow-sm mb-5">
         <div class="card-body">
@@ -10,7 +30,6 @@
                     <h2 class="fw-bold mb-1">
                         Cotización de servicio
                     </h2>
-
                     <div class="text-muted">
                         Orden:
                         <strong>
@@ -66,22 +85,17 @@
                         {{ $orden->vehiculo->modelo }}
                     </div>
                 </div>
-
                 <div class="col-md-3 mb-4">
                     <label class="fw-bold text-muted">
                         Placa
                     </label>
-
                     <div class="fs-6">
                         {{ $orden->vehiculo->placa }}
                     </div>
                 </div>
-
             </div>
-
         </div>
     </div>
-
 
     @if($orden->diagnosticoActual)
         <div class="card shadow-sm mb-5">
@@ -99,7 +113,6 @@
                         {{ $orden->diagnosticoActual->descripcion }}
                     </div>
                 </div>
-
                 @if($orden->diagnosticoActual->detalles->count())
                     <div>
                         <label class="fw-bold text-muted mb-3">
@@ -200,9 +213,7 @@
 
             <div class="card-body">
                 <div class="table-responsive">
-                    <table
-                        class="table table-row-dashed align-middle"
-                        id="tablaDetalles">
+                    <table class="table table-row-dashed align-middle" id="tablaDetalles">
                         <thead>
                             <tr>
                                 <th style="width: 140px;">
@@ -237,7 +248,7 @@
                         class="form-control"
                         rows="3"
                         placeholder="Observaciones de la cotización..."
-                    >{{ old('observaciones') }}</textarea>
+                    >{{ old('observaciones', $cotizacionActual?->observaciones) }}</textarea>
                 </div>
             </div>
         </div>
@@ -273,7 +284,7 @@
                                     name="descuento"
                                     id="descuento"
                                     class="form-control text-end"
-                                    value="{{ old('descuento', 0) }}"
+                                    value="{{ old('descuento', $cotizacionActual?->descuento ?? 0) }}"
                                     min="0"
                                     step="0.01">
                             </div>
@@ -316,40 +327,41 @@
 let detalleIndex = 0;
 
 const productos = @json($productos);
+const detallesIniciales = @json($detallesIniciales);
 
-function agregarDetalle() {
+function agregarDetalle(detalle = null) {
     const index = detalleIndex++;
+
     let opcionesProductos = `
-        <option value="">
-            Seleccione un producto
-        </option>
+        <option value="">Seleccione un producto</option>
     `;
 
     productos.forEach(producto => {
+        const seleccionado =
+            detalle?.producto_id == producto.id ? 'selected' : '';
+
         opcionesProductos += `
-            <option value="${producto.id}">
-                ${producto.codigo ?? ''} -
-                ${producto.nombre}
+            <option value="${producto.id}" ${seleccionado}>
+                ${producto.codigo ?? ''} - ${producto.nombre}
             </option>
         `;
-
     });
-
 
     const fila = `
         <tr data-index="${index}">
             <td>
+                <input
+                    type="hidden"
+                    name="detalles[${index}][id]"
+                    class="detalle-id"
+                    value="${detalle?.id ?? ''}">
+
                 <select
                     name="detalles[${index}][tipo]"
                     class="form-select tipo-detalle"
-                    required
-                >
-                    <option value="PRODUCTO">
-                        Producto
-                    </option>
-                    <option value="SERVICIO">
-                        Servicio
-                    </option>
+                    required>
+                    <option value="PRODUCTO">Producto</option>
+                    <option value="SERVICIO">Servicio</option>
                 </select>
             </td>
 
@@ -357,23 +369,24 @@ function agregarDetalle() {
                 <div class="producto-container">
                     <select
                         name="detalles[${index}][producto_id]"
-                        class="form-select producto-select"
-                    >
+                        class="form-select producto-select">
                         ${opcionesProductos}
                     </select>
                 </div>
+
                 <div class="servicio-container d-none">
                     <input
                         type="text"
                         name="detalles[${index}][descripcion]"
                         class="form-control descripcion-servicio"
-                        placeholder="Descripción del servicio" >
-
+                        maxlength="255"
+                        placeholder="Descripción del servicio">
                 </div>
-                <input type="hidden"
+
+                <input
+                    type="hidden"
                     name="detalles[${index}][descripcion]"
                     class="descripcion-producto">
-
             </td>
 
             <td>
@@ -381,17 +394,18 @@ function agregarDetalle() {
                     type="number"
                     name="detalles[${index}][cantidad]"
                     class="form-control cantidad text-end"
-                    value="1"
+                    value="${detalle?.cantidad ?? 1}"
                     min="0.01"
                     step="0.01"
-                    required >
+                    required>
             </td>
+
             <td>
                 <input
                     type="number"
                     name="detalles[${index}][precio_unitario]"
                     class="form-control precio text-end"
-                    value="0"
+                    value="${detalle?.precio_unitario ?? 0}"
                     min="0"
                     step="0.01"
                     required>
@@ -415,13 +429,33 @@ function agregarDetalle() {
         </tr>
     `;
 
-   $('#detalleContainer').append(fila);
-        const nuevaFila = $('#detalleContainer tr').last();
-        configurarFila(nuevaFila);
-        nuevaFila
-            .find('.tipo-detalle')
+    $('#detalleContainer').append(fila);
+
+    const nuevaFila = $('#detalleContainer tr').last();
+
+    configurarFila(nuevaFila);
+
+    // Configurar primero el tipo para habilitar el campo correspondiente.
+    nuevaFila.find('.tipo-detalle')
+        .val(detalle?.tipo ?? 'PRODUCTO')
+        .trigger('change');
+
+    if ((detalle?.tipo ?? 'PRODUCTO') === 'PRODUCTO') {
+        nuevaFila.find('.producto-select')
+            .val(detalle?.producto_id ?? '')
             .trigger('change');
-        calcularTotales();
+
+        // Conserva la descripción guardada incluso si cambió el nombre
+        // actual del producto.
+        nuevaFila.find('.descripcion-producto')
+            .val(detalle?.descripcion ?? '');
+    } else {
+        nuevaFila.find('.descripcion-servicio')
+            .val(detalle?.descripcion ?? '');
+    }
+
+    calcularFila(nuevaFila);
+    calcularTotales();
 }
 
 
@@ -594,7 +628,16 @@ $('#descuento').on(
 );
 
 $(document).ready(function () {
-    agregarDetalle();
+    if (detallesIniciales.length > 0) {
+        detallesIniciales.forEach(detalle => {
+            agregarDetalle(detalle);
+        });
+    } else {
+        agregarDetalle();
+    }
+
+    calcularTotales();
 });
+
 </script>
 @endsection

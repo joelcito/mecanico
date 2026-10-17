@@ -224,52 +224,76 @@
                     }
                 @endphp
                 <div class="step-container">
+                    @php
+                        $rutasEtapas = [
+                            route('ordenServicio.recepcion.editar', $orden->id),
+                            route('ordenServicio.inspeccion', $orden->id),
+                            route('ordenServicio.diagnostico', $orden->id),
+                            route('ordenServicio.cotizacion', $orden->id),
+                        ];
+
+                        $etapasDisponibles = [
+                            true,
+                            (bool) $orden->inspeccionActual,
+                            (bool) $orden->diagnosticoActual,
+                            (bool) $orden->cotizacionActual,
+                            (bool) $orden->reparacion,
+                            (bool) $orden->entrega,
+                        ];
+                    @endphp
+
                     @foreach($etapas as $index => $etapa)
-                        @if($index < $etapaActual)
-                            <div class="step step-completed">
+                        @php
+                            $completada = $index < $etapaActual;
+                            $actual = $index === $etapaActual;
+
+                            $puedeEditar = $etapasDisponibles[$index]
+                                && $index < 4;
+
+                            $rutaEtapa = $index < 4
+                                ? $rutasEtapas[$index]
+                                : null;
+                        @endphp
+
+                        <div class="step
+                            {{ $completada ? 'step-completed' : '' }}
+                            {{ $actual ? 'step-active' : '' }}
+                            {{ !$completada && !$actual ? 'step-locked' : '' }}">
+
+                            @if($puedeEditar)
+                                <a href="{{ $rutaEtapa }}"
+                                class="text-reset text-decoration-none d-block">
+                            @endif
+
                                 <div class="step-circle">
-                                    <i class="fa fa-check"></i>
-                                </div>
-                                <div class="step-title">
-                                    {{ $etapa['nombre'] }}
-                                </div>
-                                <div class="step-subtitle">
-                                    Completado
-                                </div>
-                            </div>
-
-                        @elseif($index === $etapaActual)
-                            <div class="step step-active">
-                                <div class="step-circle">
-                                    {{ $index + 1 }}
-                                </div>
-
-                                <div class="step-title">
-                                    {{ $etapa['nombre'] }}
-                                </div>
-
-                                <div class="step-subtitle">
-                                    Siguiente paso
-                                </div>
-                            </div>
-
-                        @else
-
-                            <div class="step step-locked">
-                                <div class="step-circle">
-                                    {{ $index + 1 }}
+                                    @if($completada)
+                                        <i class="fa fa-check"></i>
+                                    @else
+                                        {{ $index + 1 }}
+                                    @endif
                                 </div>
 
                                 <div class="step-title">
                                     {{ $etapa['nombre'] }}
                                 </div>
+
                                 <div class="step-subtitle">
-                                    Bloqueado
+                                    @if($completada)
+                                        Completado · Editar
+                                    @elseif($actual)
+                                        Etapa actual
+                                    @else
+                                        Bloqueado
+                                    @endif
                                 </div>
-                            </div>
-                        @endif
+
+                            @if($puedeEditar)
+                                </a>
+                            @endif
+                        </div>
                     @endforeach
                 </div>
+
             </div>
         </div>
         <div class="card shadow-sm mb-5">
@@ -697,7 +721,20 @@
                         </div>
                     </div>
                 @endif
-                <div class="d-flex justify-content-end mt-4">
+                
+                @php
+                    $telefonoWhatsApp = preg_replace(
+                        '/\D+/',
+                        '',
+                        (string) ($orden->vehiculo?->cliente?->user?->celular ?? '')
+                    );
+
+                    if (strlen($telefonoWhatsApp) === 8) {
+                        $telefonoWhatsApp = '591' . $telefonoWhatsApp;
+                    }
+                @endphp
+
+                <div class="d-flex justify-content-end mt-4 gap-2 flex-wrap">
                     <a
                         href="{{ route('ordenServicio.cotizacion.pdf', $orden->id) }}"
                         target="_blank"
@@ -707,7 +744,25 @@
                         <i class="fa fa-file-pdf me-2"></i>
                         Ver PDF de cotización
                     </a>
+
+                    @if($telefonoWhatsApp)
+                        <a
+                            href="https://wa.me/{{ $telefonoWhatsApp }}?text={{ rawurlencode('Hola, le compartimos la cotización de la orden de servicio #' . $orden->id . '. Le enviaremos el documento PDF por este chat.') }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="btn btn-success"
+                        >
+                            <i class="fab fa-whatsapp me-2"></i>
+                            Enviar cotización por WhatsApp
+                        </a>
+                    @else
+                        <button type="button" class="btn btn-secondary" disabled>
+                            <i class="fab fa-whatsapp me-2"></i>
+                            Cliente sin celular registrado
+                        </button>
+                    @endif
                 </div>
+
                     @if($orden->cotizacionActual->estado === 'PENDIENTE')
                     <div class="separator separator-dashed my-5"></div>
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -1137,8 +1192,46 @@
                                 <div class="col-md-6 mb-3"><div class="info-box"><div class="info-box-title">Fecha de entrega</div><div class="info-box-value">{{ $orden->entrega->fecha_entrega?->format('d/m/Y H:i') ?? '-' }}</div></div></div>
                                 <div class="col-md-6 mb-3"><div class="info-box"><div class="info-box-title">Entregado por</div><div class="info-box-value">{{ trim(($orden->entrega->usuario?->nombres ?? '') . ' ' . ($orden->entrega->usuario?->ap_paterno ?? '') . ' ' . ($orden->entrega->usuario?->ap_materno ?? '')) ?: 'Usuario no disponible' }}</div></div></div>
                             </div>
-                            <a href="{{ route('ordenServicio.entrega.boleta', $orden->id) }}" target="_blank" rel="noopener" class="btn btn-light-primary"><i class="fa fa-file-pdf me-2"></i>Ver boleta</a>
-                            <a href="{{ route('ordenServicio.entrega.boleta', $orden->id) }}" target="_blank" rel="noopener" class="btn btn-light"><i class="fa fa-print me-2"></i>Imprimir</a>
+                            
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a
+                                        href="{{ route('ordenServicio.entrega.boleta', $orden->id) }}"
+                                        target="_blank"
+                                        rel="noopener"
+                                        class="btn btn-light-primary"
+                                    >
+                                        <i class="fa fa-file-pdf me-2"></i>
+                                        Ver boleta
+                                    </a>
+
+                                    <a
+                                        href="{{ route('ordenServicio.entrega.boleta', $orden->id) }}"
+                                        target="_blank"
+                                        rel="noopener"
+                                        class="btn btn-light"
+                                    >
+                                        <i class="fa fa-print me-2"></i>
+                                        Imprimir
+                                    </a>
+
+                                    @if($telefonoWhatsApp)
+                                        <a
+                                            href="https://wa.me/{{ $telefonoWhatsApp }}?text={{ rawurlencode('Hola, le compartimos la boleta de entrega de la orden de servicio #' . $orden->id . '. Le enviaremos el documento PDF por este chat.') }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="btn btn-success"
+                                        >
+                                            <i class="fab fa-whatsapp me-2"></i>
+                                            Enviar boleta por WhatsApp
+                                        </a>
+                                    @else
+                                        <button type="button" class="btn btn-secondary" disabled>
+                                            <i class="fab fa-whatsapp me-2"></i>
+                                            Cliente sin celular registrado
+                                        </button>
+                                    @endif
+                                </div>
+
                         @else
                             <div class="alert alert-danger mb-0">La orden figura como entregada, pero no tiene un registro de entrega asociado.</div>
                         @endif
@@ -1843,10 +1936,17 @@ $('#btnRealizarEntrega').on('click', function() {
         }).done(function(response) {
             Swal.fire({
                 icon: 'success',
-                title: 'Entrega registrada',
+                title: '¡Entrega registrada!',
                 text: response.message,
-                confirmButtonText: 'Continuar'
-            }).then(function() {
+                showCancelButton: true,
+                confirmButtonText: 'Ver boleta PDF',
+                cancelButtonText: 'Continuar',
+                allowOutsideClick: false
+            }).then(function(result) {
+                if (result.isConfirmed && response.data?.boleta_url) {
+                    window.open(response.data.boleta_url, '_blank');
+                }
+
                 window.location.reload();
             });
         }).fail(function(xhr) {

@@ -210,15 +210,17 @@
 
     $moneda = 'Bs';
 
-    $rutaPublica = function ($ruta) {
-        $ruta = ltrim((string) $ruta, '/');
+   
+$rutaPublica = function ($ruta) {
+    $ruta = ltrim(str_replace('\\', '/', (string) $ruta), '/');
 
-        if (str_starts_with($ruta, 'storage/')) {
-            $ruta = substr($ruta, strlen('storage/'));
-        }
+    if (str_starts_with($ruta, 'storage/')) {
+        $ruta = substr($ruta, strlen('storage/'));
+    }
 
-        return public_path('storage/' . $ruta);
-    };
+    return public_path('storage/' . $ruta);
+};
+
 @endphp
 
 <table class="header">
@@ -308,27 +310,73 @@
                 </div>
             @endif
 
-            @if($detalle->fotos->isNotEmpty())
+          @php
+    $consultaFotos = \App\Models\OrdenFoto::where(
+        'orden_servicio_id',
+        $orden->id
+    )
+    ->where('tipo', 'DIAGNOSTICO')
+    ->where('estado', 'ACTIVO');
+
+    if ($loop->first) {
+        $consultaFotos->where(function ($query) use ($detalle) {
+            $query->where(
+                'orden_diagnostico_detalle_id',
+                $detalle->id
+            )->orWhereNull('orden_diagnostico_detalle_id');
+        });
+    } else {
+        $consultaFotos->where(
+            'orden_diagnostico_detalle_id',
+            $detalle->id
+        );
+    }
+
+    $fotosDiagnostico = $consultaFotos->get();
+@endphp
+
+            @if($fotosDiagnostico->isNotEmpty())
                 <div class="photos">
-                    @foreach($detalle->fotos as $foto)
-                        @php
-                            $rutaFoto = $rutaPublica($foto->ruta);
-                        @endphp
+                    <strong>Fotografías del hallazgo</strong>
 
-                        @if(is_file($rutaFoto))
-                            <div class="photo">
-                                <img src="{{ $rutaFoto }}">
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 5px;">
+                        @foreach($fotosDiagnostico->filter(fn ($foto) => !empty($foto->ruta))->chunk(2) as $fila)
+                            <tr>
+                                @foreach($fila as $foto)
+                                    @php
+                                        $rutaFoto = $rutaPublica($foto->ruta);
+                                    @endphp
 
-                                @if($foto->descripcion)
-                                    <div class="photo-caption">
-                                        {{ $foto->descripcion }}
-                                    </div>
+                                    <td style="width: 50%; padding: 5px; vertical-align: top; text-align: center;">
+                                        @if(is_file($rutaFoto))
+                                            <img
+                                                src="{{ $rutaFoto }}"
+                                                style="width: 220px; height: 130px; border: 1px solid #ccd6df;"
+                                                alt="Fotografía del diagnóstico">
+
+                                            @if($foto->descripcion)
+                                                <div class="photo-caption">
+                                                    {{ $foto->descripcion }}
+                                                </div>
+                                            @endif
+                                        @else
+                                            <div class="photo-caption">
+                                                No se encontró el archivo de la fotografía.
+                                            </div>
+                                        @endif
+                                    </td>
+                                @endforeach
+
+                                @if($fila->count() === 1)
+                                    <td style="width: 50%;"></td>
                                 @endif
-                            </div>
-                        @endif
-                    @endforeach
+                            </tr>
+                        @endforeach
+                    </table>
                 </div>
             @endif
+
+           
         </div>
     @empty
         <p class="muted">No hay hallazgos detallados registrados.</p>

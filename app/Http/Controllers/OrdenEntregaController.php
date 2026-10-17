@@ -129,16 +129,18 @@ class OrdenEntregaController extends Controller
     }
 
     private function resumenPago(OrdenServicio $orden): array
-    {
-        $total = round((float) ($orden->cotizacionActual?->total ?? 0), 2);
-        $pagado = round((float) $orden->total_pagado, 2);
-        $saldo = round((float) $orden->saldo_pendiente, 2);
+{
+    $orden->loadMissing('cotizacionActual');
 
-        return [
-            'total' => $total,
-            'pagado' => $pagado,
-            'saldo' => $saldo,
-            'estado_pago' => $orden->estado_pago,
-        ];
-    }
+    $total = round((float) ($orden->cotizacionActual?->total ?? 0), 2);
+    $pagado = round((float) $orden->total_pagado, 2);
+    $saldo = round(max(0, $total - $pagado), 2);
+
+    return [
+        'total' => $total,
+        'pagado' => $pagado,
+        'saldo' => $saldo,
+        'estado_pago' => $orden->estado_pago,
+    ];
+}
 }

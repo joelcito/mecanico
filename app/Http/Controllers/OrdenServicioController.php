@@ -424,4 +424,68 @@ class OrdenServicioController extends Controller
         }
     }
 
+        public function actualizarRecepcion(Request $request, $id)
+        {
+            $request->validate([
+                'vehiculo_id' => 'required|exists:vehiculos,id',
+                'fecha_recepcion' => 'required|date',
+                'kilometraje' => 'nullable|integer|min:0',
+                'motivo_ingreso' => 'nullable|string|max:255',
+                'nivel_combustible' => 'nullable|numeric|min:0|max:100',
+                'observaciones' => 'nullable|string',
+            ]);
+
+            $orden = OrdenServicio::findOrFail($id);
+
+            // Evitar cambiar la recepción después de cerrar la orden.
+            if (in_array($orden->estado, ['LISTO', 'ENTREGADO'])) {
+                return response()->json([
+                    'estado' => false,
+                    'message' => 'No se puede modificar la recepción de una orden finalizada.'
+                ], 422);
+            }
+
+            $orden->update([
+                'vehiculo_id' => $request->vehiculo_id,
+                'fecha_recepcion' => $request->fecha_recepcion,
+                'kilometraje' => $request->kilometraje,
+                'motivo_ingreso' => $request->motivo_ingreso,
+                'nivel_combustible' => $request->nivel_combustible,
+                'observaciones' => $request->observaciones,
+                'usuario_modificador_id' => Auth::id(),
+            ]);
+
+            return response()->json(
+                Respuesta::success(
+                    $orden->fresh(),
+                    'Recepción actualizada correctamente'
+                )->toArray()
+            );
+        }
+
+
+       public function editarRecepcion($id)
+        {
+            $orden = OrdenServicio::with([
+                'vehiculo.cliente.user',
+                'vehiculo.marca',
+            ])->findOrFail($id);
+
+            if (in_array($orden->estado, ['LISTO', 'ENTREGADO'])) {
+                return redirect()
+                    ->route('ordenServicio.detalle', $orden->id)
+                    ->with('error', 'La recepción ya no se puede modificar.');
+            }
+
+            $vehiculos = Vehiculo::with(['cliente.user', 'marca'])
+                ->where('estado', 'ACTIVO')
+                ->orderByDesc('id')
+                ->get();
+
+            return view('ordenServicio.editarRecepcion', compact(
+                'orden',
+                'vehiculos'
+            ));
+        } 
+
 }

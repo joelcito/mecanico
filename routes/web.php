@@ -160,6 +160,10 @@ Route::middleware('auth')->group(function () {
             Route::post( '/{id}/reparacion/iniciar', [OrdenServicioController::class, 'iniciarReparacion'])->name('ordenServicio.reparacion.iniciar');
            
             Route::get('/{id}/cotizacion/pdf', [OrdenCotizacionController::class, 'pdf'])->name('ordenServicio.cotizacion.pdf');
+            Route::put('/{id}/recepcion', [OrdenServicioController::class, 'actualizarRecepcion'])->name('ordenServicio.recepcion.actualizar');
+            Route::get('/{id}/recepcion/editar',[OrdenServicioController::class, 'editarRecepcion'])->name('ordenServicio.recepcion.editar');
+            Route::delete('/orden-servicio/{orden}/inspeccion/fotos/{foto}',[OrdenInspeccionController::class, 'eliminarFoto'])->name('ordenServicio.inspeccion.foto.eliminar');
+
             });
         
        Route::prefix('cajas')->group(function () {

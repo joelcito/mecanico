@@ -29,6 +29,62 @@
         .signatures td { padding: 0 20px; text-align: center; width: 50%; }
         .sign-line { border-top: 1px solid #34454d; padding-top: 7px; }
         .footer { border-top: 1px solid #dce3e6; color: #718087; font-size: 9px; margin-top: 25px; padding-top: 8px; text-align: center; }
+                
+        .diagnostico-imagenes {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 8px;
+        }
+
+        .diagnostico-imagenes td {
+            width: 50%;
+            vertical-align: top;
+            padding: 5px;
+        }
+
+        .diagnostico-imagen {
+            width: 100%;
+            height: 170px;
+            object-fit: contain;
+            border: 1px solid #dce3e6;
+        }
+
+        .diagnostico-pie {
+            font-size: 9px;
+            color: #52616b;
+            margin-top: 4px;
+        }
+
+        .fotos-diagnostico {
+    margin-top: 10px;
+    width: 100%;
+}
+
+.fotos-diagnostico table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.fotos-diagnostico td {
+    width: 50%;
+    padding: 5px;
+    vertical-align: top;
+    text-align: center;
+}
+
+.foto-diagnostico {
+    width: 100%;
+    height: 150px;
+    object-fit: contain;
+}
+
+.foto-descripcion {
+    font-size: 9px;
+    color: #555;
+    margin-top: 4px;
+}
+
     </style>
 </head>
 <body>
@@ -65,6 +121,61 @@
             </tr>
         </table>
     </div>
+        
+    <div class="section">
+        <div class="section-title">Evidencia fotográfica del diagnóstico</div>
+
+        @php
+            $imagenesDiagnostico = \App\Models\OrdenFoto::where(
+                'orden_servicio_id',
+                $orden->id
+            )
+            ->where('tipo', 'DIAGNOSTICO')
+            ->whereNotNull('ruta')
+            ->get();
+        @endphp
+
+        @if ($imagenesDiagnostico->isNotEmpty())
+            <table class="diagnostico-imagenes">
+                @foreach ($imagenesDiagnostico->chunk(2) as $fila)
+                    <tr>
+                        @foreach ($fila as $imagen)
+                            @php
+                                $rutaImagen = storage_path('app/public/' . $imagen->ruta);
+                            @endphp
+
+                            <td>
+                                @if (is_file($rutaImagen))
+                                    <img
+                                        class="diagnostico-imagen"
+                                        src="{{ $rutaImagen }}"
+                                        alt="Fotografía del diagnóstico"
+                                    >
+
+                                    @if (!empty($imagen->descripcion))
+                                        <div class="diagnostico-pie">
+                                            {{ $imagen->descripcion }}
+                                        </div>
+                                    @endif
+                                @else
+                                    <div class="diagnostico-pie">
+                                        No se encontró el archivo de la fotografía.
+                                    </div>
+                                @endif
+                            </td>
+                        @endforeach
+
+                        @if ($fila->count() === 1)
+                            <td></td>
+                        @endif
+                    </tr>
+                @endforeach
+            </table>
+        @else
+            <p>No se registraron imágenes del diagnóstico.</p>
+        @endif
+    </div>
+
 
     <div class="section">
         <div class="section-title">Trabajos realizados</div>
