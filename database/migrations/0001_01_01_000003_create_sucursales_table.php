@@ -10,23 +10,26 @@ return new class extends Migration {
      */
     public function up(): void
     {
+        // @tabla sucursales: Sucursales del taller.
         Schema::create('sucursales', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Sucursales del taller.');
+            $table->id()->comment('Identificador unico de la tabla sucursales.');
 
-            $table->string('nombre');
-            $table->string('direccion')->nullable();
-            $table->string('telefono')->nullable();
+            $table->string('nombre')->comment('Nombre del registro (tabla sucursales).');
+            $table->string('direccion')->nullable()->comment('Direccion registrada (tabla sucursales).');
+            $table->string('telefono')->nullable()->comment('Numero telefonico (tabla sucursales).');
 
-            $table->string('estado')->default('ACTIVO');
+            $table->string('estado')->default('ACTIVO')->comment('Estado del registro dentro de su proceso o catalogo (tabla sucursales).');
 
             // Auditoría
-            $table->unsignedBigInteger('usuario_creador_id')->nullable();
-            $table->unsignedBigInteger('usuario_modificador_id')->nullable();
-            $table->unsignedBigInteger('usuario_eliminador_id')->nullable();
+            $table->unsignedBigInteger('usuario_creador_id')->nullable()->comment('Clave foranea que referencia a users.id. Usuario que creo el registro (tabla sucursales).');
+            $table->unsignedBigInteger('usuario_modificador_id')->nullable()->comment('Clave foranea que referencia a users.id. Usuario de la ultima modificacion registrada (tabla sucursales).');
+            $table->unsignedBigInteger('usuario_eliminador_id')->nullable()->comment('Clave foranea que referencia a users.id. Usuario que registro la eliminacion (tabla sucursales).');
 
-            $table->dateTime('deleted_at')->nullable();
+            $table->dateTime('deleted_at')->nullable()->comment('Fecha y hora de eliminacion logica; nulo indica que no se ha eliminado (tabla sucursales).');
 
-            $table->timestamps();
+            $table->timestamp('created_at')->nullable()->comment('Fecha y hora de creacion del registro de la tabla sucursales.');
+            $table->timestamp('updated_at')->nullable()->comment('Fecha y hora de ultima actualizacion del registro de la tabla sucursales.');
         });
     }
 

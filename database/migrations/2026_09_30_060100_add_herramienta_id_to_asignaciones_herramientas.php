@@ -9,18 +9,22 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // @tabla asignaciones_herramientas: Asignaciones y devoluciones de herramientas a mecanicos.
         Schema::table('asignaciones_herramientas', function (Blueprint $table) {
             $table->dropForeign(['producto_id']);
-            $table->unsignedBigInteger('producto_id')->nullable()->change();
+            $table->unsignedBigInteger('producto_id')->nullable()->change()->comment('Producto asociado al registro (tabla asignaciones_herramientas).');
         });
 
+        // @tabla asignaciones_herramientas: Asignaciones y devoluciones de herramientas a mecanicos.
         Schema::table('asignaciones_herramientas', function (Blueprint $table) {
+            // @relacion producto_id: la cadena references/on define el destino y la regla de eliminacion, si se declara.
             $table->foreign('producto_id')
                 ->references('id')
                 ->on('productos')
                 ->restrictOnDelete();
             $table->foreignId('herramienta_id')
                 ->nullable()
+                ->comment('Clave foranea que referencia a herramientas.id. Herramienta del catalogo asignada al mecanico.')
                 ->constrained('herramientas')
                 ->restrictOnDelete();
         });

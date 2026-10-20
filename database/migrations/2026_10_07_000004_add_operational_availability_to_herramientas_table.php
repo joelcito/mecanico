@@ -9,16 +9,19 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // @tabla herramientas: Catalogo e inventario de herramientas del taller.
         Schema::table('herramientas', function (Blueprint $table) {
             $table->string('estado_disponibilidad', 30)
                 ->default('DISPONIBLE')
-                ->after('estado');
+                ->after('estado')->comment('Disponibilidad operativa de la herramienta, independiente del estado del catalogo (tabla herramientas).');
         });
 
+        // @tabla asignaciones_herramientas: Asignaciones y devoluciones de herramientas a mecanicos.
         Schema::table('asignaciones_herramientas', function (Blueprint $table) {
             $table->foreignId('usuario_devolucion_id')
                 ->nullable()
                 ->after('usuario_modificador_id')
+                ->comment('Clave foranea que referencia a users.id. Usuario que registra la devolucion de la herramienta.')
                 ->constrained('users')
                 ->nullOnDelete();
         });

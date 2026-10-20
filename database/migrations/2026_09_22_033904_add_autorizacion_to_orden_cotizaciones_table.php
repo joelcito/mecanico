@@ -11,20 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // @tabla orden_cotizaciones: Cotizaciones de las ordenes de servicio y sus importes.
         Schema::table('orden_cotizaciones', function (Blueprint $table) {
             $table->dateTime('fecha_respuesta')
                 ->nullable()
-                ->after('fecha');
+                ->after('fecha')->comment('Fecha y hora de respuesta a la cotizacion (tabla orden_cotizaciones).');
 
             $table->foreignId('usuario_respuesta_id')
                 ->nullable()
                 ->after('usuario_cotizador_id')
+                ->comment('Clave foranea que referencia a users.id. Usuario que registra la respuesta a la cotizacion.')
                 ->constrained('users')
                 ->nullOnDelete();
 
             $table->text('observacion_respuesta')
                 ->nullable()
-                ->after('observaciones');
+                ->after('observaciones')->comment('Observacion asociada a la respuesta de la cotizacion (tabla orden_cotizaciones).');
         });
     }
 

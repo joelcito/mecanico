@@ -53,10 +53,11 @@ return new class extends Migration
             ->where('tipo', 'AUTO')
             ->update(['tipo' => 'PRODUCTO']);
 
+        // @tabla categorias: Categorias del catalogo de productos y herramientas.
         Schema::table('categorias', function (Blueprint $table) {
             $table->string('tipo', 30)
                 ->default('PRODUCTO')
-                ->change();
+                ->change()->comment('Clasificacion del registro dentro de su modulo (tabla categorias).');
         });
     }
 

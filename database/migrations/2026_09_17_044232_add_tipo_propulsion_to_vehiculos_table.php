@@ -11,6 +11,7 @@ return new class extends Migration
      */
      public function up(): void
     {
+        // @tabla vehiculos: Vehiculos de los clientes atendidos en el taller.
         Schema::table('vehiculos', function (Blueprint $table) {
             $table->enum('tipo_propulsion', [
                 'COMBUSTION',
@@ -18,7 +19,7 @@ return new class extends Migration
                 'HIBRIDO',
             ])
             ->nullable()
-            ->after('tipo_vehiculo');
+            ->after('tipo_vehiculo')->comment('Sistema de propulsion; valores definidos en la declaracion enum (tabla vehiculos).');
         });
     }
     /**

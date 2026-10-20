@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // @tabla marcas: Marcas del catalogo.
         Schema::table('marcas', function (Blueprint $table) {
             $table->string('tipo', 30)
                 ->default('AUTO')
-                ->after('descripcion');
+                ->after('descripcion')->comment('Clasificacion del registro dentro de su modulo (tabla marcas).');
         });
     }
 

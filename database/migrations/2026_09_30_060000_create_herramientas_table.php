@@ -9,38 +9,46 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // @tabla herramientas: Catalogo e inventario de herramientas del taller.
         Schema::create('herramientas', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Catalogo e inventario de herramientas del taller.');
+            $table->id()->comment('Identificador unico de la tabla herramientas.');
             $table->foreignId('categoria_id')
                 ->nullable()
+                ->comment('Clave foranea que referencia a categorias.id. Categoria asociada al registro.')
                 ->constrained('categorias')
                 ->restrictOnDelete();
             $table->foreignId('marca_id')
                 ->nullable()
+                ->comment('Clave foranea que referencia a marcas.id. Marca asociada al registro.')
                 ->constrained('marcas')
                 ->restrictOnDelete();
-            $table->string('codigo')->nullable();
-            $table->string('nombre')->nullable();
-            $table->text('descripcion')->nullable();
-            $table->string('unidad_medida')->nullable();
-            $table->decimal('cantidad', 10, 2)->default(0);
-            $table->decimal('stock_minimo', 10, 2)->default(0);
-            $table->string('imagen')->nullable();
-            $table->string('estado')->nullable();
+            $table->string('codigo')->nullable()->comment('Codigo de identificacion en el catalogo (tabla herramientas).');
+            $table->string('nombre')->nullable()->comment('Nombre del registro (tabla herramientas).');
+            $table->text('descripcion')->nullable()->comment('Descripcion del registro o concepto (tabla herramientas).');
+            $table->string('unidad_medida')->nullable()->comment('Unidad en la que se expresa la cantidad (tabla herramientas).');
+            $table->decimal('cantidad', 10, 2)->default(0)->comment('Cantidad registrada en la unidad de medida correspondiente (tabla herramientas).');
+            $table->decimal('stock_minimo', 10, 2)->default(0)->comment('Existencia minima de referencia para reposicion (tabla herramientas).');
+            $table->string('imagen')->nullable()->comment('Ruta o referencia de la imagen del catalogo (tabla herramientas).');
+            $table->string('estado')->nullable()->comment('Estado del registro dentro de su proceso o catalogo (tabla herramientas).');
             $table->foreignId('usuario_creador_id')
                 ->nullable()
+                ->comment('Clave foranea que referencia a users.id. Usuario que creo el registro.')
                 ->constrained('users')
                 ->nullOnDelete();
             $table->foreignId('usuario_modificador_id')
                 ->nullable()
+                ->comment('Clave foranea que referencia a users.id. Usuario de la ultima modificacion registrada.')
                 ->constrained('users')
                 ->nullOnDelete();
             $table->foreignId('usuario_eliminador_id')
                 ->nullable()
+                ->comment('Clave foranea que referencia a users.id. Usuario que registro la eliminacion.')
                 ->constrained('users')
                 ->nullOnDelete();
-            $table->dateTime('deleted_at')->nullable();
-            $table->timestamps();
+            $table->dateTime('deleted_at')->nullable()->comment('Fecha y hora de eliminacion logica; nulo indica que no se ha eliminado (tabla herramientas).');
+            $table->timestamp('created_at')->nullable()->comment('Fecha y hora de creacion del registro de la tabla herramientas.');
+            $table->timestamp('updated_at')->nullable()->comment('Fecha y hora de ultima actualizacion del registro de la tabla herramientas.');
         });
 
         DB::table('productos')

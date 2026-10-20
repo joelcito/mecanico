@@ -11,10 +11,11 @@ return new class extends Migration
      */
      public function up(): void
     {
+        // @tabla pagos: Pagos recibidos por las ordenes de servicio.
         Schema::table('pagos', function (Blueprint $table) {
             $table->decimal('monto_recibido', 12, 2)
                 ->default(0)
-                ->after('monto');
+                ->after('monto')->comment('Importe entregado por el cliente antes de descontar el cambio (tabla pagos).');
         });
     }
 

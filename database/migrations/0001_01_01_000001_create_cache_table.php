@@ -11,16 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // @tabla cache: Valores de la cache de Laravel.
         Schema::create('cache', function (Blueprint $table) {
-            $table->string('key')->primary();
-            $table->mediumText('value');
-            $table->bigInteger('expiration')->index();
+            $table->comment('Valores de la cache de Laravel.');
+            $table->string('key')->primary()->comment('Clave de identificacion de la entrada de cache o bloqueo (tabla cache).');
+            $table->mediumText('value')->comment('Contenido almacenado en cache (tabla cache).');
+            $table->bigInteger('expiration')->index()->comment('Instante de expiracion expresado como tiempo Unix (tabla cache).');
         });
 
+        // @tabla cache_locks: Bloqueos de la cache de Laravel.
         Schema::create('cache_locks', function (Blueprint $table) {
-            $table->string('key')->primary();
-            $table->string('owner');
-            $table->bigInteger('expiration')->index();
+            $table->comment('Bloqueos de la cache de Laravel.');
+            $table->string('key')->primary()->comment('Clave de identificacion de la entrada de cache o bloqueo (tabla cache_locks).');
+            $table->string('owner')->comment('Identificador del propietario del bloqueo (tabla cache_locks).');
+            $table->bigInteger('expiration')->index()->comment('Instante de expiracion expresado como tiempo Unix (tabla cache_locks).');
         });
     }
 

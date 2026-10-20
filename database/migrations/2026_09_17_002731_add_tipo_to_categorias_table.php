@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // @tabla categorias: Categorias del catalogo de productos y herramientas.
         Schema::table('categorias', function (Blueprint $table) {
              $table->string('tipo', 30)
                 ->default('AUTO')
-                ->after('descripcion');
+                ->after('descripcion')->comment('Clasificacion del registro dentro de su modulo (tabla categorias).');
         });
     }
 
