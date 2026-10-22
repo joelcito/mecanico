@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use App\Models\OrdenCotizacion;
 
 class OrdenDiagnosticoController extends Controller
 {
@@ -58,10 +59,12 @@ public function guardar(Request $request, $id)
 
         'detalles' => 'required|array|min:1',
         'detalles.*.id' => 'nullable|integer',
-        'detalles.*.descripcion' => 'required|string|max:1000',
+        'detalles.*.descripcion' => 'nullable|string|max:1000',
+'detalles.*.observacion' => 'nullable|string|max:1000',
+       
         'detalles.*.tipo' => 'required|in:HALLAZGO,RECOMENDACION',
         'detalles.*.prioridad' => 'required|in:BAJA,MEDIA,ALTA,CRITICA',
-        'detalles.*.observacion' => 'nullable|string|max:1000',
+       
 
         'detalles.*.fotos' => 'nullable|array|max:10',
         'detalles.*.fotos.*' => 'nullable|array',
@@ -163,9 +166,12 @@ public function guardar(Request $request, $id)
                 $detalleDiagnostico->usuario_creador_id = Auth::id();
             }
 
-            $detalleDiagnostico->descripcion = $datos['descripcion'];
+            $detalleDiagnostico->descripcion =
+                $datos['descripcion'] ?? null;
+
             $detalleDiagnostico->tipo = $datos['tipo'];
             $detalleDiagnostico->prioridad = $datos['prioridad'];
+
             $detalleDiagnostico->observacion =
                 $datos['observacion'] ?? null;
             $detalleDiagnostico->usuario_modificador_id = Auth::id();

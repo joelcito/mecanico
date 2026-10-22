@@ -235,8 +235,7 @@
             </div>
         </div>
 
-        
-    <div class="card mb-5">
+<div class="card mb-5">
     <div class="card-header">
         <h3 class="card-title">Observaciones generales</h3>
     </div>
@@ -257,17 +256,17 @@
 
             <button
                 type="button"
-                class="btn btn-light-primary btnDictado align-self-start"
-                data-target="observaciones_inspeccion"
+                id="btnDictadoInspeccion"
+                class="btn btn-light-primary"
                 title="Dictar observaciones"
             >
-                <i class="fa fa-microphone"></i>
+                <i class="fa fa-microphone"></i> Dictar
             </button>
         </div>
 
         <small
-            class="text-muted d-block mt-2"
             id="estado-voz-observaciones_inspeccion"
+            class="text-muted d-block mt-2"
         ></small>
     </div>
 </div>
@@ -440,147 +439,136 @@
 
 
 
-
-
-$(document).ready(function () {
-    const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
-
-    const botones = $('.btnDictado[data-target="observaciones_inspeccion"]');
-
-    let reconocimiento = null;
-    let dictadoActivo = false;
-    let textoInicial = '';
-
-    const idCampo = 'observaciones_inspeccion';
-    const estado = $('#estado-voz-' + idCampo);
-
+(function () {
     console.log('[Dictado inspección] Script cargado');
 
-    if (!SpeechRecognition) {
-        botones.prop('disabled', true);
+    const campo = document.getElementById('observaciones_inspeccion');
+    const boton = document.getElementById('btnDictadoInspeccion');
+    const estado = document.getElementById(
+        'estado-voz-observaciones_inspeccion'
+    );
 
-        estado
-            .removeClass('text-primary')
-            .addClass('text-danger')
-            .text('Tu navegador no admite dictado por voz. Prueba con Google Chrome.');
-
+    if (!campo || !boton || !estado) {
+        console.error('[Dictado inspección] Elementos no encontrados', {
+            campo: !!campo,
+            boton: !!boton,
+            estado: !!estado
+        });
         return;
     }
 
-    reconocimiento = new SpeechRecognition();
-    reconocimiento.lang = 'es-BO';
-    reconocimiento.continuous = true;
-    reconocimiento.interimResults = true;
+    const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    botones.on('click', function () {
-        console.log('[Dictado inspección] Botón pulsado');
+    let reconocimiento = null;
+    let activo = false;
+    let textoBase = '';
+    let textoFinal = '';
 
-        if (dictadoActivo) {
+    boton.addEventListener('click', function () {
+        console.log('[Dictado inspección] Clic detectado');
+
+        if (!SpeechRecognition) {
+            estado.className = 'text-danger d-block mt-2';
+            estado.textContent =
+                'El navegador no admite el reconocimiento de voz.';
+            return;
+        }
+
+        if (activo) {
             reconocimiento.stop();
             return;
         }
 
-        textoInicial = $('#' + idCampo).val().trim();
+        reconocimiento = new SpeechRecognition();
+        reconocimiento.lang = 'es-BO';
+        reconocimiento.continuous = true;
+        reconocimiento.interimResults = true;
+
+        textoBase = campo.value.trim();
+        textoFinal = '';
+
+        reconocimiento.onstart = function () {
+            activo = true;
+            boton.classList.replace('btn-light-primary', 'btn-danger');
+            boton.innerHTML = '<i class="fa fa-stop"></i> Detener';
+
+            estado.className = 'text-primary d-block mt-2';
+            estado.textContent = 'Escuchando... habla ahora.';
+            console.log('[Dictado inspección] Micrófono iniciado');
+        };
+
+        reconocimiento.onresult = function (evento) {
+            let parcial = '';
+
+            for (let i = evento.resultIndex; i < evento.results.length; i++) {
+                const resultado = evento.results[i];
+                const texto = resultado[0].transcript.trim();
+
+                if (resultado.isFinal) {
+                    textoFinal += (textoFinal ? ' ' : '') + texto;
+                } else {
+                    parcial += texto + ' ';
+                }
+            }
+
+            campo.value = [textoBase, textoFinal, parcial.trim()]
+                .filter(Boolean)
+                .join(' ');
+
+            campo.dispatchEvent(new Event('input', { bubbles: true }));
+
+            if (parcial.trim()) {
+                estado.textContent = 'Te escucho: ' + parcial.trim();
+            }
+
+            console.log('[Dictado inspección] Texto:', campo.value);
+        };
+
+        reconocimiento.onerror = function (evento) {
+            console.error('[Dictado inspección] Error:', evento.error);
+
+            const mensajes = {
+                'not-allowed': 'Permite el acceso al micrófono en Chrome.',
+                'service-not-allowed': 'El servicio de voz está bloqueado.',
+                'no-speech': 'No se detectó voz. Intenta nuevamente.',
+                'audio-capture': 'No se encontró un micrófono.',
+                'network': 'Error de red en el reconocimiento de voz.'
+            };
+
+            estado.className = 'text-danger d-block mt-2';
+            estado.textContent =
+                mensajes[evento.error] || 'Error: ' + evento.error;
+        };
+
+        reconocimiento.onend = function () {
+            activo = false;
+            boton.classList.remove('btn-danger');
+            boton.classList.add('btn-light-primary');
+            boton.innerHTML = '<i class="fa fa-microphone"></i> Dictar';
+
+            if (estado.classList.contains('text-primary')) {
+                estado.textContent = campo.value.trim()
+                    ? 'Dictado finalizado.'
+                    : 'No se recibió texto.';
+            }
+
+            console.log('[Dictado inspección] Reconocimiento finalizado');
+        };
+
+        estado.className = 'text-primary d-block mt-2';
+        estado.textContent = 'Solicitando acceso al micrófono...';
 
         try {
             reconocimiento.start();
         } catch (error) {
-            console.error('[Dictado inspección] Error al iniciar:', error);
-
-            estado
-                .removeClass('text-primary')
-                .addClass('text-danger')
-                .text('No se pudo iniciar el dictado. Intenta nuevamente.');
+            console.error('[Dictado inspección] No se pudo iniciar:', error);
+            estado.className = 'text-danger d-block mt-2';
+            estado.textContent =
+                'No se pudo iniciar. Pulsa nuevamente en unos segundos.';
         }
     });
-
-    reconocimiento.onstart = function () {
-        dictadoActivo = true;
-
-        botones
-            .removeClass('btn-light-primary')
-            .addClass('btn-danger')
-            .html('<i class="fa fa-stop"></i> Detener');
-
-        estado
-            .removeClass('text-danger')
-            .addClass('text-primary')
-            .text('Escuchando... habla ahora.');
-
-        console.log('[Dictado inspección] Reconocimiento iniciado');
-    };
-
-    reconocimiento.onresult = function (evento) {
-        let textoNuevo = '';
-
-        for (
-            let i = evento.resultIndex;
-            i < evento.results.length;
-            i++
-        ) {
-            if (evento.results[i].isFinal) {
-                textoNuevo += evento.results[i][0].transcript + ' ';
-            }
-        }
-
-        if (!textoNuevo.trim()) {
-            return;
-        }
-
-        const campo = $('#' + idCampo);
-
-        let textoCompleto = textoInicial;
-
-        if (textoCompleto) {
-            textoCompleto += ' ';
-        }
-
-        textoCompleto += textoNuevo.trim();
-
-        campo.val(textoCompleto);
-        textoInicial = textoCompleto;
-        campo.trigger('input');
-
-        console.log('[Dictado inspección] Audio recibido:', textoNuevo);
-    };
-
-    reconocimiento.onerror = function (evento) {
-        const mensajes = {
-            'not-allowed': 'Debes permitir el acceso al micrófono.',
-            'service-not-allowed': 'El navegador bloqueó el servicio de voz.',
-            'no-speech': 'No se detectó voz. Intenta nuevamente.',
-            'audio-capture': 'No se encontró un micrófono disponible.',
-            'network': 'Error de conexión durante el reconocimiento.'
-        };
-
-        estado
-            .removeClass('text-primary')
-            .addClass('text-danger')
-            .text(
-                mensajes[evento.error] ||
-                'Error de reconocimiento: ' + evento.error
-            );
-
-        console.error('[Dictado inspección] Error:', evento.error);
-    };
-
-    reconocimiento.onend = function () {
-        dictadoActivo = false;
-
-        botones
-            .removeClass('btn-danger')
-            .addClass('btn-light-primary')
-            .html('<i class="fa fa-microphone"></i>');
-
-        if (estado.text() === 'Escuchando... habla ahora.') {
-            estado.text('Dictado finalizado.');
-        }
-
-        console.log('[Dictado inspección] Reconocimiento finalizado');
-    };
-});
+})();
 
 
 

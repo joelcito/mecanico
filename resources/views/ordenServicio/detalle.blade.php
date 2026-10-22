@@ -745,22 +745,30 @@
                         Ver PDF de cotización
                     </a>
 
-                    @if($telefonoWhatsApp)
-                        <a
-                            href="https://wa.me/{{ $telefonoWhatsApp }}?text={{ rawurlencode('Hola, le compartimos la cotización de la orden de servicio #' . $orden->id . '. Le enviaremos el documento PDF por este chat.') }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="btn btn-success"
-                        >
-                            <i class="fab fa-whatsapp me-2"></i>
-                            Enviar cotización por WhatsApp
-                        </a>
-                    @else
-                        <button type="button" class="btn btn-secondary" disabled>
-                            <i class="fab fa-whatsapp me-2"></i>
-                            Cliente sin celular registrado
-                        </button>
-                    @endif
+                   
+
+
+@if($telefonoWhatsApp && $orden->cotizacionActual)
+    <button
+        type="button"
+        id="btnEnviarCotizacionWhatsApp"
+        class="btn btn-success"
+        data-telefono="{{ preg_replace('/\D/', '', $telefonoWhatsApp) }}"
+        data-pdf-url="{{ route('ordenServicio.cotizacion.pdf', $orden->id) }}"
+        data-orden="{{ $orden->numero_orden ?? $orden->id }}"
+    >
+        <i class="fab fa-whatsapp me-2"></i>
+        Enviar cotización por WhatsApp
+    </button>
+@else
+    <button type="button" class="btn btn-secondary" disabled>
+        <i class="fab fa-whatsapp me-2"></i>
+        {{ !$telefonoWhatsApp ? 'Cliente sin celular registrado' : 'No hay cotización registrada' }}
+    </button>
+@endif
+
+
+
                 </div>
 
                     @if($orden->cotizacionActual->estado === 'PENDIENTE')
@@ -2525,70 +2533,114 @@ $(document).ready(function() {
         });
     }
 
-    const btnRechazarCotizacion = document.getElementById('btnRechazarCotizacion');
-    if (btnRechazarCotizacion) {
-        btnRechazarCotizacion.addEventListener('click', function () {
-            const observacion = document.getElementById('observacionRechazo').value.trim();
-            if (!observacion) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Motivo requerido',
-                    text: 'Debe ingresar el motivo del rechazo.'
-                });
+   
+const btnEnviarCotizacion = document.getElementById(
+    'btnEnviarCotizacionWhatsApp'
+);
+
+if (btnEnviarCotizacion) {
+    btnEnviarCotizacion.addEventListener('click', async function () {
+        const telefono = this.dataset.telefono;
+        const urlPdf = this.dataset.pdfUrl;
+        const numeroOrden = this.dataset.orden;
+
+        const mensaje =
+            `Hola, le compartimos la cotización de la orden de servicio #${numeroOrden}. Por favor, revise el documento adjunto.`;
+
+        const urlWhatsApp =
+            `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+
+        const boton = this;
+        const textoOriginal = boton.innerHTML;
+
+        // Compartir archivos requiere soporte del navegador.
+        if (
+            !navigator.share ||
+            !navigator.canShare
+        ) {
+            window.open(urlWhatsApp, '_blank');
+            window.open(urlPdf, '_blank');
+
+            Swal.fire({
+                icon: 'info',
+                title: 'Adjunta el PDF',
+                text: 'Descarga la cotización y adjúntala en el chat de WhatsApp antes de enviarla.'
+            });
+
+            return;
+        }
+
+        boton.disabled = true;
+        boton.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-2"></i>Preparando PDF...';
+
+        try {
+            const respuesta = await fetch(urlPdf, {
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/pdf'
+                }
+            });
+
+            if (!respuesta.ok) {
+                throw new Error(
+                    'No se pudo obtener el PDF de la cotización.'
+                );
+            }
+
+            const blob = await respuesta.blob();
+
+            if (blob.type && !blob.type.includes('pdf')) {
+                throw new Error(
+                    'La ruta no devolvió un archivo PDF.'
+                );
+            }
+
+            const archivo = new File(
+                [blob],
+                `cotizacion-${numeroOrden}.pdf`,
+                { type: 'application/pdf' }
+            );
+
+            if (!navigator.canShare({ files: [archivo] })) {
+                throw new Error(
+                    'El navegador no admite compartir este PDF.'
+                );
+            }
+
+            await navigator.share({
+                files: [archivo],
+                title: `Cotización ${numeroOrden}`,
+                text: mensaje
+            });
+
+        } catch (error) {
+            if (error.name === 'AbortError') {
                 return;
             }
-            btnRechazarCotizacion.disabled = true;
-            fetch(
-                "{{ route('ordenServicio.cotizacion.rechazar', $orden->id) }}",
-                {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        observacion_respuesta: observacion
-                    })
-                }
-            )
-            .then(response => response.json())
-            .then(data => {
 
-                if (data.success) {
+            console.error(
+                'Error al compartir cotización:',
+                error
+            );
 
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Cotización rechazada',
-                        text: 'La cotización ha sido rechazada.',
-                        confirmButtonText: 'Continuar'
-                    }).then(() => {
-                        location.reload();
-                    });
+            window.open(urlPdf, '_blank');
+            window.open(urlWhatsApp, '_blank');
 
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message ??
-                            'No se pudo rechazar la cotización.'
-                    });
-                    btnRechazarCotizacion.disabled = false;
-                }
-
-            })
-            .catch(error => {
-                console.error(error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Ocurrió un error al rechazar la cotización.'
-                });
-
-                btnRechazarCotizacion.disabled = false;
+            Swal.fire({
+                icon: 'warning',
+                title: 'No se pudo adjuntar automáticamente',
+                text: 'Descarga el PDF y adjúntalo manualmente en WhatsApp.'
             });
-        });
-    }
+
+        } finally {
+            boton.disabled = false;
+            boton.innerHTML = textoOriginal;
+        }
+    });
+}
+
+
 </script>
 @endif
 @endsection

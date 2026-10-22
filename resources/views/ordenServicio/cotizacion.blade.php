@@ -239,17 +239,38 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-5">
-                    <label class="form-label fw-bold">
-                        Observaciones
-                    </label>
+               <div class="mb-4">
+                <label class="form-label fw-bold">
+                    Observaciones
+                </label>
+
+                <div class="grupo-dictado">
                     <textarea
                         name="observaciones"
-                        class="form-control"
+                        id="observaciones_cotizacion"
+                        class="form-control campo-dictado"
                         rows="3"
                         placeholder="Observaciones de la cotización..."
                     >{{ old('observaciones', $cotizacionActual?->observaciones) }}</textarea>
+
+                    <div class="d-flex align-items-center gap-2 mt-2">
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-light-primary btn-dictado"
+                            data-target="observaciones_cotizacion"
+                        >
+                            <i class="fa fa-microphone me-1"></i>
+                            Dictar observaciones
+                        </button>
+
+                        <span
+                            id="estadoVoz_observaciones_cotizacion"
+                            class="text-muted small"
+                            aria-live="polite"
+                        ></span>
+                    </div>
                 </div>
+            </div>
             </div>
         </div>
         <div class="row justify-content-end">
@@ -637,6 +658,136 @@ $(document).ready(function () {
     }
 
     calcularTotales();
+});
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const boton = document.querySelector(
+        '[data-target="observaciones_cotizacion"]'
+    );
+
+    const textarea = document.getElementById(
+        'observaciones_cotizacion'
+    );
+
+    const estado = document.getElementById(
+        'estadoVoz_observaciones_cotizacion'
+    );
+
+    if (!boton || !textarea || !estado) {
+        console.warn('[Dictado] No se encontraron los elementos.');
+        return;
+    }
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        boton.disabled = true;
+        estado.textContent =
+            'Tu navegador no admite dictado por voz.';
+        return;
+    }
+
+    const reconocimiento = new SpeechRecognition();
+
+    reconocimiento.lang = 'es-BO';
+    reconocimiento.continuous = true;
+    reconocimiento.interimResults = true;
+
+    let escuchando = false;
+    let textoBase = '';
+    let textoConfirmado = '';
+
+    boton.addEventListener('click', function () {
+        if (escuchando) {
+            reconocimiento.stop();
+            return;
+        }
+
+        textoBase = textarea.value.trim();
+        textoConfirmado = '';
+
+        reconocimiento.start();
+    });
+
+    reconocimiento.onstart = function () {
+        escuchando = true;
+
+        boton.classList.remove('btn-light-primary');
+        boton.classList.add('btn-light-danger');
+
+        boton.innerHTML =
+            '<i class="fa fa-stop me-1"></i> Detener dictado';
+
+        estado.textContent = 'Escuchando... Habla ahora.';
+    };
+
+    reconocimiento.onresult = function (event) {
+        let textoIntermedio = '';
+
+        for (
+            let i = event.resultIndex;
+            i < event.results.length;
+            i++
+        ) {
+            const resultado = event.results[i];
+            const texto = resultado[0].transcript;
+
+            if (resultado.isFinal) {
+                textoConfirmado += texto + ' ';
+            } else {
+                textoIntermedio += texto;
+            }
+        }
+
+        const textoNuevo = (
+            textoBase +
+            (textoBase && textoConfirmado ? ' ' : '') +
+            textoConfirmado +
+            textoIntermedio
+        ).trim();
+
+        textarea.value = textoNuevo;
+
+        textarea.dispatchEvent(
+            new Event('input', { bubbles: true })
+        );
+    };
+
+    reconocimiento.onerror = function (event) {
+        console.error('[Dictado] Error:', event.error);
+
+        const mensajes = {
+            'not-allowed': 'Debes permitir el acceso al micrófono.',
+            'no-speech': 'No se detectó voz. Intenta nuevamente.',
+            'audio-capture': 'No se encontró un micrófono disponible.',
+            'network': 'Error de conexión durante el reconocimiento.'
+        };
+
+        estado.textContent =
+            mensajes[event.error] ||
+            'No se pudo reconocer la voz: ' + event.error;
+    };
+
+    reconocimiento.onend = function () {
+        escuchando = false;
+
+        boton.classList.remove('btn-light-danger');
+        boton.classList.add('btn-light-primary');
+
+        boton.innerHTML =
+            '<i class="fa fa-microphone me-1"></i> Dictar observaciones';
+
+        if (!estado.textContent.startsWith('Debes permitir') &&
+            !estado.textContent.startsWith('No se detectó') &&
+            !estado.textContent.startsWith('No se encontró') &&
+            !estado.textContent.startsWith('Error de conexión') &&
+            !estado.textContent.startsWith('No se pudo reconocer')) {
+            estado.textContent = 'Dictado finalizado.';
+        }
+    };
 });
 
 </script>

@@ -229,7 +229,7 @@
                                             class="form-control campo-dictado"
                                             rows="3"
                                             maxlength="1000"
-                                            required>{{ old("detalles.$indice.descripcion", $detalle->descripcion) }}</textarea>
+                                            >{{ old("detalles.$indice.descripcion", $detalle->descripcion) }}</textarea>
 
                                     <button type="button"
                                             class="btn-dictado"
