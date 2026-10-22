@@ -50,7 +50,7 @@
 <div class="d-flex flex-column flex-column-fluid">
 <div id="kt_app_content" class="app-content flex-column-fluid">
     <div id="kt_app_content_container" class="app-container container-xxlg">
-  
+
         <div class="card shadow-sm mb-5">
             <div class="card-header bg-light-info py-4">
                 <div class="card-title d-flex align-items-center">
@@ -309,30 +309,48 @@
                                 class="text-danger error-text"
                                 id="error-nivel_combustible"
                             ></span>
-                        </div>
-
+                        </div>                        
                         <div class="col-md-12 mb-5">
                             <label class="form-label">
                                 Motivo de ingreso
                             </label>
-                            <input
-                                type="text"
-                                class="form-control"
-                                name="motivo_ingreso"
-                                id="motivo_ingreso"
-                                maxlength="255"
-                                placeholder="Ej. Mantenimiento preventivo, cambio de aceite, revisión de frenos..."
-                            >
+
+                            <div class="input-group">
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    name="motivo_ingreso"
+                                    id="motivo_ingreso"
+                                    maxlength="255"
+                                    placeholder="Ej. Mantenimiento preventivo, cambio de aceite, revisión de frenos..."
+                                >
+
+                                <button
+                                    type="button"
+                                    class="btn btn-light-primary btnDictado"
+                                    data-target="motivo_ingreso"
+                                    title="Dictar motivo de ingreso" >
+                                    <i class="fa fa-microphone"></i>
+                                    
+                                </button>
+                            </div>
+
+                            <small
+                                class="text-muted d-block mt-2"
+                                id="estado-voz-motivo_ingreso"
+                            ></small>
+
                             <span
                                 class="text-danger error-text"
                                 id="error-motivo_ingreso"
                             ></span>
-                        </div>
+                        </div>          
+                    <div class="col-md-12 mb-5">
+                        <label class="form-label">
+                            Observaciones
+                        </label>
 
-                        <div class="col-md-12 mb-5">
-                            <label class="form-label">
-                                Observaciones
-                            </label>
+                        <div class="input-group">
                             <textarea
                                 class="form-control"
                                 name="observaciones"
@@ -340,11 +358,28 @@
                                 rows="4"
                                 placeholder="Ingrese cualquier observación importante sobre el vehículo..."
                             ></textarea>
-                            <span
-                                class="text-danger error-text"
-                                id="error-observaciones"
-                            ></span>
+
+                            <button
+                                type="button"
+                                class="btn btn-light-primary btnDictado align-self-start"
+                                data-target="observaciones"
+                                title="Dictar observaciones" >
+                                <i class="fa fa-microphone"></i>
+                                
+                            </button>
                         </div>
+
+                        <small
+                            class="text-muted d-block mt-2"
+                            id="estado-voz-observaciones"
+                        ></small>
+
+                        <span
+                            class="text-danger error-text"
+                            id="error-observaciones"
+                        ></span>
+                    </div>
+
                     </div>
                 </div>
             </div>
@@ -517,6 +552,162 @@
             });
         });
     });
+
+        $(document).ready(function () {
+            const SpeechRecognition =
+                window.SpeechRecognition ||
+                window.webkitSpeechRecognition;
+
+            let reconocimiento = null;
+            let campoActivo = null;
+            let textoInicial = '';
+            let dictadoActivo = false;
+
+            if (!SpeechRecognition) {
+                $('.btnDictado').prop('disabled', true);
+
+                $('.btnDictado').each(function () {
+                    const campo = $(this).data('target');
+
+                    $('#estado-voz-' + campo).text(
+                        'El navegador no admite dictado por voz. ' +
+                        'Prueba con Google Chrome.'
+                    );
+                });
+
+                return;
+            }
+
+            reconocimiento = new SpeechRecognition();
+
+            reconocimiento.lang = 'es-BO';
+            reconocimiento.continuous = true;
+            reconocimiento.interimResults = true;
+
+            $('.btnDictado').on('click', function () {
+                const boton = $(this);
+                const campo = $('#' + boton.data('target'));
+                const idCampo = boton.data('target');
+                const estado = $('#estado-voz-' + idCampo);
+
+                if (dictadoActivo && campoActivo === idCampo) {
+                    reconocimiento.stop();
+                    return;
+                }
+
+                
+                if (dictadoActivo) {
+                    reconocimiento.stop();
+                }
+
+                campoActivo = idCampo;
+                textoInicial = campo.val().trim();
+                reconocimiento.start();
+            });
+
+            reconocimiento.onstart = function () {
+                dictadoActivo = true;
+
+                $('.btnDictado')
+                    .prop('disabled', false)
+                    .removeClass('btn-danger')
+                    .addClass('btn-light-primary')
+                    .html('<i class="fa fa-microphone"></i> Dictar');
+
+                const botonActivo = $(
+                    '.btnDictado[data-target="' + campoActivo + '"]'
+                );
+
+                botonActivo
+                    .removeClass('btn-light-primary')
+                    .addClass('btn-danger')
+                    .html('<i class="fa fa-stop"></i> Detener');
+
+                $('#estado-voz-' + campoActivo)
+                    .removeClass('text-danger')
+                    .addClass('text-primary')
+                    .text('Escuchando... habla ahora.');
+            };
+
+            reconocimiento.onresult = function (evento) {
+                let textoNuevo = '';
+
+                for (
+                    let i = evento.resultIndex;
+                    i < evento.results.length;
+                    i++
+                ) {
+                    if (evento.results[i].isFinal) {
+                        textoNuevo += evento.results[i][0].transcript + ' ';
+                    }
+                }
+
+                if (!textoNuevo.trim()) {
+                    return;
+                }
+
+                const campo = $('#' + campoActivo);
+                const esInput = campo.is('input');
+
+                let textoCompleto = textoInicial;
+
+                if (textoCompleto) {
+                    textoCompleto += ' ';
+                }
+
+                textoCompleto += textoNuevo.trim();
+
+                
+                const maxLength = campo.attr('maxlength');
+
+                if (esInput && maxLength) {
+                    textoCompleto = textoCompleto.substring(
+                        0,
+                        parseInt(maxLength, 10)
+                    );
+                }
+
+                campo.val(textoCompleto);
+                textoInicial = textoCompleto;
+                campo.trigger('input');
+            };
+
+            reconocimiento.onerror = function (evento) {
+                const mensajes = {
+                    'not-allowed': 'Debes permitir el acceso al micrófono.',
+                    'no-speech': 'No se detectó voz. Intenta nuevamente.',
+                    'audio-capture': 'No se encontró un micrófono disponible.',
+                    'network': 'Error de conexión durante el reconocimiento.',
+                    'service-not-allowed': 'El navegador bloqueó el servicio de voz.'
+                };
+
+                $('#estado-voz-' + campoActivo)
+                    .removeClass('text-primary')
+                    .addClass('text-danger')
+                    .text(
+                        mensajes[evento.error] ||
+                        'No se pudo reconocer la voz: ' + evento.error
+                    );
+            };
+
+            reconocimiento.onend = function () {
+                dictadoActivo = false;
+
+                $('.btnDictado')
+                    .removeClass('btn-danger')
+                    .addClass('btn-light-primary')
+                    .html('<i class="fa fa-microphone"></i> Dictar');
+
+                $('#estado-voz-' + campoActivo)
+                    .removeClass('text-primary')
+                    .text(function (_, texto) {
+                        return texto === 'Escuchando... habla ahora.'
+                            ? 'Dictado finalizado.'
+                            : texto;
+                    });
+            };
+        });
+
 
 
     function limpiarInformacion() {

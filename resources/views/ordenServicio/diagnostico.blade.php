@@ -370,7 +370,7 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-5 mb-3">
+                            {{-- <div class="col-md-5 mb-3">
                                 <label class="form-label fw-bold">Descripción</label>
                                 <textarea name="detalles[0][descripcion]"
                                         class="form-control"
@@ -378,9 +378,9 @@
                                         maxlength="1000"
                                         required
                                         placeholder="Describe el problema o trabajo recomendado"></textarea>
-                            </div>
+                            </div> --}}
 
-                            <div class="col-md-2 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Tipo</label>
                                 <select name="detalles[0][tipo]" class="form-select" required>
                                     <option value="HALLAZGO">Hallazgo</option>
@@ -388,7 +388,7 @@
                                 </select>
                             </div>
 
-                            <div class="col-md-2 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Prioridad</label>
                                 <select name="detalles[0][prioridad]" class="form-select" required>
                                     <option value="BAJA">Baja</option>
@@ -398,13 +398,13 @@
                                 </select>
                             </div>
 
-                            <div class="col-md-3 mb-3">
+                            {{-- <div class="col-md-3 mb-3">
                                 <label class="form-label fw-bold">Observación</label>
                                 <input type="text"
                                     name="detalles[0][observacion]"
                                     class="form-control"
                                     maxlength="1000">
-                            </div>
+                            </div> --}}
                         </div>
 
                         <div class="border-top pt-4 mt-2">

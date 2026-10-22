@@ -235,23 +235,43 @@
             </div>
         </div>
 
-        <div class="card mb-5">
-            <div class="card-header">
-                <h3 class="card-title">
-                    Observaciones generales
-                </h3>
-            </div>
-            <div class="card-body">
-               <textarea
-                    name="observaciones"
-                    class="form-control"
-                    rows="4"
-                    placeholder="Ingrese observaciones generales de la inspección...">
-                    {{ old('observaciones', $inspeccionActual->observaciones ?? '') }}</textarea>
-            </div>
+        
+    <div class="card mb-5">
+    <div class="card-header">
+        <h3 class="card-title">Observaciones generales</h3>
+    </div>
+
+    <div class="card-body">
+        <label for="observaciones_inspeccion" class="form-label">
+            Describe los hallazgos de la inspección
+        </label>
+
+        <div class="input-group">
+            <textarea
+                name="observaciones"
+                id="observaciones_inspeccion"
+                class="form-control"
+                rows="4"
+                placeholder="Ingrese observaciones generales de la inspección..."
+            >{{ old('observaciones', $inspeccionActual->observaciones ?? '') }}</textarea>
+
+            <button
+                type="button"
+                class="btn btn-light-primary btnDictado align-self-start"
+                data-target="observaciones_inspeccion"
+                title="Dictar observaciones"
+            >
+                <i class="fa fa-microphone"></i>
+            </button>
         </div>
 
-        
+        <small
+            class="text-muted d-block mt-2"
+            id="estado-voz-observaciones_inspeccion"
+        ></small>
+    </div>
+</div>
+
         <div class="card mb-5">
             <div class="card-header">
                 <h3 class="card-title">
@@ -417,6 +437,153 @@
 
 
 <script>
+
+
+
+
+
+$(document).ready(function () {
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    const botones = $('.btnDictado[data-target="observaciones_inspeccion"]');
+
+    let reconocimiento = null;
+    let dictadoActivo = false;
+    let textoInicial = '';
+
+    const idCampo = 'observaciones_inspeccion';
+    const estado = $('#estado-voz-' + idCampo);
+
+    console.log('[Dictado inspección] Script cargado');
+
+    if (!SpeechRecognition) {
+        botones.prop('disabled', true);
+
+        estado
+            .removeClass('text-primary')
+            .addClass('text-danger')
+            .text('Tu navegador no admite dictado por voz. Prueba con Google Chrome.');
+
+        return;
+    }
+
+    reconocimiento = new SpeechRecognition();
+    reconocimiento.lang = 'es-BO';
+    reconocimiento.continuous = true;
+    reconocimiento.interimResults = true;
+
+    botones.on('click', function () {
+        console.log('[Dictado inspección] Botón pulsado');
+
+        if (dictadoActivo) {
+            reconocimiento.stop();
+            return;
+        }
+
+        textoInicial = $('#' + idCampo).val().trim();
+
+        try {
+            reconocimiento.start();
+        } catch (error) {
+            console.error('[Dictado inspección] Error al iniciar:', error);
+
+            estado
+                .removeClass('text-primary')
+                .addClass('text-danger')
+                .text('No se pudo iniciar el dictado. Intenta nuevamente.');
+        }
+    });
+
+    reconocimiento.onstart = function () {
+        dictadoActivo = true;
+
+        botones
+            .removeClass('btn-light-primary')
+            .addClass('btn-danger')
+            .html('<i class="fa fa-stop"></i> Detener');
+
+        estado
+            .removeClass('text-danger')
+            .addClass('text-primary')
+            .text('Escuchando... habla ahora.');
+
+        console.log('[Dictado inspección] Reconocimiento iniciado');
+    };
+
+    reconocimiento.onresult = function (evento) {
+        let textoNuevo = '';
+
+        for (
+            let i = evento.resultIndex;
+            i < evento.results.length;
+            i++
+        ) {
+            if (evento.results[i].isFinal) {
+                textoNuevo += evento.results[i][0].transcript + ' ';
+            }
+        }
+
+        if (!textoNuevo.trim()) {
+            return;
+        }
+
+        const campo = $('#' + idCampo);
+
+        let textoCompleto = textoInicial;
+
+        if (textoCompleto) {
+            textoCompleto += ' ';
+        }
+
+        textoCompleto += textoNuevo.trim();
+
+        campo.val(textoCompleto);
+        textoInicial = textoCompleto;
+        campo.trigger('input');
+
+        console.log('[Dictado inspección] Audio recibido:', textoNuevo);
+    };
+
+    reconocimiento.onerror = function (evento) {
+        const mensajes = {
+            'not-allowed': 'Debes permitir el acceso al micrófono.',
+            'service-not-allowed': 'El navegador bloqueó el servicio de voz.',
+            'no-speech': 'No se detectó voz. Intenta nuevamente.',
+            'audio-capture': 'No se encontró un micrófono disponible.',
+            'network': 'Error de conexión durante el reconocimiento.'
+        };
+
+        estado
+            .removeClass('text-primary')
+            .addClass('text-danger')
+            .text(
+                mensajes[evento.error] ||
+                'Error de reconocimiento: ' + evento.error
+            );
+
+        console.error('[Dictado inspección] Error:', evento.error);
+    };
+
+    reconocimiento.onend = function () {
+        dictadoActivo = false;
+
+        botones
+            .removeClass('btn-danger')
+            .addClass('btn-light-primary')
+            .html('<i class="fa fa-microphone"></i>');
+
+        if (estado.text() === 'Escuchando... habla ahora.') {
+            estado.text('Dictado finalizado.');
+        }
+
+        console.log('[Dictado inspección] Reconocimiento finalizado');
+    };
+});
+
+
+
     function ampliarFotoInspeccion(url) {
         Swal.fire({
             imageUrl: url,
