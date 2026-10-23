@@ -163,6 +163,10 @@ Route::middleware('auth')->group(function () {
             Route::put('/{id}/recepcion', [OrdenServicioController::class, 'actualizarRecepcion'])->name('ordenServicio.recepcion.actualizar');
             Route::get('/{id}/recepcion/editar',[OrdenServicioController::class, 'editarRecepcion'])->name('ordenServicio.recepcion.editar');
             Route::delete('/orden-servicio/{orden}/inspeccion/fotos/{foto}',[OrdenInspeccionController::class, 'eliminarFoto'])->name('ordenServicio.inspeccion.foto.eliminar');
+            
+            
+            Route::get('/{id}/cotizacion/preparar-whatsapp', [OrdenCotizacionController::class,'prepararWhatsApp'])->name('ordenServicio.cotizacion.prepararWhatsApp');
+            Route::get('/{id}/cotizacion/{cotizacion}/compartida', [OrdenCotizacionController::class,'pdfCompartido'])->middleware('signed')->name('ordenServicio.cotizacion.compartida');
 
             });
         

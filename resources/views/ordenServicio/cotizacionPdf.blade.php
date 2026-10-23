@@ -193,9 +193,19 @@
     $cliente = $vehiculo?->cliente;
     $diagnostico = $orden->diagnosticoActual;
 
-    $nombreCliente = data_get($cliente, 'user.name')
-        ?? data_get($cliente, 'nombre')
-        ?? 'No registrado';
+    $userCliente = $cliente?->user;
+
+$nombreCliente = $userCliente
+    ? trim(implode(' ', array_filter([
+        $userCliente->nombres,
+        $userCliente->ap_paterno,
+        $userCliente->ap_materno,
+    ])))
+    : 'No registrado';
+
+if ($nombreCliente === '') {
+    $nombreCliente = 'No registrado';
+}
 
     $placa = data_get($vehiculo, 'placa')
         ?? data_get($vehiculo, 'numero_placa')

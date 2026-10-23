@@ -722,7 +722,7 @@
                     </div>
                 @endif
                 
-                @php
+               @php
                     $telefonoWhatsApp = preg_replace(
                         '/\D+/',
                         '',
@@ -745,29 +745,25 @@
                         Ver PDF de cotización
                     </a>
 
-                   
-
-
+                
 @if($telefonoWhatsApp && $orden->cotizacionActual)
-    <button
-        type="button"
-        id="btnEnviarCotizacionWhatsApp"
-        class="btn btn-success"
-        data-telefono="{{ preg_replace('/\D/', '', $telefonoWhatsApp) }}"
-        data-pdf-url="{{ route('ordenServicio.cotizacion.pdf', $orden->id) }}"
-        data-orden="{{ $orden->numero_orden ?? $orden->id }}"
-    >
-        <i class="fab fa-whatsapp me-2"></i>
-        Enviar cotización por WhatsApp
-    </button>
+   <button
+    type="button"
+    id="btnEnviarCotizacionWhatsApp"
+    class="btn btn-success"
+    data-telefono="{{ $orden->vehiculo?->cliente?->user?->celular ?? '' }}"
+    data-url-preparar="{{ route('ordenServicio.cotizacion.prepararWhatsApp', $orden->id) }}"
+    data-orden="{{ $orden->numero_orden }}"
+>
+    <i class="fab fa-whatsapp me-2"></i>
+    Enviar por WhatsApp
+</button>
 @else
     <button type="button" class="btn btn-secondary" disabled>
         <i class="fab fa-whatsapp me-2"></i>
         {{ !$telefonoWhatsApp ? 'Cliente sin celular registrado' : 'No hay cotización registrada' }}
     </button>
 @endif
-
-
 
                 </div>
 
@@ -883,33 +879,74 @@
                         </div>
 
 
-                        <div class="col-md-12 mb-5">
-                            <label class="form-label fw-semibold">
-                                Trabajos realizados
-                            </label>
-                            <textarea
-                                id="trabajos_realizados"
-                                class="form-control"
-                                rows="6"
-                                placeholder="Describa detalladamente los trabajos realizados en el vehículo..."
-                            ></textarea>
-                            <div class="form-text">
-                                Registre las actividades realizadas, reparaciones,
-                                ajustes, cambios y verificaciones efectuadas.
-                            </div>
-                        </div>
+                       
+<div class="col-md-12 mb-5">
+    <label class="form-label fw-semibold" for="trabajos_realizados">
+        Trabajos realizados
+    </label>
 
-                        <div class="col-md-12 mb-5">
-                            <label class="form-label fw-semibold">
-                                Observaciones de reparación
-                            </label>
-                            <textarea
-                                id="observaciones_reparacion"
-                                class="form-control"
-                                rows="4"
-                                placeholder="Ingrese observaciones, recomendaciones o detalles adicionales..."
-                            ></textarea>
-                        </div>
+    <div class="position-relative">
+        <textarea
+            id="trabajos_realizados"
+            class="form-control"
+            rows="6"
+            placeholder="Describa detalladamente los trabajos realizados en el vehículo..."
+        ></textarea>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between mt-2 flex-wrap gap-2">
+        <div class="form-text">
+            Registre las actividades realizadas, reparaciones,
+            ajustes, cambios y verificaciones efectuadas.
+        </div>
+
+        <button
+            type="button"
+            id="btnDictarTrabajosRealizados"
+            class="btn btn-sm btn-light-primary"
+        >
+            <i class="fa fa-microphone me-1"></i>
+            Dictar por voz
+        </button>
+    </div>
+
+    <div
+        id="estadoVozTrabajosRealizados"
+        class="form-text mt-1"
+        aria-live="polite"
+            ></div>
+        </div>
+
+        <div class="col-md-12 mb-5">
+            <label class="form-label fw-semibold" for="observaciones_reparacion">
+                Observaciones de reparación
+            </label>
+
+            <textarea
+                id="observaciones_reparacion"
+                class="form-control"
+                rows="4"
+                placeholder="Ingrese observaciones, recomendaciones o detalles adicionales..."
+            ></textarea>
+
+            <div class="d-flex align-items-center justify-content-end mt-2">
+                <button
+                    type="button"
+                    id="btnDictarObservacionesReparacion"
+                    class="btn btn-sm btn-light-primary"
+                >
+                    <i class="fa fa-microphone me-1"></i>
+                    Dictar por voz
+                </button>
+            </div>
+
+            <div
+                id="estadoVozObservacionesReparacion"
+                class="form-text mt-1"
+                aria-live="polite"
+            ></div>
+        </div>
+
                     </div>
                     <div class="separator separator-dashed my-6"></div>
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
@@ -1212,7 +1249,7 @@
                                         Ver boleta
                                     </a>
 
-                                    <a
+                                    {{-- <a
                                         href="{{ route('ordenServicio.entrega.boleta', $orden->id) }}"
                                         target="_blank"
                                         rel="noopener"
@@ -1220,24 +1257,38 @@
                                     >
                                         <i class="fa fa-print me-2"></i>
                                         Imprimir
-                                    </a>
+                                    </a> --}}
 
-                                    @if($telefonoWhatsApp)
-                                        <a
-                                            href="https://wa.me/{{ $telefonoWhatsApp }}?text={{ rawurlencode('Hola, le compartimos la boleta de entrega de la orden de servicio #' . $orden->id . '. Le enviaremos el documento PDF por este chat.') }}"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            class="btn btn-success"
-                                        >
-                                            <i class="fab fa-whatsapp me-2"></i>
-                                            Enviar boleta por WhatsApp
-                                        </a>
-                                    @else
-                                        <button type="button" class="btn btn-secondary" disabled>
-                                            <i class="fab fa-whatsapp me-2"></i>
-                                            Cliente sin celular registrado
-                                        </button>
-                                    @endif
+                                   
+                                   
+                            @if($telefonoWhatsApp)
+                                @php
+                                    $urlBoleta = route(
+                                        'ordenServicio.entrega.boleta',
+                                        $orden->id
+                                    );
+
+                                    $mensajeWhatsApp = 'Hola, le compartimos la boleta de entrega de la orden de servicio #'
+                                        . $orden->id
+                                        . '. Puede consultar su boleta aquí: '
+                                        . $urlBoleta;
+                                @endphp
+
+                                <a
+                                    href="https://wa.me/{{ $telefonoWhatsApp }}?text={{ rawurlencode($mensajeWhatsApp) }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="btn btn-success"
+                                >
+                                    <i class="fab fa-whatsapp me-2"></i>
+                                    Enviar boleta por WhatsApp
+                                </a>
+                            @else
+                                <button type="button" class="btn btn-secondary" disabled>
+                                    <i class="fab fa-whatsapp me-2"></i>
+                                    Cliente sin celular registrado
+                                </button>
+                            @endif
                                 </div>
 
                         @else
@@ -1388,49 +1439,101 @@
 </div>
 </div>
 
+<script>
+(function () {
+    function inicializarWhatsApp() {
+        const boton = document.getElementById(
+            'btnEnviarCotizacionWhatsApp'
+        );
 
-@if($orden->cotizacionActual && $orden->cotizacionActual->estado === 'PENDIENTE')
+        if (!boton || boton.dataset.inicializado === '1') {
+            return;
+        }
 
-<div class="modal fade" id="modalRechazarCotizacion" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title fw-bold">
-                    Rechazar cotización
-                </h3>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar">
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">
-                        Motivo del rechazo
-                    </label>
-                    <textarea
-                        id="observacionRechazo"
-                        class="form-control"
-                        rows="4"
-                        placeholder="Ingrese el motivo por el cual se rechaza la cotización..."></textarea>
-                </div>
-            </div>
+        boton.dataset.inicializado = '1';
 
-            <div class="modal-footer">
-                <button type="button"
-                        class="btn btn-light"
-                        data-bs-dismiss="modal">
-                    Cancelar
-                </button>
-                <button type="button"
-                        class="btn btn-danger"
-                        id="btnRechazarCotizacion">
-                    <i class="fa fa-times me-2"></i>
-                    Rechazar cotización
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-@endif
+        boton.addEventListener('click', async function () {
+            const telefono = boton.dataset.telefono;
+            const urlPreparar = boton.dataset.urlPreparar;
+
+            // Abrir una pestaña desde el clic para evitar que el navegador la bloquee.
+            const ventanaWhatsApp = window.open('about:blank', '_blank');
+
+            if (!ventanaWhatsApp) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Ventana bloqueada',
+                    text: 'Permite las ventanas emergentes para continuar.'
+                });
+                return;
+            }
+
+            const textoOriginal = boton.innerHTML;
+            boton.disabled = true;
+            boton.innerHTML =
+                '<i class="fas fa-spinner fa-spin me-2"></i>Preparando cotización...';
+
+            try {
+                const respuesta = await fetch(urlPreparar, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const datos = await respuesta.json();
+
+                if (!respuesta.ok) {
+                    throw new Error(
+                        datos.message ||
+                        'No se pudo preparar la cotización.'
+                    );
+                }
+
+                const mensaje =
+                    `Hola, le compartimos la cotización de la orden de servicio #${datos.numeroOrden}.\n\n` +
+                    `Puede consultar y descargar el documento PDF en este enlace:\n` +
+                    `${datos.url}`;
+
+                const urlWhatsApp =
+                    `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+
+                ventanaWhatsApp.location.href = urlWhatsApp;
+
+            } catch (error) {
+                ventanaWhatsApp.close();
+
+                console.error(
+                    'Error al preparar la cotización:',
+                    error
+                );
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No se pudo preparar la cotización',
+                    text: error.message ||
+                        'Verifica la ruta para generar el PDF.'
+                });
+
+            } finally {
+                boton.disabled = false;
+                boton.innerHTML = textoOriginal;
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener(
+            'DOMContentLoaded',
+            inicializarWhatsApp
+        );
+    } else {
+        inicializarWhatsApp();
+    }
+})();
+</script>
+
 
 @if($orden->estado === 'AUTORIZADO')
 
@@ -1968,6 +2071,8 @@ $('#btnRealizarEntrega').on('click', function() {
         });
     });
 });
+
+
 @endif
 
 
@@ -2461,186 +2566,142 @@ $(document).ready(function() {
 @endif
 
 
-</script>
+(function () {
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
 
+    const camposVoz = [
+        {
+            boton: 'btnDictarTrabajosRealizados',
+            textarea: 'trabajos_realizados',
+            estado: 'estadoVozTrabajosRealizados',
+        },
+        {
+            boton: 'btnDictarObservacionesReparacion',
+            textarea: 'observaciones_reparacion',
+            estado: 'estadoVozObservacionesReparacion',
+        },
+    ];
 
-@if($orden->cotizacionActual && $orden->cotizacionActual->estado === 'PENDIENTE')
+    if (!SpeechRecognition) {
+        camposVoz.forEach(function (campo) {
+            const boton = document.getElementById(campo.boton);
+            const estado = document.getElementById(campo.estado);
 
-<script>
-    const btnAprobarCotizacion = document.getElementById('btnAprobarCotizacion');
-    if (btnAprobarCotizacion) {
-        btnAprobarCotizacion.addEventListener('click', function () {
-            Swal.fire({
-                title: '¿Aprobar cotización?',
-                text: 'La orden pasará al estado AUTORIZADO.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, aprobar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
+            if (boton) boton.disabled = true;
 
-                if (!result.isConfirmed) {
-                    return;
-                }
-
-                btnAprobarCotizacion.disabled = true;
-                fetch(
-                    "{{ route('ordenServicio.cotizacion.aprobar', $orden->id) }}",
-                    {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    }
-                )
-                .then(response => response.json())
-                .then(data => {
-
-                    if (data.estado) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Cotización aprobada',
-                            text: data.mensaje || 'La orden ha sido autorizada correctamente.',
-                            confirmButtonText: 'Continuar'
-                        }).then(() => {
-                            location.reload();
-                        });
-
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: data.mensaje ||
-                                'No se pudo aprobar la cotización.'
-                        });
-                        btnAprobarCotizacion.disabled = false;
-                    }
-
-                })
-                .catch(error => {
-                    console.error(error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Ocurrió un error al aprobar la cotización.'
-                    });
-
-                    btnAprobarCotizacion.disabled = false;
-                });
-            });
+            if (estado) {
+                estado.textContent =
+                    'Tu navegador no admite dictado por voz. Prueba con Google Chrome.';
+                estado.classList.add('text-danger');
+            }
         });
+
+        return;
     }
 
-   
-const btnEnviarCotizacion = document.getElementById(
-    'btnEnviarCotizacionWhatsApp'
-);
+    camposVoz.forEach(function (campo) {
+        const boton = document.getElementById(campo.boton);
+        const textarea = document.getElementById(campo.textarea);
+        const estado = document.getElementById(campo.estado);
 
-if (btnEnviarCotizacion) {
-    btnEnviarCotizacion.addEventListener('click', async function () {
-        const telefono = this.dataset.telefono;
-        const urlPdf = this.dataset.pdfUrl;
-        const numeroOrden = this.dataset.orden;
+        if (!boton || !textarea || !estado) return;
 
-        const mensaje =
-            `Hola, le compartimos la cotización de la orden de servicio #${numeroOrden}. Por favor, revise el documento adjunto.`;
+        let reconocimiento = null;
+        let escuchando = false;
 
-        const urlWhatsApp =
-            `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
-
-        const boton = this;
-        const textoOriginal = boton.innerHTML;
-
-        // Compartir archivos requiere soporte del navegador.
-        if (
-            !navigator.share ||
-            !navigator.canShare
-        ) {
-            window.open(urlWhatsApp, '_blank');
-            window.open(urlPdf, '_blank');
-
-            Swal.fire({
-                icon: 'info',
-                title: 'Adjunta el PDF',
-                text: 'Descarga la cotización y adjúntala en el chat de WhatsApp antes de enviarla.'
-            });
-
-            return;
-        }
-
-        boton.disabled = true;
-        boton.innerHTML =
-            '<i class="fas fa-spinner fa-spin me-2"></i>Preparando PDF...';
-
-        try {
-            const respuesta = await fetch(urlPdf, {
-                credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/pdf'
-                }
-            });
-
-            if (!respuesta.ok) {
-                throw new Error(
-                    'No se pudo obtener el PDF de la cotización.'
-                );
-            }
-
-            const blob = await respuesta.blob();
-
-            if (blob.type && !blob.type.includes('pdf')) {
-                throw new Error(
-                    'La ruta no devolvió un archivo PDF.'
-                );
-            }
-
-            const archivo = new File(
-                [blob],
-                `cotizacion-${numeroOrden}.pdf`,
-                { type: 'application/pdf' }
-            );
-
-            if (!navigator.canShare({ files: [archivo] })) {
-                throw new Error(
-                    'El navegador no admite compartir este PDF.'
-                );
-            }
-
-            await navigator.share({
-                files: [archivo],
-                title: `Cotización ${numeroOrden}`,
-                text: mensaje
-            });
-
-        } catch (error) {
-            if (error.name === 'AbortError') {
+        boton.addEventListener('click', function () {
+            if (escuchando) {
+                reconocimiento?.stop();
                 return;
             }
 
-            console.error(
-                'Error al compartir cotización:',
-                error
-            );
+            reconocimiento = new SpeechRecognition();
+            reconocimiento.lang = 'es-BO';
+            reconocimiento.continuous = true;
+            reconocimiento.interimResults = false;
 
-            window.open(urlPdf, '_blank');
-            window.open(urlWhatsApp, '_blank');
+            reconocimiento.onstart = function () {
+                escuchando = true;
+                boton.innerHTML =
+                    '<i class="fa fa-stop me-1"></i> Detener dictado';
 
-            Swal.fire({
-                icon: 'warning',
-                title: 'No se pudo adjuntar automáticamente',
-                text: 'Descarga el PDF y adjúntalo manualmente en WhatsApp.'
-            });
+                boton.classList.remove('btn-light-primary');
+                boton.classList.add('btn-light-danger');
 
-        } finally {
-            boton.disabled = false;
-            boton.innerHTML = textoOriginal;
-        }
+                estado.textContent = 'Escuchando... habla ahora.';
+                estado.classList.remove('text-danger');
+                estado.classList.add('text-primary');
+            };
+
+            reconocimiento.onresult = function (event) {
+                let textoNuevo = '';
+
+                for (
+                    let i = event.resultIndex;
+                    i < event.results.length;
+                    i++
+                ) {
+                    if (event.results[i].isFinal) {
+                        textoNuevo += event.results[i][0].transcript;
+                    }
+                }
+
+                textoNuevo = textoNuevo.trim();
+
+                if (textoNuevo) {
+                    const textoActual = textarea.value.trim();
+
+                    textarea.value = textoActual
+                        ? textoActual + ' ' + textoNuevo
+                        : textoNuevo;
+
+                    textarea.dispatchEvent(
+                        new Event('input', { bubbles: true })
+                    );
+
+                    textarea.dispatchEvent(
+                        new Event('change', { bubbles: true })
+                    );
+                }
+            };
+
+            reconocimiento.onerror = function (event) {
+                estado.textContent =
+                    event.error === 'not-allowed'
+                        ? 'Debes permitir el acceso al micrófono en el navegador.'
+                        : 'Error de dictado: ' + event.error;
+
+                estado.classList.remove('text-primary');
+                estado.classList.add('text-danger');
+            };
+
+            reconocimiento.onend = function () {
+                escuchando = false;
+
+                boton.innerHTML =
+                    '<i class="fa fa-microphone me-1"></i> Dictar por voz';
+
+                boton.classList.remove('btn-light-danger');
+                boton.classList.add('btn-light-primary');
+
+                if (!estado.classList.contains('text-danger')) {
+                    estado.textContent = 'Dictado finalizado.';
+                    estado.classList.remove('text-primary');
+                }
+            };
+
+            try {
+                reconocimiento.start();
+            } catch (error) {
+                estado.textContent =
+                    'No se pudo iniciar el micrófono. Intenta nuevamente.';
+                estado.classList.add('text-danger');
+            }
+        });
     });
-}
-
+})();
 
 </script>
-@endif
 @endsection

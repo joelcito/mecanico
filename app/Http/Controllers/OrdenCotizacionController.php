@@ -12,6 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class OrdenCotizacionController extends Controller
 {
@@ -264,6 +267,34 @@ class OrdenCotizacionController extends Controller
 }
 
 
+// public function pdf($id)
+// {
+//     $orden = OrdenServicio::with([
+//         'vehiculo.cliente.user',
+//         'vehiculo.marca',
+//         'diagnosticoActual.detalles.fotos',
+//         'cotizacionActual.detalles.producto',
+//     ])->findOrFail($id);
+
+//     $cotizacion = $orden->cotizacionActual;
+
+//     if (!$cotizacion) {
+//         return redirect()
+//             ->route('ordenServicio.detalle', $orden->id)
+//             ->with('error', 'Esta orden todavía no tiene una cotización.');
+//     }
+
+//     $pdf = Pdf::loadView(
+//         'ordenServicio.cotizacionPdf',
+//         compact('orden', 'cotizacion')
+//     )->setPaper('a4', 'portrait');
+
+//     return $pdf->stream(
+//         'cotizacion-orden-' . $orden->id . '.pdf'
+//     );
+// }
+
+
 public function pdf($id)
 {
     $orden = OrdenServicio::with([
@@ -290,5 +321,91 @@ public function pdf($id)
         'cotizacion-orden-' . $orden->id . '.pdf'
     );
 }
+
+/**
+ * Genera y guarda el PDF, y devuelve un enlace temporal
+ * para compartirlo por WhatsApp.
+ */
+public function prepararWhatsApp($id)
+{
+    $orden = OrdenServicio::with([
+        'vehiculo.cliente.user',
+        'vehiculo.marca',
+        'diagnosticoActual.detalles.fotos',
+        'cotizacionActual.detalles.producto',
+    ])->findOrFail($id);
+
+    $cotizacion = $orden->cotizacionActual;
+
+    if (!$cotizacion) {
+        return response()->json([
+            'message' => 'Esta orden todavía no tiene una cotización.',
+        ], 422);
+    }
+
+    $pdf = Pdf::loadView(
+        'ordenServicio.cotizacionPdf',
+        compact('orden', 'cotizacion')
+    )->setPaper('a4', 'portrait');
+
+    // Guardar en almacenamiento privado.
+    $rutaArchivo = "cotizaciones/{$orden->id}/cotizacion-{$cotizacion->id}.pdf";
+
+    Storage::disk('local')->put(
+        $rutaArchivo,
+        $pdf->output()
+    );
+
+    // Enlace válido durante 7 días.
+    $urlPdf = URL::temporarySignedRoute(
+        'ordenServicio.cotizacion.compartida',
+        now()->addDays(7),
+        [
+            'id' => $orden->id,
+            'cotizacion' => $cotizacion->id,
+        ]
+    );
+
+    return response()->json([
+        'url' => $urlPdf,
+        'numeroOrden' => $orden->numero_orden ?? $orden->id,
+    ]);
+}
+
+/**
+ * Permite al cliente consultar el PDF sin iniciar sesión,
+ * siempre que el enlace firmado siga vigente.
+ */
+public function pdfCompartido($id, $cotizacion)
+{
+    $orden = OrdenServicio::with('cotizacionActual')
+        ->findOrFail($id);
+
+    $cotizacionActual = $orden->cotizacionActual;
+
+    abort_unless(
+        $cotizacionActual &&
+        (int) $cotizacionActual->id === (int) $cotizacion,
+        404
+    );
+
+    $rutaArchivo = "cotizaciones/{$orden->id}/cotizacion-{$cotizacion}.pdf";
+
+    abort_unless(
+        Storage::disk('local')->exists($rutaArchivo),
+        404,
+        'El PDF de la cotización no está disponible.'
+    );
+
+    return response()->file(
+        Storage::disk('local')->path($rutaArchivo),
+        [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' =>
+                'inline; filename="cotizacion-orden-' . $orden->id . '.pdf"',
+        ]
+    );
+}
+
 
 }
