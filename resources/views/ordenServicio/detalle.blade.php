@@ -746,24 +746,24 @@
                     </a>
 
                 
-@if($telefonoWhatsApp && $orden->cotizacionActual)
-   <button
-    type="button"
-    id="btnEnviarCotizacionWhatsApp"
-    class="btn btn-success"
-    data-telefono="{{ $orden->vehiculo?->cliente?->user?->celular ?? '' }}"
-    data-url-preparar="{{ route('ordenServicio.cotizacion.prepararWhatsApp', $orden->id) }}"
-    data-orden="{{ $orden->numero_orden }}"
->
-    <i class="fab fa-whatsapp me-2"></i>
-    Enviar por WhatsApp
-</button>
-@else
-    <button type="button" class="btn btn-secondary" disabled>
-        <i class="fab fa-whatsapp me-2"></i>
-        {{ !$telefonoWhatsApp ? 'Cliente sin celular registrado' : 'No hay cotización registrada' }}
-    </button>
-@endif
+                @if($telefonoWhatsApp && $orden->cotizacionActual)
+                <button
+                    type="button"
+                    id="btnEnviarCotizacionWhatsApp"
+                    class="btn btn-success"
+                    data-telefono="{{ $orden->vehiculo?->cliente?->user?->celular ?? '' }}"
+                    data-url-preparar="{{ route('ordenServicio.cotizacion.prepararWhatsApp', $orden->id) }}"
+                    data-orden="{{ $orden->numero_orden }}"
+                >
+                    <i class="fab fa-whatsapp me-2"></i>
+                    Enviar por WhatsApp
+                </button>
+                @else
+                    <button type="button" class="btn btn-secondary" disabled>
+                        <i class="fab fa-whatsapp me-2"></i>
+                        {{ !$telefonoWhatsApp ? 'Cliente sin celular registrado' : 'No hay cotización registrada' }}
+                    </button>
+                @endif
 
                 </div>
 
@@ -1259,16 +1259,19 @@
 
                            @if ($telefonoWhatsApp)
                             @php
+                          
                                 $urlBoleta = URL::temporarySignedRoute(
                                     'ordenServicio.entrega.boleta.publica',
                                     now()->addDays(7),
                                     ['id' => $orden->id]
                                 );
+                                
 
                                 $mensajeWhatsApp = 'Hola, le compartimos la boleta de entrega '
                                     . 'de la orden de servicio #' . $orden->id
                                     . '. Puede abrir y descargar el documento PDF desde este enlace: '
                                     . $urlBoleta;
+                                      
                             @endphp
 
                             <a href="https://wa.me/{{ $telefonoWhatsApp }}?text={{ rawurlencode($mensajeWhatsApp) }}"
@@ -1278,6 +1281,7 @@
                                 <i class="fab fa-whatsapp me-2"></i>
                                 Enviar boleta por WhatsApp
                             </a>
+
                         @endif
 
                                 </div>

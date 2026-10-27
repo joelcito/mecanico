@@ -48,7 +48,12 @@ Route::get('/boleta-publica/{id}', [
 ])->middleware('signed')
   ->name('ordenServicio.entrega.boleta.publica');
 
-
+Route::get(
+    '/cotizacion-publica/{id}/{cotizacion}',
+    [OrdenCotizacionController::class, 'pdfCompartido']
+)
+->middleware('signed')
+->name('ordenServicio.cotizacion.compartida');
 
 Route::middleware('auth')->group(function () {
     // Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -177,7 +182,7 @@ Route::middleware('auth')->group(function () {
             
             
             Route::get('/{id}/cotizacion/preparar-whatsapp', [OrdenCotizacionController::class,'prepararWhatsApp'])->name('ordenServicio.cotizacion.prepararWhatsApp');
-            Route::get('/{id}/cotizacion/{cotizacion}/compartida', [OrdenCotizacionController::class,'pdfCompartido'])->middleware('signed')->name('ordenServicio.cotizacion.compartida');
+           // Route::get('/{id}/cotizacion/{cotizacion}/compartida', [OrdenCotizacionController::class,'pdfCompartido'])->middleware('signed')->name('ordenServicio.cotizacion.compartida');
 
             });
         
