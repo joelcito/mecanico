@@ -787,11 +787,11 @@
                                 Rechazar
                             </button>
                            <button
-    type="button"
-    class="btn btn-success"
-    id="btnAprobarCotizacion">
-    Aprobar cotización
-</button>
+                            type="button"
+                            class="btn btn-success"
+                            id="btnAprobarCotizacion">
+                            Aprobar cotización
+                        </button>
                         </div>
                     </div>
                 @endif
@@ -878,74 +878,72 @@
                             </select>
                         </div>
 
+                        <div class="col-md-12 mb-5">
+                            <label class="form-label fw-semibold" for="trabajos_realizados">
+                                Trabajos realizados
+                            </label>
 
-                       
-<div class="col-md-12 mb-5">
-    <label class="form-label fw-semibold" for="trabajos_realizados">
-        Trabajos realizados
-    </label>
+                            <div class="position-relative">
+                                <textarea
+                                    id="trabajos_realizados"
+                                    class="form-control"
+                                    rows="6"
+                                    placeholder="Describa detalladamente los trabajos realizados en el vehículo..."
+                                ></textarea>
+                            </div>
 
-    <div class="position-relative">
-        <textarea
-            id="trabajos_realizados"
-            class="form-control"
-            rows="6"
-            placeholder="Describa detalladamente los trabajos realizados en el vehículo..."
-        ></textarea>
-    </div>
+                            <div class="d-flex align-items-center justify-content-between mt-2 flex-wrap gap-2">
+                                <div class="form-text">
+                                    Registre las actividades realizadas, reparaciones,
+                                    ajustes, cambios y verificaciones efectuadas.
+                                </div>
 
-    <div class="d-flex align-items-center justify-content-between mt-2 flex-wrap gap-2">
-        <div class="form-text">
-            Registre las actividades realizadas, reparaciones,
-            ajustes, cambios y verificaciones efectuadas.
-        </div>
+                                <button
+                                    type="button"
+                                    id="btnDictarTrabajosRealizados"
+                                    class="btn btn-sm btn-light-primary"
+                                >
+                                    <i class="fa fa-microphone me-1"></i>
+                                    Dictar por voz
+                                </button>
+                            </div>
 
-        <button
-            type="button"
-            id="btnDictarTrabajosRealizados"
-            class="btn btn-sm btn-light-primary"
-        >
-            <i class="fa fa-microphone me-1"></i>
-            Dictar por voz
-        </button>
-    </div>
+                            <div
+                                id="estadoVozTrabajosRealizados"
+                                class="form-text mt-1"
+                                aria-live="polite"
+                                    ></div>
+                                </div>
 
-    <div
-        id="estadoVozTrabajosRealizados"
-        class="form-text mt-1"
-        aria-live="polite"
-            ></div>
-        </div>
+                                <div class="col-md-12 mb-5">
+                                    <label class="form-label fw-semibold" for="observaciones_reparacion">
+                                        Observaciones de reparación
+                                    </label>
 
-        <div class="col-md-12 mb-5">
-            <label class="form-label fw-semibold" for="observaciones_reparacion">
-                Observaciones de reparación
-            </label>
+                                    <textarea
+                                        id="observaciones_reparacion"
+                                        class="form-control"
+                                        rows="4"
+                                        placeholder="Ingrese observaciones, recomendaciones o detalles adicionales..."
+                                    ></textarea>
 
-            <textarea
-                id="observaciones_reparacion"
-                class="form-control"
-                rows="4"
-                placeholder="Ingrese observaciones, recomendaciones o detalles adicionales..."
-            ></textarea>
+                                    <div class="d-flex align-items-center justify-content-end mt-2">
+                                        <button
+                                            type="button"
+                                            id="btnDictarObservacionesReparacion"
+                                            class="btn btn-sm btn-light-primary"
+                                        >
+                                            <i class="fa fa-microphone me-1"></i>
+                                            Dictar por voz
+                                        </button>
+                                    </div>
 
-            <div class="d-flex align-items-center justify-content-end mt-2">
-                <button
-                    type="button"
-                    id="btnDictarObservacionesReparacion"
-                    class="btn btn-sm btn-light-primary"
-                >
-                    <i class="fa fa-microphone me-1"></i>
-                    Dictar por voz
-                </button>
-            </div>
-
-            <div
-                id="estadoVozObservacionesReparacion"
-                class="form-text mt-1"
-                aria-live="polite"
-            ></div>
-        </div>
+                                    <div
+                                        id="estadoVozObservacionesReparacion"
+                                        class="form-text mt-1"
+                                        aria-live="polite"
+                                    ></div>
+                                </div>
 
                     </div>
                     <div class="separator separator-dashed my-6"></div>
@@ -1274,7 +1272,7 @@
                                         . $urlBoleta;
                                 @endphp
 
-                                <a
+                               <a
                                     href="https://wa.me/{{ $telefonoWhatsApp }}?text={{ rawurlencode($mensajeWhatsApp) }}"
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -1499,7 +1497,7 @@
                 const urlWhatsApp =
                     `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
 
-                ventanaWhatsApp.location.href = urlWhatsApp;
+               ventanaWhatsApp.location.href = urlWhatsApp;
 
             } catch (error) {
                 ventanaWhatsApp.close();
@@ -2518,18 +2516,120 @@ $('#btnGuardarAvanceReparacion').on('click', function() {
 });
 
 
-(function () {
+
+
+function guardarDatosReparacion()
+{
+    return $.ajax({
+        url: "{{ route('reparaciones.guardar', $orden->id) }}",
+        type: 'PUT',
+        headers: { 'Accept': 'application/json' },
+        data: {
+            _token: "{{ csrf_token() }}",
+            tecnico_id: $('#tecnico_id').val(),
+            trabajos_realizados: $('#trabajos_realizados').val(),
+            observaciones: $('#observaciones_reparacion').val()
+        }
+    });
+}
+
+$('#btnGuardarReparacion').on('click', function() {
+    const btn = $(this);
+    $('#erroresReparacion').addClass('d-none').empty();
+    btn.prop('disabled', true);
+    guardarDatosReparacion()
+        .done(function(response) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Reparación guardada',
+                text: response.message,
+                timer: 1500,
+                showConfirmButton: false
+            });
+            const tecnico = response.data?.tecnico;
+            $('#tecnicoActual').text(tecnico
+                ? [tecnico.nombres, tecnico.ap_paterno, tecnico.ap_materno].filter(Boolean).join(' ')
+                : 'Sin asignar');
+        })
+        .fail(function(xhr) {
+            mostrarErrorReparacion(mensajeErrorReparacion(xhr));
+        })
+        .always(function() {
+            btn.prop('disabled', false);
+        });
+});
+
+
+$('#btnFinalizarReparacion').on('click', function() {
+    Swal.fire({
+        title: '¿Está seguro de finalizar esta reparación?',
+        text: 'Una vez finalizada no podrá modificar los productos utilizados, cantidades ni avances.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, finalizar',
+        cancelButtonText: 'Cancelar'
+    }).then(function(result) {
+        if (!result.isConfirmed) {
+            return;
+        }
+        const btn = $('#btnFinalizarReparacion');
+        btn.prop('disabled', true);
+        guardarDatosReparacion()
+            .done(function() {
+                $.ajax({
+                    url: "{{ route('reparaciones.finalizar', $orden->id) }}",
+                    type: 'PUT',
+                    headers: { 'Accept': 'application/json' },
+                    data: { _token: "{{ csrf_token() }}" }
+                }).done(function(response) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Reparación finalizada',
+                        text: response.message,
+                        confirmButtonText: 'Continuar'
+                    }).then(function() {
+                        location.reload();
+                    });
+                }).fail(function(xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'No se puede finalizar',
+                        html: mensajeErrorReparacion(xhr),
+                        confirmButtonText: 'Entendido'
+                    });
+                    btn.prop('disabled', false);
+                });
+            })
+            .fail(function(xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No se puede guardar la reparación',
+                    html: mensajeErrorReparacion(xhr)
+                });
+                btn.prop('disabled', false);
+            });
+    });
+});
+
+$(document).ready(function() {
+    cargarDatosReparacion();
+    cargarProductosUtilizados();
+    cargarAvancesReparacion();
+});
+@endif
+
+
+(function () { 
     const urlAprobar = @json(route('ordenServicio.cotizacion.aprobar', $orden->id));
     const urlRechazar = @json(route('ordenServicio.cotizacion.rechazar', $orden->id));
     const token = @json(csrf_token());
-
-   
-
     // APROBAR COTIZACIÓN
     const botonAprobar = document.getElementById('btnAprobarCotizacion');
 
     if (botonAprobar) {
+        console.log('BOTON APROBAR ENCONTRADO');
         botonAprobar.onclick = function (e) {
+             console.log('CLICK APROBAR');
             e.preventDefault();
 
             const boton = this;
@@ -2559,6 +2659,7 @@ $('#btnGuardarAvanceReparacion').on('click', function() {
                     }
                 })
                 .done(function (respuesta) {
+                    console.log('RESPUESTA APROBAR:', respuesta);
                     if (
                         respuesta.success === false ||
                         respuesta.estado === false
@@ -2686,110 +2787,6 @@ $('#btnGuardarAvanceReparacion').on('click', function() {
             });
         });
 })();
-
-
-
-
-
-function guardarDatosReparacion()
-{
-    return $.ajax({
-        url: "{{ route('reparaciones.guardar', $orden->id) }}",
-        type: 'PUT',
-        headers: { 'Accept': 'application/json' },
-        data: {
-            _token: "{{ csrf_token() }}",
-            tecnico_id: $('#tecnico_id').val(),
-            trabajos_realizados: $('#trabajos_realizados').val(),
-            observaciones: $('#observaciones_reparacion').val()
-        }
-    });
-}
-
-$('#btnGuardarReparacion').on('click', function() {
-    const btn = $(this);
-    $('#erroresReparacion').addClass('d-none').empty();
-    btn.prop('disabled', true);
-    guardarDatosReparacion()
-        .done(function(response) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Reparación guardada',
-                text: response.message,
-                timer: 1500,
-                showConfirmButton: false
-            });
-            const tecnico = response.data?.tecnico;
-            $('#tecnicoActual').text(tecnico
-                ? [tecnico.nombres, tecnico.ap_paterno, tecnico.ap_materno].filter(Boolean).join(' ')
-                : 'Sin asignar');
-        })
-        .fail(function(xhr) {
-            mostrarErrorReparacion(mensajeErrorReparacion(xhr));
-        })
-        .always(function() {
-            btn.prop('disabled', false);
-        });
-});
-
-
-$('#btnFinalizarReparacion').on('click', function() {
-    Swal.fire({
-        title: '¿Está seguro de finalizar esta reparación?',
-        text: 'Una vez finalizada no podrá modificar los productos utilizados, cantidades ni avances.',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, finalizar',
-        cancelButtonText: 'Cancelar'
-    }).then(function(result) {
-        if (!result.isConfirmed) {
-            return;
-        }
-        const btn = $('#btnFinalizarReparacion');
-        btn.prop('disabled', true);
-        guardarDatosReparacion()
-            .done(function() {
-                $.ajax({
-                    url: "{{ route('reparaciones.finalizar', $orden->id) }}",
-                    type: 'PUT',
-                    headers: { 'Accept': 'application/json' },
-                    data: { _token: "{{ csrf_token() }}" }
-                }).done(function(response) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Reparación finalizada',
-                        text: response.message,
-                        confirmButtonText: 'Continuar'
-                    }).then(function() {
-                        location.reload();
-                    });
-                }).fail(function(xhr) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'No se puede finalizar',
-                        html: mensajeErrorReparacion(xhr),
-                        confirmButtonText: 'Entendido'
-                    });
-                    btn.prop('disabled', false);
-                });
-            })
-            .fail(function(xhr) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'No se puede guardar la reparación',
-                    html: mensajeErrorReparacion(xhr)
-                });
-                btn.prop('disabled', false);
-            });
-    });
-});
-
-$(document).ready(function() {
-    cargarDatosReparacion();
-    cargarProductosUtilizados();
-    cargarAvancesReparacion();
-});
-@endif
 
 
 (function () {
