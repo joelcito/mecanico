@@ -345,7 +345,7 @@ $rutaPublica = function ($ruta) {
     $fotosDiagnostico = $consultaFotos->get();
 @endphp
 
-            @if($fotosDiagnostico->isNotEmpty())
+            {{-- @if($fotosDiagnostico->isNotEmpty())
                 <div class="photos">
                     <strong>Fotografías del hallazgo</strong>
 
@@ -384,7 +384,48 @@ $rutaPublica = function ($ruta) {
                         @endforeach
                     </table>
                 </div>
-            @endif
+            @endif --}}
+        @if($fotosDiagnostico->isNotEmpty())
+            <div class="photos">
+                <strong>Fotografías del hallazgo</strong>
+
+                <table style="width: 100%; border-collapse: collapse; margin-top: 5px; table-layout: fixed;">
+                    @foreach($fotosDiagnostico->filter(fn ($foto) => !empty($foto->ruta))->chunk(2) as $fila)
+                        <tr>
+                            @foreach($fila as $foto)
+                                @php
+                                    $rutaFoto = $rutaPublica($foto->ruta);
+                                @endphp
+
+                                <td style="width: 50%; padding: 6px; vertical-align: top; text-align: center;">
+                                    @if(is_file($rutaFoto))
+                                        <img
+                                            src="{{ $rutaFoto }}"
+                                            style="width: 220px; height: 130px; object-fit: cover; border: 1px solid #ccd6df;"
+                                            alt="Fotografía del diagnóstico">
+
+                                        @if($foto->descripcion)
+                                            <div class="photo-caption" style="text-align: center; margin-top: 4px;">
+                                                {{ $foto->descripcion }}
+                                            </div>
+                                        @endif
+                                    @else
+                                        <div class="photo-caption">
+                                            No se encontró el archivo de la fotografía.
+                                        </div>
+                                    @endif
+                                </td>
+                            @endforeach
+
+                            @if($fila->count() === 1)
+                                <td style="width: 50%;"></td>
+                            @endif
+                        </tr>
+                    @endforeach
+                </table>
+            </div>
+        @endif
+
 
            
         </div>
