@@ -15,15 +15,14 @@ class OrdenFoto extends Model
     protected $fillable = [
         'orden_servicio_id',
         'orden_inspeccion_id',
+        'orden_diagnostico_detalle_id',
         'tipo',
         'ruta',
         'descripcion',
         'estado',
-
         'usuario_creador_id',
         'usuario_modificador_id',
         'usuario_eliminador_id',
-
         'deleted_at',
     ];
 
@@ -44,6 +43,14 @@ class OrdenFoto extends Model
         return $this->belongsTo(
             OrdenInspeccion::class,
             'orden_inspeccion_id'
+        );
+    }
+
+    public function detalleDiagnostico()
+    {
+        return $this->belongsTo(
+            OrdenDiagnosticoDetalle::class,
+            'orden_diagnostico_detalle_id'
         );
     }
 
@@ -70,14 +77,4 @@ class OrdenFoto extends Model
             'usuario_eliminador_id'
         );
     }
-    
-public function detalleDiagnostico()
-{
-    return $this->belongsTo(
-        OrdenDiagnosticoDetalle::class,
-        'orden_diagnostico_detalle_id'
-    );
-}
-
-
 }

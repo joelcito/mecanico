@@ -67,7 +67,9 @@ public function fotos()
     return $this->hasMany(
         OrdenFoto::class,
         'orden_diagnostico_detalle_id'
-    )->where('tipo', 'DIAGNOSTICO');
+    )
+    ->where('tipo', 'DIAGNOSTICO')
+    ->where('estado', 'ACTIVO');
 }
 
 }

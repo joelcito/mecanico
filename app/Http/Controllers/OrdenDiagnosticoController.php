@@ -53,6 +53,7 @@ class OrdenDiagnosticoController extends Controller
     
 public function guardar(Request $request, $id)
 {
+    
     $request->validate([
         'descripcion' => 'required|string|max:10000',
         'observaciones' => 'nullable|string|max:10000',
@@ -177,42 +178,63 @@ public function guardar(Request $request, $id)
             $detalleDiagnostico->usuario_modificador_id = Auth::id();
             $detalleDiagnostico->save();
 
-            // Agregar las fotografías nuevas sin eliminar las anteriores.
-            $fotos = $request->file("detalles.$indice.fotos", []);
+           
+    // Agregar fotografías nuevas sin eliminar las anteriores.
+$fotos = $request->file("detalles.$indice.fotos", []);
 
-            foreach ($fotos as $foto) {
-                if (
-                    !is_array($foto) ||
-                    empty($foto['archivo']) ||
-                    !$foto['archivo']->isValid()
-                ) {
-                    continue;
-                }
+if (!is_array($fotos)) {
+    $fotos = [];
+}
 
-                $ruta = $foto['archivo']->store(
-                    'ordenes/' . $orden->id . '/diagnostico',
-                    'public'
-                );
+foreach ($fotos as $foto) {
+    if (!is_array($foto)) {
+        continue;
+    }
 
-                if (!$ruta) {
-                    throw new \RuntimeException(
-                        'No se pudo guardar una fotografía del diagnóstico.'
-                    );
-                }
+    $archivo = $foto['archivo'] ?? null;
 
-                $archivosGuardados[] = $ruta;
+    if (!$archivo instanceof \Illuminate\Http\UploadedFile) {
+        continue;
+    }
 
-                OrdenFoto::create([
-                    'orden_servicio_id' => $orden->id,
-                    'orden_inspeccion_id' => null,
-                    'orden_diagnostico_detalle_id' => $detalleDiagnostico->id,
-                    'tipo' => 'DIAGNOSTICO',
-                    'ruta' => $ruta,
-                    'descripcion' => $foto['descripcion'] ?? null,
-                    'estado' => 'ACTIVO',
-                    'usuario_creador_id' => Auth::id(),
-                ]);
-            }
+    if (!$archivo->isValid()) {
+        throw new \RuntimeException(
+            'Una fotografía no se recibió correctamente.'
+        );
+    }
+
+    $ruta = $archivo->store(
+        'ordenes/' . $orden->id . '/diagnostico',
+        'public'
+    );
+
+
+    
+    if (!$ruta) {
+    throw new \RuntimeException('Falló el almacenamiento de la fotografía.');
+}
+
+logger()->info('Foto de diagnóstico almacenada', [
+    'ruta' => $ruta,
+    'existe' => Storage::disk('public')->exists($ruta),
+    'detalle_id' => $detalleDiagnostico->id,
+]);
+
+    $archivosGuardados[] = $ruta;
+
+    OrdenFoto::create([
+        'orden_servicio_id' => $orden->id,
+        'orden_inspeccion_id' => null,
+        'orden_diagnostico_detalle_id' => $detalleDiagnostico->id,
+        'tipo' => 'DIAGNOSTICO',
+        'ruta' => $ruta,
+        'descripcion' => $foto['descripcion'] ?? null,
+        'estado' => 'ACTIVO',
+        'usuario_creador_id' => Auth::id(),
+    ]);
+}
+            
+
         }
 
         // Solo el registro inicial del diagnóstico avanza de etapa.

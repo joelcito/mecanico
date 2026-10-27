@@ -357,89 +357,133 @@
                             </div>
                         </div>
                     </div>
-                @empty
-                    {{-- Si todavía no existe diagnóstico, se conserva aquí el bloque vacío original --}}
-                    <div class="detalle-diagnostico border rounded p-4 mb-4"
-                        data-detalle-index="0">
+               
 
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <strong class="text-primary titulo-detalle">
-                                <i class="fa fa-clipboard-list me-2"></i>
-                                Hallazgo o recomendación 1
-                            </strong>
-                        </div>
+                    
+@empty
+    <div class="detalle-diagnostico border rounded p-4 mb-4"
+         data-detalle-index="0">
 
-                        <div class="row">
-                            {{-- <div class="col-md-5 mb-3">
-                                <label class="form-label fw-bold">Descripción</label>
-                                <textarea name="detalles[0][descripcion]"
-                                        class="form-control"
-                                        rows="3"
-                                        maxlength="1000"
-                                        required
-                                        placeholder="Describe el problema o trabajo recomendado"></textarea>
-                            </div> --}}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <strong class="text-primary titulo-detalle">
+                <i class="fa fa-clipboard-list me-2"></i>
+                Hallazgo o recomendación 1
+            </strong>
 
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Tipo</label>
-                                <select name="detalles[0][tipo]" class="form-select" required>
-                                    <option value="HALLAZGO">Hallazgo</option>
-                                    <option value="RECOMENDACION">Recomendación</option>
-                                </select>
-                            </div>
+            <button type="button"
+                    class="btn btn-sm btn-light-danger btnEliminarDetalle">
+                <i class="fa fa-trash me-1"></i>
+                Eliminar detalle
+            </button>
+        </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Prioridad</label>
-                                <select name="detalles[0][prioridad]" class="form-select" required>
-                                    <option value="BAJA">Baja</option>
-                                    <option value="MEDIA" selected>Media</option>
-                                    <option value="ALTA">Alta</option>
-                                    <option value="CRITICA">Crítica</option>
-                                </select>
-                            </div>
+        <div class="row">
+            {{-- DESCRIPCIÓN --}}
+            <div class="col-md-5 mb-3">
+                <label class="form-label fw-bold">Descripción</label>
 
-                            {{-- <div class="col-md-3 mb-3">
-                                <label class="form-label fw-bold">Observación</label>
-                                <input type="text"
-                                    name="detalles[0][observacion]"
-                                    class="form-control"
-                                    maxlength="1000">
-                            </div> --}}
-                        </div>
+                <div class="grupo-dictado">
+                    <textarea name="detalles[0][descripcion]"
+                              class="form-control campo-dictado"
+                              rows="3"
+                              maxlength="1000"
+                              required
+                              placeholder="Describe el hallazgo o recomendación"></textarea>
 
-                        <div class="border-top pt-4 mt-2">
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                                <div>
-                                    <h5 class="fw-bold mb-1">
-                                        <i class="fa fa-camera text-primary me-2"></i>
-                                        Fotografías del hallazgo
-                                    </h5>
-                                    <small class="text-muted">JPG, PNG o WEBP. Máximo 5 MB por fotografía.</small>
-                                </div>
+                    <button type="button"
+                            class="btn-dictado"
+                            title="Dictar descripción"
+                            aria-label="Dictar descripción">
+                        <i class="fa fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
 
-                               <div class="d-flex flex-wrap gap-2">
-                                <button type="button"
-                                        class="btn btn-sm btn-primary btnTomarFoto">
-                                    <i class="fa fa-camera me-1"></i>
-                                    Tomar foto
-                                </button>
+            {{-- TIPO --}}
+            <div class="col-md-2 mb-3">
+                <label class="form-label fw-bold">Tipo</label>
 
-                                <button type="button"
-                                        class="btn btn-sm btn-light-primary btnAgregarFoto">
-                                    <i class="fa fa-images me-1"></i>
-                                    Elegir de galería
-                                </button>
-                            </div>
-                            </div>
+                <select name="detalles[0][tipo]"
+                        class="form-select"
+                        required>
+                    <option value="HALLAZGO">Hallazgo</option>
+                    <option value="RECOMENDACION">Recomendación</option>
+                </select>
+            </div>
 
-                            <div class="contenedor-fotos" data-fotos-index="0">
-                                <div class="text-muted texto-sin-fotos">
-                                    No se han agregado fotografías.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endforelse
+            {{-- PRIORIDAD --}}
+            <div class="col-md-2 mb-3">
+                <label class="form-label fw-bold">Prioridad</label>
+
+                <select name="detalles[0][prioridad]"
+                        class="form-select"
+                        required>
+                    <option value="BAJA">Baja</option>
+                    <option value="MEDIA" selected>Media</option>
+                    <option value="ALTA">Alta</option>
+                    <option value="CRITICA">Crítica</option>
+                </select>
+            </div>
+
+            {{-- OBSERVACIÓN --}}
+            <div class="col-md-3 mb-3">
+                <label class="form-label fw-bold">Observación</label>
+
+                <div class="grupo-dictado">
+                    <input type="text"
+                           name="detalles[0][observacion]"
+                           class="form-control campo-dictado"
+                           maxlength="1000"
+                           placeholder="Detalle adicional">
+
+                    <button type="button"
+                            class="btn-dictado"
+                            title="Dictar observación"
+                            aria-label="Dictar observación">
+                        <i class="fa fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {{-- FOTOGRAFÍAS --}}
+        <div class="border-top pt-4 mt-2">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        <i class="fa fa-camera text-primary me-2"></i>
+                        Fotografías del hallazgo
+                    </h5>
+
+                    <small class="text-muted">
+                        JPG, PNG o WEBP. Máximo 5 MB por fotografía.
+                    </small>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button"
+                            class="btn btn-sm btn-primary btnTomarFoto">
+                        <i class="fa fa-camera me-1"></i>
+                        Tomar foto
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-sm btn-light-primary btnAgregarFoto">
+                        <i class="fa fa-images me-1"></i>
+                        Elegir de galería
+                    </button>
+                </div>
+            </div>
+
+            <div class="contenedor-fotos" data-fotos-index="0">
+                <div class="text-muted texto-sin-fotos">
+                    No se han agregado fotografías.
+                </div>
+            </div>
+        </div>
+    </div>
+@endforelse
+
                 </div>
                 <button type="button"
                         class="btn btn-light-primary"
@@ -611,103 +655,115 @@ function crearFilaFoto(indice, archivoInicial = null) {
     fila.className = 'fila-foto border rounded p-3 mb-3';
     fila.dataset.numeroFoto = numeroFoto;
 
-    fila.innerHTML = `
-        <div class="row align-items-start">
-            <div class="col-md-4 mb-3">
-                <label class="form-label fw-bold">Vista previa</label>
-                <div class="vista-previa-foto"></div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <label class="form-label fw-bold">Descripción de la foto</label>
-                <input type="text"
-                    name="detalles[${indice}][fotos][${numeroFoto}][descripcion]"
-                    class="form-control"
-                    maxlength="255"
-                    placeholder="Describe el hallazgo de la fotografía">
-
-                <div class="nombre-foto small text-muted mt-2"></div>
-            </div>
-
-            <div class="col-md-2 mb-3">
-                <label class="form-label d-block">Acción</label>
-                <button type="button"
-                    class="btn btn-sm btn-light-danger btnEliminarFoto">
-                    <i class="fa fa-trash me-1"></i> Quitar
-                </button>
-            </div>
+   
+fila.innerHTML = `
+    <div class="row align-items-start">
+        <div class="col-md-4 mb-3">
+            <label class="form-label fw-bold">Vista previa</label>
+            <div class="vista-previa-foto"></div>
+            <small class="nombre-foto text-muted d-block mt-2"></small>
         </div>
 
-        <input type="file"
-            name="detalles[${indice}][fotos][${numeroFoto}][archivo]"
-            class="inputFotoDiagnostico d-none"
-            accept="image/jpeg,image/png,image/webp">
-    `;
+        <div class="col-md-2 mb-3">
+            <label class="form-label d-block">Acción</label>
+            <button type="button"
+                    class="btn btn-sm btn-light-danger btnEliminarFoto">
+                <i class="fa fa-trash me-1"></i> Quitar
+            </button>
+        </div>
+    </div>
 
-    const input = fila.querySelector('.inputFotoDiagnostico');
-    const vista = fila.querySelector('.vista-previa-foto');
-    const nombre = fila.querySelector('.nombre-foto');
+    <input type="file"
+        name="detalles[${indice}][fotos][${numeroFoto}][archivo]"
+        class="inputFotoDiagnostico d-none"
+        accept="image/jpeg,image/png,image/webp">
+`;
 
-    function mostrarArchivo(archivo) {
-        if (!archivo) return false;
+const input = fila.querySelector('.inputFotoDiagnostico');
+const vista = fila.querySelector('.vista-previa-foto');
+const nombre = fila.querySelector('.nombre-foto');
 
-        if (!TIPOS_PERMITIDOS.includes(archivo.type)) {
-            Swal.fire(
-                'Formato no válido',
-                'Selecciona una imagen JPG, PNG o WEBP.',
-                'warning'
-            );
-            input.value = '';
-            return false;
-        }
 
-        if (archivo.size > MAX_TAMANO_FOTO) {
-            Swal.fire(
-                'Archivo demasiado grande',
-                'El máximo es 5 MB por fotografía.',
-                'warning'
-            );
-            input.value = '';
-            return false;
-        }
+function mostrarArchivo(archivo) {
+    if (!archivo) return false;
 
+    if (!TIPOS_PERMITIDOS.includes(archivo.type)) {
+        Swal.fire(
+            'Formato no válido',
+            'Selecciona una imagen JPG, PNG o WEBP.',
+            'warning'
+        );
+        return false;
+    }
+
+    if (archivo.size > MAX_TAMANO_FOTO) {
+        Swal.fire(
+            'Archivo demasiado grande',
+            'El máximo es 5 MB por fotografía.',
+            'warning'
+        );
+        return false;
+    }
+
+    // Mantener el archivo dentro del input para enviarlo al servidor.
+    if (input.files.length === 0 || input.files[0] !== archivo) {
         const transferencia = new DataTransfer();
         transferencia.items.add(archivo);
         input.files = transferencia.files;
-
-        const urlAnterior = vista.querySelector('img')?.dataset.urlTemporal;
-        if (urlAnterior) URL.revokeObjectURL(urlAnterior);
-
-        vista.innerHTML = '';
-
-        const imagen = document.createElement('img');
-        const url = URL.createObjectURL(archivo);
-
-        imagen.src = url;
-        imagen.dataset.urlTemporal = url;
-        imagen.className = 'img-thumbnail';
-        imagen.style.cssText =
-            'max-height:190px;max-width:100%;object-fit:contain';
-
-        vista.appendChild(imagen);
-        nombre.textContent = archivo.name;
-
-        actualizarEstadoFotos(contenedor);
-        return true;
     }
 
+    const urlAnterior = vista.querySelector('img')?.dataset.urlTemporal;
+
+    if (urlAnterior) {
+        URL.revokeObjectURL(urlAnterior);
+    }
+
+    vista.innerHTML = '';
+
+    const imagen = document.createElement('img');
+    const url = URL.createObjectURL(archivo);
+
+    imagen.src = url;
+    imagen.dataset.urlTemporal = url;
+    imagen.className = 'img-thumbnail';
+    imagen.style.cssText =
+        'max-height:190px;max-width:100%;object-fit:contain';
+
+    vista.appendChild(imagen);
+    nombre.textContent = archivo.name;
+
+    actualizarEstadoFotos(contenedor);
+
+    console.log('[Foto] Archivo preparado:', {
+        nombre: archivo.name,
+        tipo: archivo.type,
+        bytes: archivo.size,
+        input: input.name
+    });
+
+    return true;
+}
+
+   
+
+    // Detectar cuando se selecciona una fotografía de la galería.
     input.addEventListener('change', function () {
-        if (!input.files?.length) {
+        const archivo = input.files?.[0];
+
+        if (!archivo) {
             fila.remove();
             actualizarEstadoFotos(contenedor);
             return;
         }
 
-        mostrarArchivo(input.files[0]);
+        // Validar el archivo y mostrar su vista previa.
+        if (!mostrarArchivo(archivo)) {
+            input.value = '';
+            fila.remove();
+            actualizarEstadoFotos(contenedor);
+        }
     });
-
     contenedor.appendChild(fila);
-
     if (archivoInicial && !mostrarArchivo(archivoInicial)) {
         fila.remove();
         actualizarEstadoFotos(contenedor);
@@ -716,8 +772,9 @@ function crearFilaFoto(indice, archivoInicial = null) {
 
     actualizarEstadoFotos(contenedor);
     return fila;
-}
-  
+
+    
+  }
 
 document.addEventListener('diagnostico:agregar-foto', function (event) {
     const { indice, archivo } = event.detail;
@@ -749,15 +806,24 @@ document.addEventListener('diagnostico:agregar-foto', function (event) {
                 </div>
 
                 <div class="row">
-                    <div class="col-md-5 mb-3">
+                   <div class="col-md-5 mb-3">
                         <label class="form-label fw-bold">Descripción</label>
-                        <textarea
-                            name="detalles[${indice}][descripcion]"
-                            class="form-control"
-                            rows="3"
-                            maxlength="1000"
-                            required
-                            placeholder="Describe el problema o trabajo recomendado"></textarea>
+
+                        <div class="grupo-dictado">
+                            <textarea
+                                name="detalles[${indice}][descripcion]"
+                                class="form-control campo-dictado"
+                                rows="3"
+                                maxlength="1000"
+                                required
+                                placeholder="Describe el problema o trabajo recomendado"></textarea>
+
+                            <button type="button"
+                                    class="btn-dictado"
+                                    title="Dictar descripción">
+                                <i class="fa fa-microphone"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="col-md-2 mb-3">
@@ -782,14 +848,23 @@ document.addEventListener('diagnostico:agregar-foto', function (event) {
                         </select>
                     </div>
 
-                    <div class="col-md-3 mb-3">
+                   <div class="col-md-3 mb-3">
                         <label class="form-label fw-bold">Observación</label>
-                        <input
-                            type="text"
-                            name="detalles[${indice}][observacion]"
-                            class="form-control"
-                            maxlength="1000"
-                            placeholder="Detalle adicional">
+
+                        <div class="grupo-dictado">
+                            <input
+                                type="text"
+                                name="detalles[${indice}][observacion]"
+                                class="form-control campo-dictado"
+                                maxlength="1000"
+                                placeholder="Detalle adicional">
+
+                            <button type="button"
+                                    class="btn-dictado"
+                                    title="Dictar observación">
+                                <i class="fa fa-microphone"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -833,28 +908,58 @@ document.addEventListener('diagnostico:agregar-foto', function (event) {
         actualizarTitulos();
     });
 
-    // Agregar fotografía al detalle correspondiente.
-    
-    
 
 
 contenedorDetalles.addEventListener('click', function (event) {
     const objetivo = event.target;
+
     if (!(objetivo instanceof Element)) return;
 
-    const botonGaleria = objetivo.closest('.btnAgregarFoto');
-    const botonEliminar = objetivo.closest('.btnEliminarFoto');
+    // ELIMINAR DETALLE
+    const botonDetalle = objetivo.closest('.btnEliminarDetalle');
 
-    // Elegir de galería
+    if (botonDetalle) {
+        const detalle = botonDetalle.closest('.detalle-diagnostico');
+
+        if (!detalle) return;
+
+        Swal.fire({
+            title: '¿Eliminar detalle?',
+            text: 'Se quitará del formulario. Guarda los cambios para confirmar.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, quitar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true
+        }).then(function (resultado) {
+            if (!resultado.isConfirmed) return;
+
+            detalle.querySelectorAll('img[data-url-temporal]').forEach(img => {
+                URL.revokeObjectURL(img.dataset.urlTemporal);
+            });
+
+            detalle.remove();
+            actualizarTitulos();
+        });
+
+        return;
+    }
+
+    // ELEGIR FOTO DE GALERÍA
+    const botonGaleria = objetivo.closest('.btnAgregarFoto');
+
     if (botonGaleria) {
         const tarjeta = botonGaleria.closest('.detalle-diagnostico');
-        const contenedor = tarjeta?.querySelector('.contenedor-fotos');
+        const contenedorFotos = tarjeta?.querySelector('.contenedor-fotos');
 
-        if (!tarjeta || !contenedor) return;
+        if (!tarjeta || !contenedorFotos) return;
 
         const indice = Number(tarjeta.dataset.detalleIndex);
 
-        if (contenedor.querySelectorAll('.fila-foto').length >= MAX_FOTOS_POR_DETALLE) {
+        if (
+            contenedorFotos.querySelectorAll('.fila-foto').length >=
+            MAX_FOTOS_POR_DETALLE
+        ) {
             Swal.fire(
                 'Límite alcanzado',
                 'Máximo 10 fotografías por detalle.',
@@ -864,34 +969,37 @@ contenedorDetalles.addEventListener('click', function (event) {
         }
 
         const fila = crearFilaFoto(indice);
+
         if (!fila) return;
 
-        // Abrir el selector directamente desde el clic del usuario.
         fila.querySelector('.inputFotoDiagnostico')?.click();
         return;
     }
 
-    // Quitar fotografía
-    if (botonEliminar) {
-        const fila = botonEliminar.closest('.fila-foto');
-        const tarjeta = botonEliminar.closest('.detalle-diagnostico');
-        const contenedor = tarjeta?.querySelector('.contenedor-fotos');
+    // ELIMINAR FOTO
+    const botonEliminarFoto = objetivo.closest('.btnEliminarFoto');
+
+    if (botonEliminarFoto) {
+        const fila = botonEliminarFoto.closest('.fila-foto');
+        const tarjeta = botonEliminarFoto.closest('.detalle-diagnostico');
 
         if (!fila) return;
 
-        fila.querySelectorAll('img').forEach(function (img) {
-            if (img.dataset.urlTemporal) {
-                URL.revokeObjectURL(img.dataset.urlTemporal);
-            }
+        fila.querySelectorAll('img[data-url-temporal]').forEach(img => {
+            URL.revokeObjectURL(img.dataset.urlTemporal);
         });
 
         fila.remove();
 
-        if (contenedor) {
-            actualizarEstadoFotos(contenedor);
+        const contenedorFotos = tarjeta?.querySelector('.contenedor-fotos');
+
+        if (contenedorFotos) {
+            actualizarEstadoFotos(contenedorFotos);
         }
     }
 });
+
+
 
    
     actualizarTitulos();
@@ -1183,6 +1291,34 @@ botonUsar.addEventListener('click', function () {
             console.log('[Dictado] Evento recibido:', event);
 
             let textoNuevo = '';
+
+            for (let i = 0; i < event.results.length; i++) {
+                const resultado = event.results[i];
+                const texto = resultado[0].transcript.trim();
+
+                if (!texto) continue;
+
+                textoNuevo += (textoNuevo ? ' ' : '') + texto;
+            }
+
+            if (textoNuevo && campoActivo) {
+                campoActivo.value = [textoInicial, textoNuevo]
+                    .filter(Boolean)
+                    .join(' ');
+
+                campoActivo.dispatchEvent(
+                    new Event('input', { bubbles: true })
+                );
+
+                campoActivo.dispatchEvent(
+                    new Event('change', { bubbles: true })
+                );
+
+                textoConfirmado = textoNuevo;
+                ultimoIntermedio = '';
+
+                estado('Texto reconocido correctamente.');
+            }
 
             for (let i = 0; i < event.results.length; i++) {
                 const resultado = event.results[i];

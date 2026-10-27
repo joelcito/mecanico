@@ -786,12 +786,12 @@
                                 <i class="fa fa-times me-2"></i>
                                 Rechazar
                             </button>
-                            <button type="button"
-                                    class="btn btn-success"
-                                    id="btnAprobarCotizacion">
-                                <i class="fa fa-check me-2"></i>
-                                Aprobar cotización
-                            </button>
+                           <button
+    type="button"
+    class="btn btn-success"
+    id="btnAprobarCotizacion">
+    Aprobar cotización
+</button>
                         </div>
                     </div>
                 @endif
@@ -1698,7 +1698,59 @@
     </div>
 </div>
 @endif
+
+
+<div class="modal fade" id="modalRechazarCotizacion"
+     tabindex="-1"
+     aria-labelledby="tituloModalRechazarCotizacion"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="formRechazarCotizacion">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tituloModalRechazarCotizacion">
+                        Rechazar cotización
+                    </h5>
+                    <button type="button" class="btn-close"
+                            data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p class="text-muted">
+                        Indique el motivo por el cual rechaza la cotización.
+                    </p>
+                    <label for="observacion_respuesta" class="form-label">
+                        Motivo del rechazo
+                    </label>
+                    <textarea id="observacion_respuesta"
+                              name="observacion_respuesta"
+                              class="form-control"
+                              rows="4"
+                              maxlength="1000"
+                              required></textarea>
+                    <div id="errorRechazarCotizacion"
+                         class="text-danger small mt-2 d-none"></div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light"
+                            data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit"
+                            id="btnConfirmarRechazoCotizacion"
+                            class="btn btn-danger">
+                        Confirmar rechazo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+
 @endsection
+
 @section('js')
 
 <script>
@@ -2465,6 +2517,180 @@ $('#btnGuardarAvanceReparacion').on('click', function() {
     });
 });
 
+
+(function () {
+    const urlAprobar = @json(route('ordenServicio.cotizacion.aprobar', $orden->id));
+    const urlRechazar = @json(route('ordenServicio.cotizacion.rechazar', $orden->id));
+    const token = @json(csrf_token());
+
+   
+
+    // APROBAR COTIZACIÓN
+    const botonAprobar = document.getElementById('btnAprobarCotizacion');
+
+    if (botonAprobar) {
+        botonAprobar.onclick = function (e) {
+            e.preventDefault();
+
+            const boton = this;
+
+            Swal.fire({
+                title: '¿Aprobar cotización?',
+                text: 'Se autorizarán los trabajos y repuestos cotizados.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, aprobar',
+                cancelButtonText: 'Cancelar'
+            }).then(function (resultado) {
+                if (!resultado.isConfirmed) return;
+
+                boton.disabled = true;
+
+                $.ajax({
+                    url: urlAprobar,
+                    type: 'POST',
+                    dataType: 'json',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    data: {
+                        _token: token
+                    }
+                })
+                .done(function (respuesta) {
+                    if (
+                        respuesta.success === false ||
+                        respuesta.estado === false
+                    ) {
+                        Swal.fire(
+                            'Error',
+                            respuesta.message ||
+                                respuesta.mensaje ||
+                                'No se pudo aprobar la cotización.',
+                            'error'
+                        );
+                        return;
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Cotización aprobada!',
+                        text: respuesta.message ||
+                            respuesta.mensaje ||
+                            'Cotización aprobada correctamente.'
+                    }).then(function () {
+                        window.location.reload();
+                    });
+                })
+                .fail(function (xhr) {
+                    console.error(
+                        '[Cotización] Error AJAX:',
+                        xhr.status,
+                        xhr.responseText
+                    );
+
+                    Swal.fire(
+                        'Error al aprobar',
+                        xhr.responseJSON?.message ||
+                            'No se pudo procesar la solicitud.',
+                        'error'
+                    );
+                })
+                .always(function () {
+                    boton.disabled = false;
+                });
+            });
+        };
+    }
+
+  
+
+    // RECHAZAR COTIZACIÓN
+    $(document)
+        .off('submit.rechazarCotizacion', '#formRechazarCotizacion')
+        .on('submit.rechazarCotizacion', '#formRechazarCotizacion', function (e) {
+            e.preventDefault();
+
+            const campo = document.getElementById('observacion_respuesta');
+            const error = document.getElementById('errorRechazarCotizacion');
+
+            if (!campo || !error) {
+                console.error('[Cotización] No se encontraron los campos de rechazo.');
+                return;
+            }
+
+            const observacion = campo.value.trim();
+            error.classList.add('d-none');
+            error.textContent = '';
+
+            if (!observacion) {
+                error.textContent = 'Debe ingresar el motivo del rechazo.';
+                error.classList.remove('d-none');
+                return;
+            }
+
+            Swal.fire({
+                title: '¿Rechazar cotización?',
+                text: 'Se guardará el motivo del rechazo.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, rechazar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#d33'
+            }).then(function (resultado) {
+                if (!resultado.isConfirmed) return;
+
+                const boton = document.getElementById('btnConfirmarRechazoCotizacion');
+                if (boton) boton.disabled = true;
+
+                $.ajax({
+                    url: urlRechazar,
+                    type: 'POST',
+                    dataType: 'json',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    data: {
+                        _token: token,
+                        observacion_respuesta: observacion
+                    }
+                })
+                .done(function (respuesta) {
+                    if (respuesta.success === false || respuesta.estado === false) {
+                        Swal.fire('Error', respuesta.message || 'No se pudo rechazar.', 'error');
+                        return;
+                    }
+
+                    Swal.fire(
+                        'Cotización rechazada',
+                        respuesta.message || 'Cotización rechazada correctamente.',
+                        'success'
+                    ).then(function () {
+                        window.location.reload();
+                    });
+                })
+                .fail(function (xhr) {
+                    console.error('[Cotización] Error al rechazar:', xhr.status, xhr.responseText);
+
+                    Swal.fire(
+                        'Error al rechazar',
+                        xhr.responseJSON?.message || 'No se pudo procesar el rechazo.',
+                        'error'
+                    );
+                })
+                .always(function () {
+                    if (boton) boton.disabled = false;
+                });
+            });
+        });
+})();
+
+
+
+
+
 function guardarDatosReparacion()
 {
     return $.ajax({
@@ -2702,6 +2928,9 @@ $(document).ready(function() {
         });
     });
 })();
+
+
+
 
 </script>
 @endsection
