@@ -1257,22 +1257,21 @@
                                         Imprimir
                                     </a> --}}
 
-                                   
-                                   
                             @if($telefonoWhatsApp)
                                 @php
-                                    $urlBoleta = route(
-                                        'ordenServicio.entrega.boleta',
-                                        $orden->id
+                                    $urlBoleta = URL::temporarySignedRoute(
+                                        'ordenServicio.entrega.boleta.publica',
+                                        now()->addDays(7),
+                                        ['id' => $orden->id]
                                     );
 
                                     $mensajeWhatsApp = 'Hola, le compartimos la boleta de entrega de la orden de servicio #'
                                         . $orden->id
-                                        . '. Puede consultar su boleta aquí: '
+                                        . '. Puede abrir y descargar su documento PDF desde este enlace: '
                                         . $urlBoleta;
                                 @endphp
 
-                               <a
+                                <a
                                     href="https://wa.me/{{ $telefonoWhatsApp }}?text={{ rawurlencode($mensajeWhatsApp) }}"
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -1287,6 +1286,7 @@
                                     Cliente sin celular registrado
                                 </button>
                             @endif
+
                                 </div>
 
                         @else
