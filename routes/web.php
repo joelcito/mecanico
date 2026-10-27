@@ -45,11 +45,10 @@ Route::get('/dashboard', function () {
 Route::get('/boleta-publica/{id}', [
     OrdenEntregaController::class,
     'boleta',
-])
-    ->middleware('signed')
-    ->name('ordenServicio.entrega.boleta.publica');
+])->middleware('signed')
+  ->name('ordenServicio.entrega.boleta.publica');
 
-    
+
 
 Route::middleware('auth')->group(function () {
     // Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

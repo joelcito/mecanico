@@ -1257,35 +1257,28 @@
                                         Imprimir
                                     </a> --}}
 
-                            @if($telefonoWhatsApp)
-                                @php
-                                    $urlBoleta = URL::temporarySignedRoute(
-                                        'ordenServicio.entrega.boleta.publica',
-                                        now()->addDays(7),
-                                        ['id' => $orden->id]
-                                    );
+                           @if ($telefonoWhatsApp)
+                            @php
+                                $urlBoleta = URL::temporarySignedRoute(
+                                    'ordenServicio.entrega.boleta.publica',
+                                    now()->addDays(7),
+                                    ['id' => $orden->id]
+                                );
 
-                                    $mensajeWhatsApp = 'Hola, le compartimos la boleta de entrega de la orden de servicio #'
-                                        . $orden->id
-                                        . '. Puede abrir y descargar su documento PDF desde este enlace: '
-                                        . $urlBoleta;
-                                @endphp
+                                $mensajeWhatsApp = 'Hola, le compartimos la boleta de entrega '
+                                    . 'de la orden de servicio #' . $orden->id
+                                    . '. Puede abrir y descargar el documento PDF desde este enlace: '
+                                    . $urlBoleta;
+                            @endphp
 
-                                <a
-                                    href="https://wa.me/{{ $telefonoWhatsApp }}?text={{ rawurlencode($mensajeWhatsApp) }}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="btn btn-success"
-                                >
-                                    <i class="fab fa-whatsapp me-2"></i>
-                                    Enviar boleta por WhatsApp
-                                </a>
-                            @else
-                                <button type="button" class="btn btn-secondary" disabled>
-                                    <i class="fab fa-whatsapp me-2"></i>
-                                    Cliente sin celular registrado
-                                </button>
-                            @endif
+                            <a href="https://wa.me/{{ $telefonoWhatsApp }}?text={{ rawurlencode($mensajeWhatsApp) }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="btn btn-success">
+                                <i class="fab fa-whatsapp me-2"></i>
+                                Enviar boleta por WhatsApp
+                            </a>
+                        @endif
 
                                 </div>
 
