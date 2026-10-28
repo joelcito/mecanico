@@ -42,14 +42,26 @@ class ClienteController extends Controller
             return Respuesta::error(null, 'Error en la solicitud');
         }
 
+        $clienteId = $request->input('id');
+
         $request->validate([
             'id' => ['required'],
             'nombres' => ['required', 'string', 'max:255'],
             'ap_paterno' => ['nullable', 'string', 'max:255'],
             'ap_materno' => ['nullable', 'string', 'max:255'],
-            'cedula' => ['nullable', 'string', 'max:255'],
+            'cedula' => ['required', 'string', 'max:255'],
             'celular' => ['nullable', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                \Illuminate\Validation\Rule::unique('users', 'email')
+                    ->ignore(
+                        $clienteId != '0'
+                            ? \App\Models\Cliente::where('id', $clienteId)->value('user_id')
+                            : null
+                    ),
+            ],
             'nit' => ['nullable', 'string', 'max:255'],
             'direccion' => ['nullable', 'string', 'max:255'],
         ]);
@@ -66,9 +78,7 @@ class ClienteController extends Controller
             $user = new User();
 
             $user->email = $request->input('email');
-            $user->password = Hash::make(
-                $request->input('password', '12345678')
-            );
+            $user->password = Hash::make($request->input('cedula'));
 
             $user->nombres = $request->input('nombres');
             $user->ap_paterno = $request->input('ap_paterno');

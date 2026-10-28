@@ -83,7 +83,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                             <div class="fv-row mb-7">
                                 <label class="fw-semibold fs-6 mb-2">
                                     Dirección
@@ -102,14 +102,14 @@
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        {{-- <div class="col-md-6">
                             <div class="fv-row mb-7">
                                 <label class="fw-semibold fs-6 mb-2">
                                     Contraseña
                                 </label>
                                 <input type="password" class="form-control form-control-sm" id="password" name="password">
                             </div>
-                        </div>
+                        </div> --}}
                     </div>
                 </form>
             </div>
@@ -245,15 +245,25 @@
             error: function (xhr) {
                 limpiarErorres();
                 if (xhr.status === 422) {
-                    let errores = xhr.responseJSON.errors;
-                    for (let campo in errores) {
-                        let mensaje = errores[campo][0];
-                        let input = $(`[name="${campo}"]`);
-                        input.addClass("is-invalid");
-                        input.after(
-                            `<div class="invalid-feedback">${mensaje}</div>`
-                        );
-                    }
+                let errores = xhr.responseJSON.errors;
+
+                limpiarErorres();
+
+                for (let campo in errores) {
+                    let mensaje = errores[campo][0];
+                    let input = $(`[name="${campo}"]`);
+
+                    input.addClass("is-invalid");
+                    input.after(
+                        `<div class="invalid-feedback">${mensaje}</div>`
+                    );
+                }
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Verifica los datos',
+                    text: Object.values(errores).flat().join('\n')
+                });
 
                 } else {
                     console.log(xhr.responseText);

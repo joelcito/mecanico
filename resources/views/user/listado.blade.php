@@ -40,12 +40,16 @@
                         <div class="col-md-4">
                             <div class="fv-row mb-7">
                                 <label class="required fw-semibold fs-6 mb-2">Rol</label>
+
                                 <select class="form-control form-control-sm" id="rol_id" name="rol_id" required>
                                     <option value="">Seleccione un rol</option>
-                                    @forelse($roles as $rol)
-                                        <option value="{{ $rol->id }}">{{ $rol->nombre }}</option>
+
+                                    @forelse($roles->where('id', '!=', 4) as $rol)
+                                        <option value="{{ $rol->id }}">
+                                            {{ $rol->nombre }}
+                                        </option>
                                     @empty
-                                        <h4 class="text-danger">No hay Roles registrado</h4>
+                                        <option value="" disabled>No hay roles registrados</option>
                                     @endforelse
                                 </select>
                             </div>
