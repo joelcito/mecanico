@@ -379,13 +379,9 @@ function modalPagoOrden(idOrden) {
     $.ajax({
 
         url: "{{ route('pagos.crear') }}",
-
         type: "GET",
-
         dataType: "json",
-
         success: function(response) {
-
             if (!response.estado) {
 
                 Swal.fire({
@@ -451,14 +447,8 @@ function modalPagoOrden(idOrden) {
             });
 
 
-            /*
-             * Si venimos desde Cuentas por Cobrar,
-             * seleccionar automáticamente la orden.
-             */
             if (idOrden) {
-
                 selectOrden.val(idOrden);
-
                 selectOrden.trigger('change');
             }
 
@@ -514,14 +504,9 @@ function modalPagoOrden(idOrden) {
 
     });
 
-
-
     $('#tipo_pago').on('change', function() {
-
     let metodo = $(this).val();
-
     if (metodo === 'EFECTIVO') {
-
         $('#monto_recibido')
             .prop('readonly', false)
             .val('');
@@ -554,9 +539,7 @@ function modalPagoOrden(idOrden) {
 
 
 function calcularCambio() {
-
     let metodo = $('#tipo_pago').val();
-
     let monto = parseFloat(
         $('#monto').val()
     ) || 0;
@@ -565,9 +548,7 @@ function calcularCambio() {
         $('#monto_recibido').val()
     ) || 0;
 
-
     if (metodo !== 'EFECTIVO') {
-
         $('#monto_recibido').val(
             monto > 0 ? monto.toFixed(2) : ''
         );

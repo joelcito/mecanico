@@ -121,8 +121,21 @@
             </tr>
         </table>
     </div>
-        
+
+    
+        @php
+            $tecnico = $orden->diagnosticoActual?->tecnico;
+        @endphp
+
+        <div>
+            <strong>Técnico responsable:</strong>
+            {{ $tecnico
+                ? trim($tecnico->nombres . ' ' . $tecnico->ap_paterno . ' ' . $tecnico->ap_materno)
+                : 'No asignado' }}
+        </div>
+
     <div class="section">
+
         <div class="section-title">Evidencia fotográfica del diagnóstico</div>
 
         @php

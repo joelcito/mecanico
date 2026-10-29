@@ -127,6 +127,31 @@
 
         @csrf
 
+            @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show">
+                <strong>Error:</strong> {{ session('error') }}
+                <button type="button" class="btn-close"
+                        data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <strong>No se pudo validar el formulario:</strong>
+                <ul class="mb-0 mt-2">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
         {{-- Diagnóstico general --}}
         <div class="card mb-5">
             <div class="card-header">
@@ -180,6 +205,47 @@
                 </button>
             </div>
         </div>
+
+
+        {{-- Técnico responsable --}}
+        <div class="row mt-5">
+            <div class="col-md-6">
+                <label for="tecnico_id" class="form-label fw-bold">
+                    <i class="fa fa-user-cog me-2"></i>
+                    Técnico responsable
+                </label>
+
+                <select name="tecnico_id"
+                        id="tecnico_id"
+                        class="form-select"
+                        required>
+                    <option value="">Seleccione un técnico</option>
+
+                    @foreach($tecnicos as $tecnico)
+                        <option value="{{ $tecnico->id }}"
+                            @selected(
+                                (string) old('tecnico_id', $diagnostico?->tecnico_id)
+                                === (string) $tecnico->id
+                            )>
+                            {{ trim(
+                                $tecnico->nombres . ' ' .
+                                $tecnico->ap_paterno . ' ' .
+                                $tecnico->ap_materno
+                            ) }}
+                        </option>
+                    @endforeach
+                </select>
+
+                @error('tecnico_id')
+                    <div class="text-danger mt-2">{{ $message }}</div>
+                @enderror
+
+                <small class="text-muted">
+                    Seleccione al técnico responsable de atender esta orden.
+                </small>
+            </div>
+        </div>
+
             </div>
         </div>
 

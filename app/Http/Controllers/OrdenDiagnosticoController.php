@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use App\Models\OrdenCotizacion;
+use App\Models\Reparacion;
+use App\Models\User;
+use Illuminate\Validation\Rule;
 
 class OrdenDiagnosticoController extends Controller
 {
@@ -45,8 +48,12 @@ class OrdenDiagnosticoController extends Controller
                         'El diagnóstico no se puede editar en esta etapa.'
                     );
             }
+            $tecnicos = User::where('rol_id', 2)
+            ->orderBy('nombres')
+            ->orderBy('ap_paterno')
+            ->get();
 
-            return view('ordenServicio.diagnostico', compact('orden'));
+            return view('ordenServicio.diagnostico', compact('orden', 'tecnicos'));
         }
 
 
@@ -61,11 +68,17 @@ public function guardar(Request $request, $id)
         'detalles' => 'required|array|min:1',
         'detalles.*.id' => 'nullable|integer',
         'detalles.*.descripcion' => 'nullable|string|max:1000',
-'detalles.*.observacion' => 'nullable|string|max:1000',
+        'detalles.*.observacion' => 'nullable|string|max:1000',
        
         'detalles.*.tipo' => 'required|in:HALLAZGO,RECOMENDACION',
         'detalles.*.prioridad' => 'required|in:BAJA,MEDIA,ALTA,CRITICA',
        
+
+        'tecnico_id' => [
+            'required',
+            'integer',
+            Rule::exists('users', 'id')->where('rol_id', 2),
+        ],
 
         'detalles.*.fotos' => 'nullable|array|max:10',
         'detalles.*.fotos.*' => 'nullable|array',
@@ -137,11 +150,13 @@ public function guardar(Request $request, $id)
             $diagnostico->usuario_diagnostico_id = Auth::id();
             $diagnostico->fecha = now();
             $diagnostico->estado = 'FINALIZADO';
+            $diagnostico->tecnico_id = $request->tecnico_id;
             $diagnostico->usuario_creador_id = Auth::id();
         }
 
         $diagnostico->descripcion = $request->descripcion;
         $diagnostico->observaciones = $request->observaciones;
+        $diagnostico->tecnico_id = $request->tecnico_id;
         $diagnostico->usuario_modificador_id = Auth::id();
         $diagnostico->save();
 
@@ -179,67 +194,74 @@ public function guardar(Request $request, $id)
             $detalleDiagnostico->save();
 
            
-    // Agregar fotografías nuevas sin eliminar las anteriores.
-$fotos = $request->file("detalles.$indice.fotos", []);
+                // Agregar fotografías nuevas sin eliminar las anteriores.
+            $fotos = $request->file("detalles.$indice.fotos", []);
 
-if (!is_array($fotos)) {
-    $fotos = [];
-}
+            if (!is_array($fotos)) {
+                $fotos = [];
+            }
 
-foreach ($fotos as $foto) {
-    if (!is_array($foto)) {
-        continue;
-    }
+            foreach ($fotos as $foto) {
+                if (!is_array($foto)) {
+                    continue;
+                }
 
-    $archivo = $foto['archivo'] ?? null;
+                $archivo = $foto['archivo'] ?? null;
 
-    if (!$archivo instanceof \Illuminate\Http\UploadedFile) {
-        continue;
-    }
+                if (!$archivo instanceof \Illuminate\Http\UploadedFile) {
+                    continue;
+                }
 
-    if (!$archivo->isValid()) {
-        throw new \RuntimeException(
-            'Una fotografía no se recibió correctamente.'
-        );
-    }
+                if (!$archivo->isValid()) {
+                    throw new \RuntimeException(
+                        'Una fotografía no se recibió correctamente.'
+                    );
+                }
 
-    $ruta = $archivo->store(
-        'ordenes/' . $orden->id . '/diagnostico',
-        'public'
-    );
+                $ruta = $archivo->store(
+                    'ordenes/' . $orden->id . '/diagnostico',
+                    'public'
+                );
 
 
-    
-    if (!$ruta) {
-    throw new \RuntimeException('Falló el almacenamiento de la fotografía.');
-}
+                
+                if (!$ruta) {
+                throw new \RuntimeException('Falló el almacenamiento de la fotografía.');
+            }
 
-logger()->info('Foto de diagnóstico almacenada', [
-    'ruta' => $ruta,
-    'existe' => Storage::disk('public')->exists($ruta),
-    'detalle_id' => $detalleDiagnostico->id,
-]);
+            logger()->info('Foto de diagnóstico almacenada', [
+                'ruta' => $ruta,
+                'existe' => Storage::disk('public')->exists($ruta),
+                'detalle_id' => $detalleDiagnostico->id,
+            ]);
 
-    $archivosGuardados[] = $ruta;
+                $archivosGuardados[] = $ruta;
 
-    OrdenFoto::create([
-        'orden_servicio_id' => $orden->id,
-        'orden_inspeccion_id' => null,
-        'orden_diagnostico_detalle_id' => $detalleDiagnostico->id,
-        'tipo' => 'DIAGNOSTICO',
-        'ruta' => $ruta,
-        'descripcion' => $foto['descripcion'] ?? null,
-        'estado' => 'ACTIVO',
-        'usuario_creador_id' => Auth::id(),
-    ]);
-}
+                OrdenFoto::create([
+                    'orden_servicio_id' => $orden->id,
+                    'orden_inspeccion_id' => null,
+                    'orden_diagnostico_detalle_id' => $detalleDiagnostico->id,
+                    'tipo' => 'DIAGNOSTICO',
+                    'ruta' => $ruta,
+                    'descripcion' => $foto['descripcion'] ?? null,
+                    'estado' => 'ACTIVO',
+                    'usuario_creador_id' => Auth::id(),
+                ]);
+            }
             
 
         }
 
+        logger()->info('Verificando avance de diagnóstico', [
+    'orden_id' => $orden->id,
+    'estado_actual' => $orden->estado,
+    'diagnostico_id' => $diagnostico->id,
+    'tecnico_id' => $diagnostico->tecnico_id,
+]);
         // Solo el registro inicial del diagnóstico avanza de etapa.
-        if ($esNuevo && $orden->estado === 'EN_DIAGNOSTICO') {
+        if ($orden->estado === 'EN_DIAGNOSTICO') {
             $orden->estado = 'EN_COTIZACION';
+            $orden->save();
         }
 
         $orden->usuario_modificador_id = Auth::id();
@@ -257,21 +279,30 @@ logger()->info('Foto de diagnóstico almacenada', [
             );
 
     } catch (\Throwable $e) {
-        DB::rollBack();
+    DB::rollBack();
 
-        if (!empty($archivosGuardados)) {
-            Storage::disk('public')->delete($archivosGuardados);
-        }
-
-        report($e);
-
-        return back()
-            ->withInput()
-            ->with(
-                'error',
-                'No se pudo guardar el diagnóstico. Verifica los datos y las fotografías e inténtalo nuevamente.'
-            );
+    if (!empty($archivosGuardados)) {
+        Storage::disk('public')->delete($archivosGuardados);
     }
+
+    logger()->error('Error al guardar diagnóstico', [
+        'orden_id' => $id,
+        'usuario_id' => Auth::id(),
+        'mensaje' => $e->getMessage(),
+        'archivo' => $e->getFile(),
+        'linea' => $e->getLine(),
+        'excepcion' => get_class($e),
+    ]);
+
+    report($e);
+
+    return back()
+        ->withInput()
+        ->with(
+            'error',
+            'No se pudo guardar el diagnóstico: ' . $e->getMessage()
+        );
+}
 }
 
 }

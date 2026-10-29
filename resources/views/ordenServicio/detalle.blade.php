@@ -866,18 +866,6 @@
                     </div>
                     <div class="separator separator-dashed my-6"></div>
                     <div class="row">
-                        <div class="col-md-6 mb-5">
-                            <label class="form-label fw-semibold">
-                                Técnico responsable
-                            </label>
-
-                            <select id="tecnico_id" class="form-select">
-                                <option value="">
-                                    Seleccione un técnico
-                                </option>
-                            </select>
-                        </div>
-
                         <div class="col-md-12 mb-5">
                             <label class="form-label fw-semibold" for="trabajos_realizados">
                                 Trabajos realizados
@@ -1213,12 +1201,25 @@
                             <div class="alert alert-warning">La reparación de esta orden todavía no ha finalizado.</div>
                         @endif
                         <div id="resultadoVerificacionEntrega" class="alert alert-info" role="status">Verifique los pagos para habilitar la entrega.</div>
-                        <div class="d-flex gap-2 flex-wrap">
-                            @if($orden->reparacion?->estado === 'FINALIZADA')
-                                <button type="button" class="btn btn-light-primary" id="btnVerificarDeuda"><i class="fa fa-rotate me-2"></i>Verificar pagos</button>
-                            @endif
-                            <button type="button" class="btn btn-success" id="btnRealizarEntrega" disabled><i class="fa fa-check me-2"></i>Realizar entrega</button>
-                        </div>
+                      <div class="d-flex gap-2 flex-wrap">
+                        @if($orden->reparacion?->estado === 'FINALIZADA')
+                            <button type="button" class="btn btn-light-primary" id="btnVerificarDeuda"> <i class="fa fa-rotate me-2"></i>
+                                Verificar pagos
+                            </button>
+                        @endif
+
+                        @if((float) $orden->saldo_pendiente > 0)
+                            <button type="button" class="btn btn-primary" onclick="registrarPagoOrden({{ $orden->id }})">
+                                <i class="fa fa-money-bill-wave me-2"></i>
+                                Registrar pago de deuda
+                            </button>
+                        @endif
+
+                        <button type="button" class="btn btn-success" id="btnRealizarEntrega" disabled>
+                            <i class="fa fa-check me-2"></i>
+                            Realizar entrega
+                        </button>
+                    </div>
                     </div>
                 </div>
             @endif
@@ -1530,7 +1531,7 @@
 </script>
 
 
-@if($orden->estado === 'AUTORIZADO')
+@if(in_array($orden->estado, ['AUTORIZADO', 'LISTO']))
 
 <div class="modal fade" id="modalPagoOrden" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -1624,6 +1625,20 @@
                                     Transferencia
                                 </option>
                             </select>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-semibold">
+                                Monto a pagar
+                            </label>
+
+                            <input
+                                type="number"
+                                class="form-control"
+                                id="monto_pago_orden"
+                                min="0.01"
+                                step="0.01"
+                                placeholder="Ingrese el importe del abono">
                         </div>
 
                         <div class="col-md-6 mb-4">
@@ -1741,22 +1756,13 @@
     </div>
 </div>
 
-
-
-
 @endsection
-
 @section('js')
-
 <script>
-
 function registrarPagoOrden(idOrden)
 {
     limpiarFormularioPagoOrden();
-
     $('#orden_servicio_id_pago').val(idOrden);
-
-    // El saldo es informativo, no el monto obligatorio del pago.
     $('#monto_recibido_orden').val('');
     $('#cambio_pago_orden').val('Bs. 0.00');
 
@@ -1767,6 +1773,48 @@ function registrarPagoOrden(idOrden)
 
     modal.show();
 }
+
+
+function calcularCambioPagoOrden() {
+    const tipoPago = document.getElementById('tipo_pago_orden');
+    const montoPagar = document.getElementById('monto_pago_orden');
+    const montoRecibido = document.getElementById('monto_recibido_orden');
+    const cambio = document.getElementById('cambio_pago_orden');
+
+    if (!tipoPago || !montoPagar || !montoRecibido || !cambio) {
+        return;
+    }
+
+    const tipo = tipoPago.value;
+    const pagar = parseFloat(montoPagar.value) || 0;
+    const recibido = parseFloat(montoRecibido.value) || 0;
+
+    let importeCambio = 0;
+
+    if (tipo === 'EFECTIVO') {
+        importeCambio = Math.max(0, recibido - pagar);
+    }
+
+    cambio.value = 'Bs. ' + importeCambio.toFixed(2);
+}
+
+document.addEventListener('input', function (event) {
+    if (
+        event.target.id === 'monto_pago_orden' ||
+        event.target.id === 'monto_recibido_orden'
+    ) {
+        calcularCambioPagoOrden();
+    }
+});
+
+document.addEventListener('change', function (event) {
+    if (event.target.id === 'tipo_pago_orden') {
+        calcularCambioPagoOrden();
+    }
+});
+
+
+
 
 function limpiarFormularioPagoOrden()
 {
@@ -1866,106 +1914,114 @@ $(document).on(
     }
 );
 
-$(document).on('submit', '#formPagoOrden', function(e) {
-    e.preventDefault();
-    const btn = $('#btnGuardarPagoOrden');
-    const ordenId = $('#orden_servicio_id_pago').val();
-    const cajaId = $('#caja_id_pago').val();
-    const tipoPago = $('#tipo_pago_orden').val();
 
-let montoRecibido = parseFloat(
-    $('#monto_recibido_orden').val()
-) || 0;
 
-const saldoPendiente = parseFloat(
-    '{{ number_format($orden->saldo_pendiente, 2, '.', '') }}'
-) || 0;
+$(document)
+    .off('submit.pagoOrden', '#formPagoOrden')
+    .on('submit.pagoOrden', '#formPagoOrden', function (e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
 
-const descripcion =
-    $('#descripcion_pago_orden').val();
-    $('#erroresPagoOrden')
-        .addClass('d-none')
-        .html('');
+        const formulario = this;
+        const btn = $('#btnGuardarPagoOrden');
+        const errores = $('#erroresPagoOrden');
 
-    if (!cajaId) {
-        $('#erroresPagoOrden')
-            .removeClass('d-none')
-            .html('Debe seleccionar una caja.');
-        return;
-    }
+        // Evitar doble envío aunque se haga clic varias veces.
+        if (formulario.dataset.enviando === '1') {
+            return;
+        }
 
-    if (!tipoPago) {
-        $('#erroresPagoOrden')
-            .removeClass('d-none')
-            .html('Debe seleccionar el tipo de pago.');
-        return;
-    }
+        const ordenId = $('#orden_servicio_id_pago').val();
+        const cajaId = $('#caja_id_pago').val();
+        const tipoPago = $('#tipo_pago_orden').val();
 
-   if (montoRecibido <= 0) {
-    $('#erroresPagoOrden')
-        .removeClass('d-none')
-        .html('El monto recibido debe ser mayor a cero.');
-    return;
-}
+        const montoRecibido = parseFloat(
+            $('#monto_recibido_orden').val()
+        ) || 0;
 
-    btn.prop('disabled', true);
-    $.ajax({
-        url: "{{ route('pagos.guardar') }}",
-        type: "POST",
-        data: {
-            _token: "{{ csrf_token() }}",
-            orden_servicio_id: ordenId,
-            caja_id: cajaId,
-            tipo_pago: tipoPago,
-            monto_recibido: montoRecibido,
-            descripcion: descripcion
-        },
+        const descripcion = $('#descripcion_pago_orden').val();
 
-        success: function(response) {
-            if (response.estado) {
-                bootstrap.Modal
-                    .getInstance(
-                        document.getElementById('modalPagoOrden')
-                    )
-                    .hide();
+        errores.addClass('d-none').text('');
 
+        if (!cajaId) {
+            errores.removeClass('d-none')
+                .text('Debe seleccionar una caja.');
+            return;
+        }
+
+        if (!tipoPago) {
+            errores.removeClass('d-none')
+                .text('Debe seleccionar el tipo de pago.');
+            return;
+        }
+
+        if (montoRecibido <= 0) {
+            errores.removeClass('d-none')
+                .text('El monto recibido debe ser mayor a cero.');
+            return;
+        }
+
+        formulario.dataset.enviando = '1';
+
+        btn.prop('disabled', true)
+            .html('<span class="spinner-border spinner-border-sm me-2"></span>Registrando...');
+
+        $.ajax({
+            url: @json(route('pagos.guardar')),
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                _token: @json(csrf_token()),
+                orden_servicio_id: ordenId,
+                caja_id: cajaId,
+                tipo_pago: tipoPago,
+                monto_recibido: montoRecibido,
+                descripcion: descripcion
+            },
+
+            success: function (response) {
+                if (!response.estado) {
+                    errores.removeClass('d-none')
+                        .text(response.message || 'No se pudo registrar el pago.');
+                    return;
+                }
+
+                // No permitir otro envío mientras se muestra el éxito.
                 Swal.fire({
                     icon: 'success',
                     title: 'Pago registrado',
                     text: response.message,
                     timer: 1800,
                     showConfirmButton: false
-                }).then(() => {
-
+                }).then(function () {
                     location.reload();
                 });
-            } else {
-                $('#erroresPagoOrden')
-                    .removeClass('d-none')
-                    .html(response.message);
+            },
 
-                btn.prop('disabled', false);
+            error: function (xhr) {
+                console.error('Error al registrar el pago:', xhr.responseJSON || xhr.responseText);
+
+                const mensaje =
+                    xhr.responseJSON?.message ||
+                    'No se pudo registrar el pago. Verifique si se guardó antes de volver a intentarlo.';
+
+                errores.removeClass('d-none').text(mensaje);
+            },
+
+            complete: function () {
+                // Si la página sigue abierta, liberar el bloqueo
+                // después de que termine la petición.
+                formulario.dataset.enviando = '0';
+
+                btn.prop('disabled', false)
+                    .html('<i class="fa fa-check me-2"></i>Registrar pago');
             }
-        },
-
-        error: function(xhr) {
-            console.error(
-                'RESPONSE:',
-                xhr.responseText
-            );
-
-            $('#erroresPagoOrden')
-                .removeClass('d-none')
-                .html(
-                    xhr.responseJSON?.message ??
-                    'No se pudo registrar el pago.'
-                );
-            btn.prop('disabled', false);
-        }
-
+        });
     });
 
-});
+
+
+
 
 function iniciarReparacion(id) {
     Swal.fire({
@@ -2125,11 +2181,14 @@ $('#btnRealizarEntrega').on('click', function() {
 
 @if($orden->estado === 'EN_REPARACION' && $orden->reparacion?->estado !== 'FINALIZADA')
 
+
+
 function cargarDatosReparacion()
 {
     $.ajax({
         url: "{{ route('reparaciones.datos', $orden->id) }}",
         type: "GET",
+
         success: function(response) {
             if (!response.estado) {
                 mostrarErrorReparacion(
@@ -2140,70 +2199,66 @@ function cargarDatosReparacion()
             }
 
             const reparacion = response.data.reparacion;
-            const tecnicos = response.data.tecnicos;
-            const selectTecnico = $('#tecnico_id');
-            selectTecnico.html(`
-                <option value="">
-                    Seleccione un técnico
-                </option>
-            `);
 
-            tecnicos.forEach(function(tecnico) {
-                const nombre = [
-                    tecnico.nombres,
-                    tecnico.ap_paterno,
-                    tecnico.ap_materno
-                ]
-                .filter(Boolean)
-                .join(' ');
-                selectTecnico.append($('<option>', {
-                    value: tecnico.id,
-                    text: nombre
-                }));
+            if (!reparacion) {
+                $('#tecnicoActual').text('Sin asignar');
+                return;
+            }
 
-            });
+            // Mostrar el técnico asignado durante el diagnóstico
+            const tecnico = response.data.tecnico;
 
-            if (reparacion) {
-                if (reparacion.tecnico_id) {
-                    selectTecnico.val(
-                        reparacion.tecnico_id
-                    );
-                }
-                const tecnico = reparacion.tecnico;
-                $('#tecnicoActual').text(tecnico
-                    ? [tecnico.nombres, tecnico.ap_paterno, tecnico.ap_materno].filter(Boolean).join(' ')
-                    : 'Sin asignar');
+            $('#tecnicoActual').text(
+                tecnico
+                    ? [
+                        tecnico.nombres,
+                        tecnico.ap_paterno,
+                        tecnico.ap_materno
+                    ].filter(Boolean).join(' ')
+                    : 'Sin asignar'
+            );
 
-                $('#trabajos_realizados').val(
-                    reparacion.trabajos_realizados ?? ''
+            // Datos de la reparación
+            $('#trabajos_realizados').val(
+                reparacion.trabajos_realizados ?? ''
+            );
+
+            $('#observaciones_reparacion').val(
+                reparacion.observaciones ?? ''
+            );
+
+            $('#fechaInicioActual').text(
+                formatearFechaReparacion(reparacion.fecha_inicio)
+            );
+
+            $('#estadoReparacionActual')
+                .text(reparacion.estado ?? 'EN_PROCESO')
+                .toggleClass(
+                    'badge-light-warning',
+                    reparacion.estado !== 'FINALIZADA'
+                )
+                .toggleClass(
+                    'badge-light-success',
+                    reparacion.estado === 'FINALIZADA'
                 );
 
-                $('#observaciones_reparacion').val(
-                    reparacion.observaciones ?? ''
-                );
-
-                $('#fechaInicioActual').text(formatearFechaReparacion(reparacion.fecha_inicio));
-                $('#estadoReparacionActual')
-                    .text(reparacion.estado ?? 'EN_PROCESO')
-                    .toggleClass('badge-light-warning', reparacion.estado !== 'FINALIZADA')
-                    .toggleClass('badge-light-success', reparacion.estado === 'FINALIZADA');
-
-                if (reparacion.estado === 'FINALIZADA') {
-
-                    $('#tecnico_id').prop('disabled', true);
-                    $('#trabajos_realizados').prop('readonly', true);
-                    $('#observaciones_reparacion').prop('readonly', true);
-                    $('#btnGuardarReparacion').hide();
-                    $('#btnFinalizarReparacion').hide();
-                }
+            // Si la reparación ya finalizó, bloquear la edición
+            if (reparacion.estado === 'FINALIZADA') {
+                $('#trabajos_realizados').prop('readonly', true);
+                $('#observaciones_reparacion').prop('readonly', true);
+                $('#btnGuardarReparacion').hide();
+                $('#btnFinalizarReparacion').hide();
             }
         },
 
         error: function(xhr) {
-            mostrarErrorReparacion(mensajeErrorReparacion(xhr));
+            mostrarErrorReparacion(
+                mensajeErrorReparacion(xhr)
+            );
         }
     });
 }
+
 
 function mostrarErrorReparacion(mensaje)
 {

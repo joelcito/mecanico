@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\OrdenCotizacion;
 use App\Models\Reparacion;
+use App\Models\OrdenDiagnostico;
 
 class OrdenServicioController extends Controller
 {
@@ -258,56 +259,88 @@ class OrdenServicioController extends Controller
         }
     }
 
+   
     public function iniciarReparacion($id)
-        {
-            try {
-                DB::beginTransaction();
-                $orden = OrdenServicio::findOrFail($id);
-                if ($orden->estado !== 'AUTORIZADO') {
-                    return response()->json([
-                        'estado' => false,
-                        'message' => 'La orden debe estar autorizada para iniciar la reparación.'
-                    ], 422);
-                }
-                $reparacion = Reparacion::where(
-                    'orden_servicio_id',
-                    $orden->id
-                )->first();
-                if (!$reparacion) {
-                    $reparacion = Reparacion::create([
-                        'orden_servicio_id' => $orden->id,
-                        'fecha_inicio' => now(),
-                        'estado' => 'EN_PROCESO',
-                        'usuario_creador_id' => Auth::id(),
-                    ]);
-                } else {
-                    $reparacion->update([
-                        'fecha_inicio' => $reparacion->fecha_inicio ?? now(),
-                        'estado' => 'EN_PROCESO',
-                        'usuario_modificador_id' => Auth::id(),
-                    ]);
-                }
+    {
+        try {
+            $orden = OrdenServicio::findOrFail($id);
 
-                $orden->update([
-                    'estado' => 'EN_REPARACION',
-                    'usuario_modificador_id' => Auth::id(),
-                ]);
-
-                DB::commit();
-                return response()->json([
-                    'estado' => true,
-                    'message' => 'La reparación fue iniciada correctamente.',
-                    'data' => $reparacion
-                ]);
-
-            } catch (\Throwable $e) {
-                DB::rollBack();
+            if ($orden->estado !== 'AUTORIZADO') {
                 return response()->json([
                     'estado' => false,
-                    'message' => 'No se pudo iniciar la reparación: ' . $e->getMessage()
-                ], 500);
+                    'message' => 'La orden debe estar autorizada para iniciar la reparación.'
+                ], 422);
             }
+
+            DB::beginTransaction();
+
+            $diagnostico = OrdenDiagnostico::where(
+                'orden_servicio_id',
+                $orden->id
+            )->latest('id')->first();
+
+            // Técnico asignado durante el diagnóstico.
+            $tecnicoDiagnosticoId = $diagnostico?->tecnico_id;
+
+            if (!$tecnicoDiagnosticoId) {
+                DB::rollBack();
+
+                return response()->json([
+                    'estado' => false,
+                    'message' => 'Debe asignar un técnico en el diagnóstico antes de iniciar la reparación.'
+                ], 422);
+            }
+
+            $reparacion = Reparacion::where(
+                'orden_servicio_id',
+                $orden->id
+            )->first();
+
+            if (!$reparacion) {
+                $reparacion = Reparacion::create([
+                    'orden_servicio_id' => $orden->id,
+                    'tecnico_id' => $tecnicoDiagnosticoId,
+                    'fecha_inicio' => now(),
+                    'estado' => 'EN_PROCESO',
+                    'usuario_creador_id' => Auth::id(),
+                ]);
+            } else {
+                $reparacion->update([
+                    'tecnico_id' => $reparacion->tecnico_id
+                        ?? $tecnicoDiagnosticoId,
+                    'fecha_inicio' => $reparacion->fecha_inicio ?? now(),
+                    'estado' => 'EN_PROCESO',
+                    'usuario_modificador_id' => Auth::id(),
+                ]);
+            }
+
+            $orden->update([
+                'estado' => 'EN_REPARACION',
+                'usuario_modificador_id' => Auth::id(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'estado' => true,
+                'message' => 'La reparación fue iniciada correctamente.',
+                'data' => $reparacion
+            ]);
+
+        } catch (\Throwable $e) {
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            report($e);
+
+            return response()->json([
+                'estado' => false,
+                'message' => 'No se pudo iniciar la reparación.'
+            ], 500);
         }
+    }
+
 
 
     public function guardarReparacion(Request $request, $id)

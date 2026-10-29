@@ -4,6 +4,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\User;
 
 class OrdenDiagnostico extends Model
 {
@@ -74,4 +75,10 @@ class OrdenDiagnostico extends Model
             'usuario_eliminador_id'
         );
     }
+
+    public function tecnico()
+    {
+        return $this->belongsTo(User::class, 'tecnico_id');
+    }
+
 }

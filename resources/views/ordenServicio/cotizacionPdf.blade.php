@@ -192,10 +192,8 @@
     $vehiculo = $orden->vehiculo;
     $cliente = $vehiculo?->cliente;
     $diagnostico = $orden->diagnosticoActual;
-
     $userCliente = $cliente?->user;
-
-$nombreCliente = $userCliente
+    $nombreCliente = $userCliente
     ? trim(implode(' ', array_filter([
         $userCliente->nombres,
         $userCliente->ap_paterno,
@@ -284,6 +282,17 @@ $rutaPublica = function ($ruta) {
         </td>
     </tr>
 </table>
+
+@php
+    $tecnico = $orden->diagnosticoActual?->tecnico;
+@endphp
+
+<div class="diagnostic"> 
+    <strong>Técnico responsable:</strong>
+    {{ $tecnico
+        ? trim($tecnico->nombres . ' ' . $tecnico->ap_paterno . ' ' . $tecnico->ap_materno)
+        : 'No asignado' }}
+</div>
 
 <div class="section-title">1. Diagnóstico del vehículo</div>
 

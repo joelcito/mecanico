@@ -13,38 +13,55 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
+use App\Models\OrdenDiagnostico;
+
 
 class ReparacionController extends Controller
 {
-    public function datos($id)
-    {
-        try {
+   public function datos($id)
+{
+    try {
+        $orden = OrdenServicio::with('reparacion.tecnico')
+            ->findOrFail($id);
 
-            $orden = OrdenServicio::with([
-                'reparacion.tecnico',
-            ])->findOrFail($id);
+        $diagnostico = OrdenDiagnostico::where(
+            'orden_servicio_id',
+            $orden->id
+        )->latest('id')->first();
 
-            $tecnicos = User::where('estado', 'ACTIVO')
-                ->where('rol_id', 2)
-                ->orderBy('nombres')
-                ->get();
+        $reparacion = $orden->reparacion;
 
-            return response()->json([
-                'estado' => true,
-                'data' => [
-                    'reparacion' => $orden->reparacion,
-                    'tecnicos' => $tecnicos,
-                ]
-            ]);
+        if ($reparacion && $diagnostico?->tecnico_id) {
+            // El técnico de reparación debe ser el asignado
+            // durante el diagnóstico.
+            if ((int) $reparacion->tecnico_id !==
+                (int) $diagnostico->tecnico_id) {
 
-        } catch (\Throwable $e) {
+                $reparacion->tecnico_id = $diagnostico->tecnico_id;
+                $reparacion->usuario_modificador_id = Auth::id();
+                $reparacion->save();
+            }
 
-            return response()->json([
-                'estado' => false,
-                'message' => 'No se pudieron cargar los datos de reparación.'
-            ], 500);
+            $reparacion->load('tecnico');
         }
+
+        return response()->json([
+            'estado' => true,
+            'data' => [
+                'reparacion' => $reparacion,
+                'tecnico' => $reparacion?->tecnico,
+            ]
+        ]);
+
+    } catch (\Throwable $e) {
+        report($e);
+
+        return response()->json([
+            'estado' => false,
+            'message' => 'No se pudieron cargar los datos de reparación.'
+        ], 500);
     }
+}
 
     public function guardar(Request $request, $id)
     {
@@ -86,7 +103,21 @@ class ReparacionController extends Controller
                     $reparacion->usuario_modificador_id = Auth::id();
                 }
 
-                $reparacion->tecnico_id = $request->tecnico_id;
+               $diagnostico = OrdenDiagnostico::where(
+                    'orden_servicio_id',
+                    $orden->id
+                )->latest('id')->first();
+
+                $tecnicoId = $diagnostico?->tecnico_id
+                    ?? $reparacion->tecnico_id;
+
+                if (!$tecnicoId) {
+                    throw ValidationException::withMessages([
+                        'tecnico_id' => 'La orden no tiene un técnico asignado durante el diagnóstico.',
+                    ]);
+                }
+
+                $reparacion->tecnico_id = $tecnicoId;
                 $reparacion->trabajos_realizados = $request->trabajos_realizados;
                 $reparacion->observaciones = $request->observaciones;
                 $reparacion->save();
@@ -136,10 +167,25 @@ class ReparacionController extends Controller
                 ]);
             }
 
-            if (!$reparacion->tecnico_id) {
+            $diagnostico = OrdenDiagnostico::where(
+                'orden_servicio_id',
+                $orden->id
+            )->latest('id')->first();
+
+            $tecnicoId = $diagnostico?->tecnico_id
+                ?? $reparacion->tecnico_id;
+
+            if (!$tecnicoId) {
                 throw ValidationException::withMessages([
-                    'tecnico_id' => 'Asigne un técnico antes de finalizar la reparación.',
+                    'tecnico_id' => 'No se encontró un técnico asignado en el diagnóstico de esta orden.',
                 ]);
+            }
+
+            // Conservar el técnico del diagnóstico en la reparación.
+            if ((int) $reparacion->tecnico_id !== (int) $tecnicoId) {
+                $reparacion->tecnico_id = $tecnicoId;
+                $reparacion->usuario_modificador_id = Auth::id();
+                $reparacion->save();
             }
 
             $detalles = ReparacionDetalle::withTrashed()

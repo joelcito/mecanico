@@ -201,6 +201,14 @@ class PagoController extends Controller
                         'monto_recibido' => 'El monto recibido debe ser mayor a cero.',
                     ]);
                 }
+
+                \Log::info('DEBUG PAGO ORDEN', [
+                    'orden_id' => $orden->id,
+                    'total_cotizacion' => $total,
+                    'total_pagado' => $pagado,
+                    'saldo_calculado' => $saldo,
+                    'estado_orden' => $orden->estado,
+                ]);
                 if ($saldo <= 0) {
                     throw ValidationException::withMessages([
                         'orden_servicio_id' => 'La orden no tiene saldo pendiente.',
