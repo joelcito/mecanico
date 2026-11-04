@@ -139,6 +139,7 @@
                         Listado de Clientes
                     </h3>
                     <div class="card-toolbar">
+                        @if (in_array((int) auth()->user()?->rol_id, [1,2, 3], true))
                         <button
                             type="button"
                             class="btn btn-primary btn-sm"
@@ -146,6 +147,7 @@
                             <i class="fa fa-plus"></i>
                             Nuevo Cliente
                         </button>
+                        @endif
                     </div>
                 </div>
                 <div

@@ -2345,7 +2345,9 @@ function cargarProductosUtilizados()
                         <td>${escaparHtml(detalle.observaciones ?? '-')}</td>
                         <td class="text-end text-nowrap">
                             <button type="button" class="btn btn-sm btn-light-primary btnEditarDetalleReparacion" title="Editar consumo"><i class="fa fa-pen"></i> Editar</button>
+                            @if ((int) auth()->user()?->rol_id === 1)
                             <button type="button" class="btn btn-sm btn-light-danger btnEliminarDetalleReparacion" title="Devolver y eliminar"><i class="fa fa-trash"></i></button>
+                            @endif
                         </td>
                     </tr>`;
                 }).join(''));

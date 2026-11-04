@@ -38,12 +38,14 @@
                             onclick='editarMarca(@json($marca))'>
                             <i class="fa fa-edit"></i>
                         </button>
+                        @if ((int) auth()->user()?->rol_id === 1)
                         <button
                             class="btn btn-icon btn-sm btn-danger btn-circle"
                             title="Eliminar marca"
                             onclick='eliminarMarca("{{ $marca->id }}", "{{ $marca->nombre }}")'>
                             <i class="fa fa-trash"></i>
                         </button>
+                        @endif
                     </td>
                 </tr>
                 

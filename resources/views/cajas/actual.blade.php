@@ -216,6 +216,7 @@
                             @if (
                                 $movimiento->estado === 'ACTIVO'
                                 && $caja->estado === 'ABIERTA'
+                                && (int) auth()->user()?->rol_id === 1
                             )
                                 <button
                                     type="button"

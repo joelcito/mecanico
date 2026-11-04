@@ -107,7 +107,7 @@
                             Ver
                         </button>
 
-                        @if($pago->estado === 'ACTIVO')
+                        @if($pago->estado === 'ACTIVO' && (int) auth()->user()?->rol_id === 1)
                             <button
                                 type="button"
                                 class="btn btn-sm btn-light-danger"

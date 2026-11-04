@@ -212,7 +212,7 @@
     </div>
 
     <div class="modal-footer">
-        @if($pago->estado === 'ACTIVO')
+        @if($pago->estado === 'ACTIVO' && (int) auth()->user()?->rol_id === 1)
             <button
                 type="button"
                 class="btn btn-light-danger"

@@ -17,11 +17,7 @@
                 <h3 class="fw-bold">
                     FORMULARIO DE VEHÍCULO
                 </h3>
-                <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal"
-                ></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 
             </div>
 
@@ -40,8 +36,7 @@
                                     name="cliente_id"
                                     required
                                     oninvalid="this.setCustomValidity('Este campo es obligatorio.')"
-                                    oninput="this.setCustomValidity('')"
-                                >
+                                    oninput="this.setCustomValidity('')" >
                                     <option value="">
                                         Seleccione un cliente
                                     </option>
@@ -72,8 +67,7 @@
                                     name="marca_id"
                                     required
                                     oninvalid="this.setCustomValidity('Este campo es obligatorio.')"
-                                    oninput="this.setCustomValidity('')"
-                                >
+                                    oninput="this.setCustomValidity('')" >
                                     <option value="">
                                         Seleccione una marca
                                     </option>
@@ -98,9 +92,7 @@
                                     name="modelo"
                                     required
                                     oninvalid="this.setCustomValidity('Este campo es obligatorio.')"
-                                    oninput="this.setCustomValidity('')"
-                                >
-
+                                    oninput="this.setCustomValidity('')" >
                             </div>
                         </div>
                     </div>
@@ -112,13 +104,7 @@
                                     Año
                                 </label>
 
-                                <input
-                                    type="number"
-                                    class="form-control form-control-sm"
-                                    id="anio"
-                                    name="anio"
-                                    min="1900"
-                                >
+                                <input type="number" class="form-control form-control-sm" id="anio" name="anio" min="1900">
 
                             </div>
                         </div>
@@ -134,14 +120,11 @@
                                     name="placa"
                                     required
                                     oninvalid="this.setCustomValidity('Este campo es obligatorio.')"
-                                    oninput="this.setCustomValidity('')"
-                                >
+                                    oninput="this.setCustomValidity('')" >
                             </div>
                         </div>
                     </div>
 
-
-                    {{-- COLOR / TIPO --}}
                     <div class="row">
                         <div class="col-md-6">
                             <div class="fv-row mb-7">
@@ -152,8 +135,7 @@
                                     type="text"
                                     class="form-control form-control-sm"
                                     id="color"
-                                    name="color"
-                                >
+                                    name="color" >
 
                             </div>
                         </div>
@@ -169,8 +151,7 @@
                                     name="tipo_vehiculo"
                                     required
                                     oninvalid="this.setCustomValidity('Este campo es obligatorio.')"
-                                    oninput="this.setCustomValidity('')"
-                                >
+                                    oninput="this.setCustomValidity('')" >
                                     <option value="AUTOMOVIL">
                                         Automóvil
                                     </option>
@@ -219,12 +200,7 @@
                                 <label class="fw-semibold fs-6 mb-2">
                                     VIN
                                 </label>
-                                <input
-                                    type="text"
-                                    class="form-control form-control-sm text-uppercase"
-                                    id="vin"
-                                    name="vin"
-                                >
+                                <input type="text" class="form-control form-control-sm text-uppercase" id="vin" name="vin"  >
                             </div>
                         </div>
 
@@ -237,8 +213,7 @@
                                     type="text"
                                     class="form-control form-control-sm"
                                     id="numero_motor"
-                                    name="numero_motor"
-                                >
+                                    name="numero_motor" >
 
                             </div>
                         </div>
@@ -266,11 +241,9 @@
                                 <label class="fw-semibold fs-6 mb-2">
                                     Estado
                                 </label>
-                                <select
-                                    class="form-select form-select-sm"
+                                <select class="form-select form-select-sm"
                                     id="estado"
-                                    name="estado"
-                                >
+                                    name="estado" >
                                     <option value="ACTIVO">
                                         Activo
                                     </option>
@@ -303,26 +276,18 @@
 
 
 <div class="d-flex flex-column flex-column-fluid">
-    <div id="kt_app_content"
-        class="app-content flex-column-fluid">
-
-        <div id="kt_app_content_container"
-            class="app-container container-xxlg">
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxlg">
             <div class="card shadow-sm">
-
                 <div class="card-header bg-light-info py-4 d-flex align-items-center justify-content-between">
-
                     <h3 class="card-title fw-bold">
                         Listado de Vehículos
                     </h3>
-
                     <div class="card-toolbar">
                         <button
                             type="button"
                             class="btn btn-primary btn-sm"
-                            onclick="modalNuevoVehiculo()"
-                        >
-
+                            onclick="modalNuevoVehiculo()" >
                             <i class="fa fa-plus"></i>
                             Nuevo Vehículo
                         </button>

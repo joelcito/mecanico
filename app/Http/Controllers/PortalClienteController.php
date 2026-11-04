@@ -10,7 +10,7 @@ class PortalClienteController extends Controller
    
 public function index()
 {
-    $cliente = \App\Models\Cliente::query()
+    $cliente = Cliente::query()
         ->with([
             'vehiculos.marca',
             'vehiculos.ordenesServicio.inspeccionActual',

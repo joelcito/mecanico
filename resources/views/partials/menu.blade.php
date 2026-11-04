@@ -99,6 +99,15 @@
 </style>
 
 <div class="app-sidebar-menu overflow-hidden flex-column-fluid">
+    @php
+        $rolActual = (int) (Auth::user()->rol_id ?? 0);
+        $esAdmin = $rolActual === 1;
+        $esMecanico = $rolActual === 2;
+        $esEncargado = $rolActual === 3;
+        $esPersonal = in_array($rolActual, [1, 2, 3], true);
+        $esCliente = $rolActual === 4;
+        $esAdminOEncargado = $esAdmin || $esEncargado;
+    @endphp
     <div id="kt_app_sidebar_menu_wrapper" class="app-sidebar-wrapper">
         <div id="kt_app_sidebar_menu_scroll"
              class="scroll-y my-5 mx-3"
@@ -115,8 +124,22 @@
                  data-kt-menu="true"
                  data-kt-menu-expand="true">
 
+
+
+                @if($esCliente)
+                    <div class="menu-item">
+                        <a class="menu-link {{ request()->routeIs('portal-cliente.*') ? 'active' : '' }}"
+                           href="{{ route('portal-cliente.inicio') }}">
+                            <span class="menu-icon">
+                                <i class="fa fa-user"></i>
+                            </span>
+                            <span class="menu-title">Mi Portal</span>
+                        </a>
+                    </div>
+                @endif
+
                 {{-- MENU --}}
-                @if(Auth::check() && in_array((int) Auth::user()->rol_id, [1, 2, 3], true))
+                @if($esPersonal)
                 <div data-kt-menu-trigger="click"
                      class="menu-item menu-accordion here show">
 
@@ -178,6 +201,7 @@
                         </div>
 
                         {{-- INVENTARIO Y TALLER --}}
+                        @if($esAdminOEncargado)
                         <div data-kt-menu-trigger="click"
                              class="menu-item menu-accordion here show">
 
@@ -225,8 +249,10 @@
 
                             </div>
                         </div>
+                        @endif
 
                         {{-- CAJA Y FINANZAS --}}
+                        @if($esAdminOEncargado)
                         <div data-kt-menu-trigger="click"
                              class="menu-item menu-accordion here show">
 
@@ -282,8 +308,10 @@
 
                             </div>
                         </div>
+                        @endif
 
                         {{-- CONFIGURACIÓN --}}
+                        @if($esAdminOEncargado)
                         <div data-kt-menu-trigger="click"
                              class="menu-item menu-accordion here show">
 
@@ -338,6 +366,7 @@
                                 </div>
 
                                 {{-- USUARIOS --}}
+                                @if($esAdmin)
                                 <div class="menu-item">
                                     <a class="menu-link {{ request()->routeIs('user.*') ? 'active' : '' }}"
                                        href="{{ route('user.listado') }}">
@@ -369,6 +398,7 @@
                                         <span class="menu-title">Sucursales</span>
                                     </a>
                                 </div>
+                                @endif
 
                                 {{-- CATEGORÍAS --}}
                                 <div class="menu-item">
@@ -394,6 +424,7 @@
 
                             </div>
                         </div>
+                        @endif
 
                     </div>
                 </div>

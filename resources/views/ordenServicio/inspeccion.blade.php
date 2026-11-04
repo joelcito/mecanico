@@ -340,6 +340,7 @@
                                     </button>
 
                                     <div class="card-body p-2 d-flex justify-content-center">
+                                        @if ((int) auth()->user()?->rol_id === 1)
                                         <button
                                             type="button"
                                             class="btn btn-sm btn-light-danger"
@@ -351,6 +352,7 @@
                                             <i class="fa fa-trash me-1"></i>
                                             Eliminar
                                         </button>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

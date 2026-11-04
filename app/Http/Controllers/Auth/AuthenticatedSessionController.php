@@ -22,14 +22,52 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
+   
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $usuario = Auth::user();
+
+        // El cliente no puede ingresar por el login principal
+        if ((int) $usuario->rol_id === 4) {
+
+            Auth::guard('web')->logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            $request->session()->forget('url.intended');
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' => 'Los clientes deben ingresar desde Mi Portal.'
+                ]);
+        }
+
+        if ((int) $usuario->rol_id === 2) {
+            $request->session()->forget('url.intended');
+
+            return redirect()->route('ordenServicio.listado');
+        }
+
+        if (in_array((int) $usuario->rol_id, [1, 3], true)) {
+            $request->session()->forget('url.intended');
+
+            return redirect()->route('home');
+        }
+
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()
+            ->route('login')
+            ->withErrors(['email' => 'Tu usuario no tiene un rol autorizado.']);
     }
+
 
     /**
      * Destroy an authenticated session.

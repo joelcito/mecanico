@@ -66,6 +66,7 @@
                             <i class="fa fa-edit"></i>
 
                         </button>
+                        @if ((int) auth()->user()?->rol_id === 1)
                         <button
                             class="btn btn-icon btn-sm btn-danger btn-circle"
                             title="Eliminar producto"
@@ -74,6 +75,7 @@
                             <i class="fa fa-trash"></i>
 
                         </button>
+                        @endif
                     </td>
                 </tr>
               @empty

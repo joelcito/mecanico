@@ -28,38 +28,37 @@ use App\Http\Controllers\ReportesController;
 use App\Http\Controllers\OrdenEntregaController;
 
 use App\Http\Controllers\PortalClienteController;
+
 use App\Http\Middleware\VerificarRol;
+
+use App\Http\Controllers\PortalClienteAuthController;
+
 
 Route::get('/', function () {
     // return view('welcome');
     return redirect('home');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', function () {return view('dashboard');
+})->middleware(['auth', 'verified', VerificarRol::class . ':1,3'])->name('dashboard');
 
 
-
-
-Route::get('/boleta-publica/{id}', [
-    OrdenEntregaController::class,
-    'boleta',
-])->middleware('signed')
+Route::get('/boleta-publica/{id}', [OrdenEntregaController::class, 'boleta',])->middleware('signed')
   ->name('ordenServicio.entrega.boleta.publica');
 
-Route::get(
-    '/cotizacion-publica/{id}/{cotizacion}',
-    [OrdenCotizacionController::class, 'pdfCompartido']
-)
+Route::get('/cotizacion-publica/{id}/{cotizacion}', [OrdenCotizacionController::class, 'pdfCompartido'])
 ->middleware('signed')
 ->name('ordenServicio.cotizacion.compartida');
 
-Route::middleware('auth')->group(function () {
+Route::middleware([
+    'auth',
+    VerificarRol::class . ':1,2,3'
+])->group(function () {
     // Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     // Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     // Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::middleware(VerificarRol::class . ':1,3')->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->middleware(['auth', 'verified'])->name('home');
 
     Route::prefix('reportes')->name('reportes.')->group(function () {
@@ -70,8 +69,10 @@ Route::middleware('auth')->group(function () {
             ->where('tipo', 'ventas|movimientos|productos|pagos')
             ->name('index');
     });
+    });
 
-
+    // Solo administrador
+    Route::middleware(VerificarRol::class . ':1')->group(function () {
      Route::prefix('/rol')->group(function () {
         Route::get('/listado', [RolController::class, 'listado'])->name('rol.listado');
         Route::post('/ajaxListado', [RolController::class, 'ajaxListado'])->name('rol.ajaxListado');
@@ -95,21 +96,23 @@ Route::middleware('auth')->group(function () {
         Route::post('/guardarSucursal', [SucursalController::class, 'guardarSucursal'])->name('sucursal.guardarSucursal');
         Route::post('/eliminarSucursal', [SucursalController::class, 'eliminarSucursal'])->name('sucursal.eliminarSucursal');
     });
+    });
     
     Route::prefix('cliente')->group(function () {
+        Route::get('/listado', [ClienteController::class, 'listado' ])->name('cliente.listado');
+        Route::post('/ajaxListado', [ ClienteController::class, 'ajaxListado' ])->name('cliente.ajaxListado');
+        Route::post('/guardar', [ ClienteController::class, 'guardarCliente' ])->middleware(VerificarRol::class . ':1,2,3')->name('cliente.guardar');
+        Route::post('/eliminar', [ ClienteController::class,  'eliminarCliente' ])->middleware(VerificarRol::class . ':1')->name('cliente.eliminar');
+    });
 
-            Route::get('/listado', [ClienteController::class, 'listado'])->name('cliente.listado');
-            Route::post('/ajaxListado', [ClienteController::class, 'ajaxListado'])->name('cliente.ajaxListado');
-            Route::post('/guardar', [ClienteController::class, 'guardarCliente'])->name('cliente.guardar');
-            Route::post('/eliminar', [ClienteController::class, 'eliminarCliente'])->name('cliente.eliminar');
-        });
-
+    // Administrador y encargado
+    Route::middleware(VerificarRol::class . ':1,3')->group(function () {
         Route::prefix('categoria')->group(function () {
 
             Route::get('/listado', [CategoriaController::class, 'listado'])->name('categoria.listado');
             Route::post('/ajaxListado', [CategoriaController::class, 'ajaxListado'])->name('categoria.ajaxListado');
             Route::post('/guardar', [CategoriaController::class, 'guardarCategoria'])->name('categoria.guardar');
-            Route::post('/eliminar', [CategoriaController::class, 'eliminarCategoria'])->name('categoria.eliminar');
+            Route::post('/eliminar', [CategoriaController::class, 'eliminarCategoria'])->middleware(VerificarRol::class . ':1')->name('categoria.eliminar');
         });
 
         Route::prefix('marca')->group(function () {
@@ -117,7 +120,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/listado', [MarcaController::class, 'listado'])->name('marca.listado');
             Route::post('/ajaxListado', [MarcaController::class, 'ajaxListado'])->name('marca.ajaxListado');
             Route::post('/guardar', [MarcaController::class, 'guardarMarca'])->name('marca.guardar');
-            Route::post('/eliminar', [MarcaController::class, 'eliminarMarca'])->name('marca.eliminar');
+            Route::post('/eliminar', [MarcaController::class, 'eliminarMarca'])->middleware(VerificarRol::class . ':1')->name('marca.eliminar');
         });
 
         Route::prefix('producto')->group(function () {
@@ -125,14 +128,14 @@ Route::middleware('auth')->group(function () {
             Route::get('/listado', [ProductoController::class, 'listado'])->name('producto.listado');
             Route::post('/ajaxListado', [ProductoController::class, 'ajaxListado'])->name('producto.ajaxListado');
             Route::post('/guardar', [ProductoController::class, 'guardarProducto'])->name('producto.guardar');
-            Route::post('/eliminar', [ProductoController::class, 'eliminarProducto'])->name('producto.eliminar');
+            Route::post('/eliminar', [ProductoController::class, 'eliminarProducto'])->middleware(VerificarRol::class . ':1')->name('producto.eliminar');
         });
 
         Route::prefix('herramienta')->group(function () {
             Route::get('/listado', [HerramientaController::class, 'listado'])->name('herramienta.listado');
             Route::post('/ajaxListado', [HerramientaController::class, 'ajaxListado'])->name('herramienta.ajaxListado');
             Route::post('/guardar', [HerramientaController::class, 'guardarHerramienta'])->name('herramienta.guardar');
-            Route::post('/eliminar', [HerramientaController::class, 'eliminarHerramienta'])->name('herramienta.eliminar');
+            Route::post('/eliminar', [HerramientaController::class, 'eliminarHerramienta'])->middleware(VerificarRol::class . ':1')->name('herramienta.eliminar');
         });
 
         Route::prefix('asignaciones-herramientas')->name('asignacionesHerramientas.')->group(function () {
@@ -143,13 +146,14 @@ Route::middleware('auth')->group(function () {
             Route::put('/{id}/devolver', [AsignacionHerramientaController::class, 'devolver'])->name('devolver');
             Route::put('/herramienta/{herramientaId}/estado', [AsignacionHerramientaController::class, 'actualizarEstado'])->name('actualizarEstado');
         });
+    });
 
         Route::prefix('vehiculo')->group(function () {
 
             Route::get('/listado', [VehiculoController::class, 'listado'])->name('vehiculo.listado');
             Route::post('/ajaxListado', [VehiculoController::class, 'ajaxListado'])->name('vehiculo.ajaxListado');
             Route::post('/guardar', [VehiculoController::class, 'guardarVehiculo'])->name('vehiculo.guardar');
-            Route::post('/eliminar', [VehiculoController::class, 'eliminarVehiculo'])->name('vehiculo.eliminar');
+            Route::post('/eliminar', [VehiculoController::class, 'eliminarVehiculo'])->middleware(VerificarRol::class . ':1')->name('vehiculo.eliminar');
         });
 
         Route::prefix('ordenServicio')->group(function () {
@@ -169,16 +173,16 @@ Route::middleware('auth')->group(function () {
     
             Route::post('/{id}/cotizacion/aprobar',[OrdenServicioController::class, 'aprobarCotizacion'])->name('ordenServicio.cotizacion.aprobar');
             Route::post('/{id}/cotizacion/rechazar',[OrdenServicioController::class, 'rechazarCotizacion'])->name('ordenServicio.cotizacion.rechazar');
-            Route::get('/{id}/verificar-deuda', [OrdenEntregaController::class, 'verificarDeuda'])->name('ordenServicio.verificarDeuda');
-            Route::put('/{id}/entregar', [OrdenEntregaController::class, 'entregar'])->name('ordenServicio.entregar');
-            Route::get('/{id}/boleta-entrega', [OrdenEntregaController::class, 'boleta'])->name('ordenServicio.entrega.boleta');
+            Route::get('/{id}/verificar-deuda', [OrdenEntregaController::class, 'verificarDeuda'])->middleware(VerificarRol::class . ':1,3')->name('ordenServicio.verificarDeuda');
+            Route::put('/{id}/entregar', [OrdenEntregaController::class, 'entregar'])->middleware(VerificarRol::class . ':1,3')->name('ordenServicio.entregar');
+            Route::get('/{id}/boleta-entrega', [OrdenEntregaController::class, 'boleta'])->middleware(VerificarRol::class . ':1,3')->name('ordenServicio.entrega.boleta');
            
             Route::post( '/{id}/reparacion/iniciar', [OrdenServicioController::class, 'iniciarReparacion'])->name('ordenServicio.reparacion.iniciar');
            
             Route::get('/{id}/cotizacion/pdf', [OrdenCotizacionController::class, 'pdf'])->name('ordenServicio.cotizacion.pdf');
             Route::put('/{id}/recepcion', [OrdenServicioController::class, 'actualizarRecepcion'])->name('ordenServicio.recepcion.actualizar');
             Route::get('/{id}/recepcion/editar',[OrdenServicioController::class, 'editarRecepcion'])->name('ordenServicio.recepcion.editar');
-            Route::delete('/orden-servicio/{orden}/inspeccion/fotos/{foto}',[OrdenInspeccionController::class, 'eliminarFoto'])->name('ordenServicio.inspeccion.foto.eliminar');
+            Route::delete('/orden-servicio/{orden}/inspeccion/fotos/{foto}',[OrdenInspeccionController::class, 'eliminarFoto'])->middleware(VerificarRol::class . ':1')->name('ordenServicio.inspeccion.foto.eliminar');
             
             
             Route::get('/{id}/cotizacion/preparar-whatsapp', [OrdenCotizacionController::class,'prepararWhatsApp'])->name('ordenServicio.cotizacion.prepararWhatsApp');
@@ -186,6 +190,7 @@ Route::middleware('auth')->group(function () {
 
             });
         
+       Route::middleware(VerificarRol::class . ':1,3')->group(function () {
        Route::prefix('cajas')->group(function () {
             Route::get('/listado', [CajaController::class, 'listado'])->name('cajas.listado');
             Route::post('/ajaxListado', [CajaController::class, 'ajaxListado'])->name('cajas.ajaxListado');
@@ -200,7 +205,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/ajaxListado', [MovimientoCajaController::class, 'ajaxListado'])->name('movimientosCaja.ajaxListado');
             Route::get('/crear', [MovimientoCajaController::class, 'crear'])->name('movimientosCaja.crear');
             Route::post('/guardar', [MovimientoCajaController::class, 'guardar'])->name('movimientosCaja.guardar');
-            Route::post('/{id}/anular', [MovimientoCajaController::class, 'anular'])->name('movimientosCaja.anular');
+            Route::post('/{id}/anular', [MovimientoCajaController::class, 'anular'])->middleware(VerificarRol::class . ':1')->name('movimientosCaja.anular');
             });
 
             Route::prefix('pagos')->group(function () {
@@ -209,7 +214,7 @@ Route::middleware('auth')->group(function () {
                 Route::get('/crear', [PagoController::class, 'crear'])->name('pagos.crear');
                 Route::post('/guardar', [PagoController::class, 'guardar'])->name('pagos.guardar');
                 Route::get('/{id}/actual', [PagoController::class, 'actual'])->name('pagos.actual');
-                Route::post('/{id}/anular', [PagoController::class, 'anular'])->name('pagos.anular');
+                Route::post('/{id}/anular', [PagoController::class, 'anular'])->middleware(VerificarRol::class . ':1')->name('pagos.anular');
 
             });
 
@@ -217,6 +222,7 @@ Route::middleware('auth')->group(function () {
                 Route::get('/listado', [CuentaPorCobrarController::class, 'listado'])->name('cuentasPorCobrar.listado');
                 Route::post( '/ajaxListado',[CuentaPorCobrarController::class, 'ajaxListado'])->name('cuentasPorCobrar.ajaxListado');
 
+            });
             });
 
 
@@ -230,20 +236,42 @@ Route::middleware('auth')->group(function () {
                 Route::get('/{ordenId}/detalles', [ReparacionDetallesController::class, 'index'])->name('reparaciones.detalles');
                 Route::post('/{ordenId}/detalles', [ReparacionDetallesController::class, 'store'])->name('reparaciones.detalles.store');
                 Route::put('/{ordenId}/detalles/{detalleId}', [ReparacionDetallesController::class, 'update'])->name('reparaciones.detalles.update');
-                Route::delete('/{ordenId}/detalles/{detalleId}', [ReparacionDetallesController::class, 'destroy'])->name('reparaciones.detalles.destroy');
+                Route::delete('/{ordenId}/detalles/{detalleId}', [ReparacionDetallesController::class, 'destroy'])->middleware(VerificarRol::class . ':1')->name('reparaciones.detalles.destroy');
             });
 
 
-            Route::prefix('inventario')->group(function () {
+            Route::prefix('inventario')->middleware(VerificarRol::class . ':1,3')->group(function () {
                 Route::post('/ingresos/guardar', [MovimientoInventarioController::class,'guardarIngreso'])->name('inventario.ingresos.guardar');
                 Route::post('/salidas/guardar', [MovimientoInventarioController::class,'guardarSalida'])->name('inventario.salidas.guardar');
             });
 
-            Route::middleware(['auth', VerificarRol::class . ':4',])->group(function () {
-            Route::get('/mi-portal', [ PortalClienteController::class, 'index',])->name('portal-cliente.inicio');
-            });
+            
+           
 
     
 });
+
+
+Route::get('/mi-portal/login', [
+    PortalClienteAuthController::class,
+    'create'
+])->name('portal-cliente.login');
+
+Route::post('/mi-portal/login', [
+    PortalClienteAuthController::class,
+    'store'
+])->name('portal-cliente.login.procesar');
+
+
+
+Route::middleware(['auth', VerificarRol::class . ':4'])->group(function () {
+
+    Route::get('/mi-portal', [
+        PortalClienteController::class,
+        'index'
+    ])->name('portal-cliente.inicio');
+
+});
+
 
 require __DIR__.'/auth.php';

@@ -68,6 +68,13 @@ class VehiculoController extends Controller
 
     public function guardarVehiculo(Request $request)
     {
+        // El mecánico solo puede registrar vehículos nuevos.
+        abort_if(
+            $request->filled('id') && !in_array((int) $request->user()->rol_id, [1, 3], true),
+            403,
+            'No tienes permiso para editar vehículos.'
+        );
+
         $request->validate([
             'cliente_id' => ['required', 'exists:clientes,id'],
             'marca_id' => ['required', 'exists:marcas,id'],
