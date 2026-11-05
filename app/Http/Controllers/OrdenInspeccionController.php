@@ -24,7 +24,6 @@ class OrdenInspeccionController extends Controller
         'inspeccionActual.fotos',
     ])->findOrFail($id);
 
-            
         $estadosPermitidos = [
             'RECIBIDO',
             'EN_INSPECCION',
@@ -95,7 +94,6 @@ public function guardar(Request $request, $id)
             ->lockForUpdate()
             ->firstOrFail();
 
-        // Solo permitir inspección inicial o edición durante diagnóstico.
         if (!in_array($orden->estado, [
             'RECIBIDO',
             'EN_INSPECCION',
@@ -133,7 +131,6 @@ public function guardar(Request $request, $id)
                 continue;
             }
 
-            // Buscar el detalle existente de este elemento.
             $detalle = OrdenInspeccionDetalle::where(
                 'orden_inspeccion_id',
                 $inspeccion->id
@@ -156,7 +153,6 @@ public function guardar(Request $request, $id)
             $detalle->save();
         }
 
-        // Las fotografías nuevas se agregan sin eliminar las anteriores.
         if ($request->hasFile('fotos')) {
             foreach ($request->file('fotos') as $foto) {
                 if (!$foto) {
@@ -180,7 +176,6 @@ public function guardar(Request $request, $id)
             }
         }
 
-        // Cambiar de etapa solamente al registrar la inspección inicial.
         if ($esNueva && in_array($orden->estado, [
             'RECIBIDO',
             'EN_INSPECCION',
@@ -204,9 +199,7 @@ public function guardar(Request $request, $id)
 
     } catch (\Throwable $e) {
         DB::rollBack();
-
         report($e);
-
         return back()
             ->withInput()
             ->with(
@@ -216,7 +209,6 @@ public function guardar(Request $request, $id)
     }
 }
 
-    
 
 public function eliminarFoto($ordenId, $fotoId)
 {
@@ -247,22 +239,16 @@ public function eliminarFoto($ordenId, $fotoId)
 
         $foto->usuario_eliminador_id = Auth::id();
         $foto->save();
-
         $ruta = $foto->ruta;
-
-        // Eliminación lógica gracias a SoftDeletes.
         $foto->delete();
-
         return $ruta;
     });
 
     Storage::disk('public')->delete($ruta);
-
     return response()->json([
         'estado' => true,
         'message' => 'La fotografía fue eliminada correctamente.',
     ]);
 }
-
 
 }

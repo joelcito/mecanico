@@ -725,9 +725,7 @@ function calcularCambio() {
 
 
     function limpiarFormularioPago() {
-
         $('#formPago')[0].reset();
-
         $('#orden_servicio_id').html(`
             <option value="">
                 Seleccione una orden
@@ -783,15 +781,11 @@ function calcularCambio() {
     }
 
     $(document).ready(function() {
-
     ajaxListado();
-
     const params = new URLSearchParams(
         window.location.search
     );
-
     const ordenId = params.get('orden');
-
     if (ordenId) {
 
         limpiarFormularioPago();

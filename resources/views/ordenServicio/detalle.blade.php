@@ -1774,7 +1774,6 @@ function registrarPagoOrden(idOrden)
     modal.show();
 }
 
-
 function calcularCambioPagoOrden() {
     const tipoPago = document.getElementById('tipo_pago_orden');
     const montoPagar = document.getElementById('monto_pago_orden');
@@ -1796,22 +1795,22 @@ function calcularCambioPagoOrden() {
     }
 
     cambio.value = 'Bs. ' + importeCambio.toFixed(2);
-}
-
-document.addEventListener('input', function (event) {
-    if (
-        event.target.id === 'monto_pago_orden' ||
-        event.target.id === 'monto_recibido_orden'
-    ) {
-        calcularCambioPagoOrden();
     }
-});
 
-document.addEventListener('change', function (event) {
-    if (event.target.id === 'tipo_pago_orden') {
-        calcularCambioPagoOrden();
-    }
-});
+    document.addEventListener('input', function (event) {
+        if (
+            event.target.id === 'monto_pago_orden' ||
+            event.target.id === 'monto_recibido_orden'
+        ) {
+            calcularCambioPagoOrden();
+        }
+    });
+
+    document.addEventListener('change', function (event) {
+        if (event.target.id === 'tipo_pago_orden') {
+            calcularCambioPagoOrden();
+        }
+    });
 
 
 
@@ -1925,8 +1924,6 @@ $(document)
         const formulario = this;
         const btn = $('#btnGuardarPagoOrden');
         const errores = $('#erroresPagoOrden');
-
-        // Evitar doble envío aunque se haga clic varias veces.
         if (formulario.dataset.enviando === '1') {
             return;
         }
@@ -1986,7 +1983,7 @@ $(document)
                     return;
                 }
 
-                // No permitir otro envío mientras se muestra el éxito.
+              
                 Swal.fire({
                     icon: 'success',
                     title: 'Pago registrado',
@@ -2000,7 +1997,6 @@ $(document)
 
             error: function (xhr) {
                 console.error('Error al registrar el pago:', xhr.responseJSON || xhr.responseText);
-
                 const mensaje =
                     xhr.responseJSON?.message ||
                     'No se pudo registrar el pago. Verifique si se guardó antes de volver a intentarlo.';
@@ -2009,8 +2005,7 @@ $(document)
             },
 
             complete: function () {
-                // Si la página sigue abierta, liberar el bloqueo
-                // después de que termine la petición.
+              
                 formulario.dataset.enviando = '0';
 
                 btn.prop('disabled', false)
@@ -2177,11 +2172,7 @@ $('#btnRealizarEntrega').on('click', function() {
 
 
 @endif
-
-
 @if($orden->estado === 'EN_REPARACION' && $orden->reparacion?->estado !== 'FINALIZADA')
-
-
 
 function cargarDatosReparacion()
 {
@@ -2205,7 +2196,7 @@ function cargarDatosReparacion()
                 return;
             }
 
-            // Mostrar el técnico asignado durante el diagnóstico
+          
             const tecnico = response.data.tecnico;
 
             $('#tecnicoActual').text(
@@ -2218,7 +2209,7 @@ function cargarDatosReparacion()
                     : 'Sin asignar'
             );
 
-            // Datos de la reparación
+           
             $('#trabajos_realizados').val(
                 reparacion.trabajos_realizados ?? ''
             );
@@ -2242,7 +2233,7 @@ function cargarDatosReparacion()
                     reparacion.estado === 'FINALIZADA'
                 );
 
-            // Si la reparación ya finalizó, bloquear la edición
+           
             if (reparacion.estado === 'FINALIZADA') {
                 $('#trabajos_realizados').prop('readonly', true);
                 $('#observaciones_reparacion').prop('readonly', true);
@@ -2760,16 +2751,12 @@ $(document).ready(function() {
     }
 
   
-
-    // RECHAZAR COTIZACIÓN
     $(document)
         .off('submit.rechazarCotizacion', '#formRechazarCotizacion')
         .on('submit.rechazarCotizacion', '#formRechazarCotizacion', function (e) {
             e.preventDefault();
-
             const campo = document.getElementById('observacion_respuesta');
             const error = document.getElementById('errorRechazarCotizacion');
-
             if (!campo || !error) {
                 console.error('[Cotización] No se encontraron los campos de rechazo.');
                 return;
@@ -2979,8 +2966,6 @@ $(document).ready(function() {
         });
     });
 })();
-
-
 
 
 </script>

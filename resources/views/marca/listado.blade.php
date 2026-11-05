@@ -13,7 +13,6 @@
 @endsection
 @section('content')
 
-{{-- MODAL MARCA --}}
 <div class="modal fade" id="modalMarca" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">

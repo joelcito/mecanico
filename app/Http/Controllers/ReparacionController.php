@@ -32,8 +32,6 @@ class ReparacionController extends Controller
         $reparacion = $orden->reparacion;
 
         if ($reparacion && $diagnostico?->tecnico_id) {
-            // El técnico de reparación debe ser el asignado
-            // durante el diagnóstico.
             if ((int) $reparacion->tecnico_id !==
                 (int) $diagnostico->tecnico_id) {
 
@@ -181,7 +179,6 @@ class ReparacionController extends Controller
                 ]);
             }
 
-            // Conservar el técnico del diagnóstico en la reparación.
             if ((int) $reparacion->tecnico_id !== (int) $tecnicoId) {
                 $reparacion->tecnico_id = $tecnicoId;
                 $reparacion->usuario_modificador_id = Auth::id();

@@ -92,7 +92,6 @@
 document.getElementById('formEditarRecepcion')
     .addEventListener('submit', async function (e) {
         e.preventDefault();
-
         const form = this;
         const boton = form.querySelector('[type="submit"]');
         boton.disabled = true;

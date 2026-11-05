@@ -405,7 +405,6 @@ $rutaPublica = function ($ruta) {
                                 @php
                                     $rutaFoto = $rutaPublica($foto->ruta);
                                 @endphp
-
                                 <td style="width: 50%; padding: 6px; vertical-align: top; text-align: center;">
                                     @if(is_file($rutaFoto))
                                         <img
@@ -434,9 +433,6 @@ $rutaPublica = function ($ruta) {
                 </table>
             </div>
         @endif
-
-
-           
         </div>
     @empty
         <p class="muted">No hay hallazgos detallados registrados.</p>

@@ -20,7 +20,6 @@
         </div>
     </div>
 
-    <!-- MODAL REGISTRAR PAGO -->
     <div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">

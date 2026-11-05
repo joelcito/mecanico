@@ -25,6 +25,4 @@ public function index()
     return view('portal-cliente.inicio', compact('cliente'));
 }
 
-
-
 }

@@ -252,18 +252,6 @@ Route::middleware([
 });
 
 
-Route::get('/mi-portal/login', [
-    PortalClienteAuthController::class,
-    'create'
-])->name('portal-cliente.login');
-
-Route::post('/mi-portal/login', [
-    PortalClienteAuthController::class,
-    'store'
-])->name('portal-cliente.login.procesar');
-
-
-
 Route::middleware(['auth', VerificarRol::class . ':4'])->group(function () {
 
     Route::get('/mi-portal', [

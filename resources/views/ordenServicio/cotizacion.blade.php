@@ -453,10 +453,7 @@ function agregarDetalle(detalle = null) {
     $('#detalleContainer').append(fila);
 
     const nuevaFila = $('#detalleContainer tr').last();
-
     configurarFila(nuevaFila);
-
-    // Configurar primero el tipo para habilitar el campo correspondiente.
     nuevaFila.find('.tipo-detalle')
         .val(detalle?.tipo ?? 'PRODUCTO')
         .trigger('change');
@@ -465,9 +462,6 @@ function agregarDetalle(detalle = null) {
         nuevaFila.find('.producto-select')
             .val(detalle?.producto_id ?? '')
             .trigger('change');
-
-        // Conserva la descripción guardada incluso si cambió el nombre
-        // actual del producto.
         nuevaFila.find('.descripcion-producto')
             .val(detalle?.descripcion ?? '');
     } else {
@@ -708,16 +702,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         textoBase = textarea.value.trim();
         textoConfirmado = '';
-
         reconocimiento.start();
     });
 
     reconocimiento.onstart = function () {
         escuchando = true;
-
         boton.classList.remove('btn-light-primary');
         boton.classList.add('btn-light-danger');
-
         boton.innerHTML =
             '<i class="fa fa-stop me-1"></i> Detener dictado';
 
@@ -750,7 +741,6 @@ document.addEventListener('DOMContentLoaded', function () {
         ).trim();
 
         textarea.value = textoNuevo;
-
         textarea.dispatchEvent(
             new Event('input', { bubbles: true })
         );
@@ -773,10 +763,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     reconocimiento.onend = function () {
         escuchando = false;
-
         boton.classList.remove('btn-light-danger');
         boton.classList.add('btn-light-primary');
-
         boton.innerHTML =
             '<i class="fa fa-microphone me-1"></i> Dictar observaciones';
 

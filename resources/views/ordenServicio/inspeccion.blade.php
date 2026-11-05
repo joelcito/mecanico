@@ -299,8 +299,7 @@
                     name="fotos[]"
                     class="form-control d-none"
                     accept="image/jpeg,image/png,image/webp"
-                    multiple
-                >
+                    multiple  >
 
             
                 <div class="form-text mb-3">
@@ -328,15 +327,13 @@
                                         onclick="ampliarFotoInspeccion(
                                             '{{ asset('storage/' . $foto->ruta) }}'
                                         )"
-                                        title="Ampliar fotografía"
-                                    >
+                                        title="Ampliar fotografía" >
                                         <img
                                             src="{{ asset('storage/' . $foto->ruta) }}"
                                             alt="Fotografía de inspección"
                                             class="w-100 rounded"
                                             style="height: 150px; object-fit: cover;"
-                                            loading="lazy"
-                                        >
+                                            loading="lazy"  >
                                     </button>
 
                                     <div class="card-body p-2 d-flex justify-content-center">
@@ -347,8 +344,7 @@
                                             onclick="eliminarFotoInspeccion(
                                                     '{{ route('ordenServicio.inspeccion.foto.eliminar', [$orden->id, $foto->id]) }}',
                                                     {{ $foto->id }}
-                                                )"
-                                        >
+                                                )"  >
                                             <i class="fa fa-trash me-1"></i>
                                             Eliminar
                                         </button>
@@ -798,13 +794,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Elegir fotos desde la galería, pudiendo agregar más después.
+   
             inputGaleria.addEventListener('change', function () {
                 agregarArchivos(inputGaleria.files);
                 inputGaleria.value = '';
             });
 
-            // Cámara.
+           
             async function iniciarCamara() {
                 detenerCamara();
 
@@ -885,25 +881,19 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             botonRepetir.addEventListener('click', iniciarCamara);
-
             botonUsar.addEventListener('click', function () {
             console.log('[Inspección] Usar foto pulsado');
-
             if (!archivoCapturado) {
                 console.error('[Inspección] No existe una foto capturada');
                 return;
             }
 
             const archivo = archivoCapturado;
-
             try {
                 agregarArchivos([archivo]);
 
-                // Limpiar la captura después de agregarla.
                 archivoCapturado = null;
-
                 modal?.hide();
-
                 console.log('[Inspección] Foto agregada correctamente');
             } catch (error) {
                 console.error('[Inspección] Error al agregar foto:', error);

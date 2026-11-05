@@ -279,12 +279,9 @@ class OrdenServicioController extends Controller
                 $orden->id
             )->latest('id')->first();
 
-            // Técnico asignado durante el diagnóstico.
             $tecnicoDiagnosticoId = $diagnostico?->tecnico_id;
-
             if (!$tecnicoDiagnosticoId) {
                 DB::rollBack();
-
                 return response()->json([
                     'estado' => false,
                     'message' => 'Debe asignar un técnico en el diagnóstico antes de iniciar la reparación.'
@@ -340,8 +337,6 @@ class OrdenServicioController extends Controller
             ], 500);
         }
     }
-
-
 
     public function guardarReparacion(Request $request, $id)
     {

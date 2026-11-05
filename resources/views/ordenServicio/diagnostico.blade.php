@@ -71,7 +71,6 @@
         </div>
     </div>
 
-    {{-- Información del vehículo --}}
     <div class="card mb-5">
         <div class="card-header">
             <h3 class="card-title">
@@ -119,7 +118,7 @@
         </div>
     </div>
 
-    {{-- Formulario de diagnóstico --}}
+
     <form method="POST"
           enctype="multipart/form-data"
           action="{{ route('ordenServicio.diagnostico.guardar', $orden->id) }}"
@@ -152,7 +151,6 @@
             </div>
         @endif
 
-        {{-- Diagnóstico general --}}
         <div class="card mb-5">
             <div class="card-header">
                 <h3 class="card-title">Diagnóstico general</h3>
@@ -206,8 +204,6 @@
             </div>
         </div>
 
-
-        {{-- Técnico responsable --}}
         <div class="row mt-5">
             <div class="col-md-6">
                 <label for="tecnico_id" class="form-label fw-bold">
@@ -249,7 +245,7 @@
             </div>
         </div>
 
-        {{-- Hallazgos --}}
+      
         <div class="card mb-5">
             <div class="card-header">
                 <div>
@@ -444,7 +440,6 @@
         </div>
 
         <div class="row">
-            {{-- DESCRIPCIÓN --}}
             <div class="col-md-5 mb-3">
                 <label class="form-label fw-bold">Descripción</label>
 
@@ -464,8 +459,6 @@
                     </button>
                 </div>
             </div>
-
-            {{-- TIPO --}}
             <div class="col-md-2 mb-3">
                 <label class="form-label fw-bold">Tipo</label>
 
@@ -476,8 +469,6 @@
                     <option value="RECOMENDACION">Recomendación</option>
                 </select>
             </div>
-
-            {{-- PRIORIDAD --}}
             <div class="col-md-2 mb-3">
                 <label class="form-label fw-bold">Prioridad</label>
 
@@ -491,10 +482,8 @@
                 </select>
             </div>
 
-            {{-- OBSERVACIÓN --}}
             <div class="col-md-3 mb-3">
                 <label class="form-label fw-bold">Observación</label>
-
                 <div class="grupo-dictado">
                     <input type="text"
                            name="detalles[0][observacion]"
@@ -512,7 +501,6 @@
             </div>
         </div>
 
-        {{-- FOTOGRAFÍAS --}}
         <div class="border-top pt-4 mt-2">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                 <div>
@@ -560,7 +548,6 @@
             </div>
         </div>
 
-        {{-- Acciones --}}
         <div class="d-flex justify-content-end gap-3 mb-10">
             <a href="{{ route('ordenServicio.detalle', $orden->id) }}"
                class="btn btn-light">
@@ -635,9 +622,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnAgregarDetalle = document.getElementById('btnAgregarDetalle');
     const form = document.getElementById('formDiagnostico');
     const btnGuardar = document.getElementById('btnGuardarDiagnostico');
-
     const detallesIniciales = contenedorDetalles.querySelectorAll('.detalle-diagnostico');
-
     let detalleIndex = detallesIniciales.length;
     let fotoIndices = {};
 
@@ -771,7 +756,7 @@ function mostrarArchivo(archivo) {
         return false;
     }
 
-    // Mantener el archivo dentro del input para enviarlo al servidor.
+    
     if (input.files.length === 0 || input.files[0] !== archivo) {
         const transferencia = new DataTransfer();
         transferencia.items.add(archivo);
@@ -810,9 +795,6 @@ function mostrarArchivo(archivo) {
     return true;
 }
 
-   
-
-    // Detectar cuando se selecciona una fotografía de la galería.
     input.addEventListener('change', function () {
         const archivo = input.files?.[0];
 
@@ -822,7 +804,6 @@ function mostrarArchivo(archivo) {
             return;
         }
 
-        // Validar el archivo y mostrar su vista previa.
         if (!mostrarArchivo(archivo)) {
             input.value = '';
             fila.remove();
@@ -980,8 +961,6 @@ contenedorDetalles.addEventListener('click', function (event) {
     const objetivo = event.target;
 
     if (!(objetivo instanceof Element)) return;
-
-    // ELIMINAR DETALLE
     const botonDetalle = objetivo.closest('.btnEliminarDetalle');
 
     if (botonDetalle) {
@@ -1011,7 +990,7 @@ contenedorDetalles.addEventListener('click', function (event) {
         return;
     }
 
-    // ELEGIR FOTO DE GALERÍA
+   
     const botonGaleria = objetivo.closest('.btnAgregarFoto');
 
     if (botonGaleria) {
@@ -1042,7 +1021,6 @@ contenedorDetalles.addEventListener('click', function (event) {
         return;
     }
 
-    // ELIMINAR FOTO
     const botonEliminarFoto = objetivo.closest('.btnEliminarFoto');
 
     if (botonEliminarFoto) {
@@ -1064,8 +1042,6 @@ contenedorDetalles.addEventListener('click', function (event) {
         }
     }
 });
-
-
 
    
     actualizarTitulos();
@@ -1185,8 +1161,7 @@ botonUsar.addEventListener('click', function () {
         return;
     }
 
-    // La función está dentro del primer DOMContentLoaded.
-    // Se invoca mediante un evento para mantener el alcance correcto.
+
     document.dispatchEvent(new CustomEvent('diagnostico:agregar-foto', {
         detail: {
             indice: detalleDestino,
@@ -1255,11 +1230,8 @@ botonUsar.addEventListener('click', function () {
 
     document.addEventListener('click', function (event) {
         const boton = event.target.closest('.btn-dictado');
-
         if (!boton) return;
-
         event.preventDefault();
-
         console.log('[Dictado] Botón pulsado');
 
         if (!SpeechRecognition) {

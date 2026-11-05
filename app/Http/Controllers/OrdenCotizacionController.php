@@ -170,8 +170,6 @@ class OrdenCotizacionController extends Controller
             }
 
             $descripcion = trim($detalle['descripcion']);
-
-            // Para productos, usamos el nombre vigente del producto.
             if ($tipo === 'PRODUCTO') {
                 $producto = Producto::whereKey($productoId)
                     ->where('estado', 'ACTIVO')
@@ -204,7 +202,6 @@ class OrdenCotizacionController extends Controller
             ];
 
             if (!empty($detalle['id'])) {
-                // Impide actualizar detalles pertenecientes a otra cotización.
                 $detalleExistente = OrdenCotizacionDetalle::whereKey($detalle['id'])
                     ->where('orden_cotizacion_id', $cotizacion->id)
                     ->first();
@@ -226,7 +223,6 @@ class OrdenCotizacionController extends Controller
             }
         }
 
-        // Retira los detalles que el usuario quitó del formulario.
         $detallesAntiguos = OrdenCotizacionDetalle::where(
             'orden_cotizacion_id',
             $cotizacion->id
@@ -266,35 +262,6 @@ class OrdenCotizacionController extends Controller
     }
 }
 
-
-// public function pdf($id)
-// {
-//     $orden = OrdenServicio::with([
-//         'vehiculo.cliente.user',
-//         'vehiculo.marca',
-//         'diagnosticoActual.detalles.fotos',
-//         'cotizacionActual.detalles.producto',
-//     ])->findOrFail($id);
-
-//     $cotizacion = $orden->cotizacionActual;
-
-//     if (!$cotizacion) {
-//         return redirect()
-//             ->route('ordenServicio.detalle', $orden->id)
-//             ->with('error', 'Esta orden todavía no tiene una cotización.');
-//     }
-
-//     $pdf = Pdf::loadView(
-//         'ordenServicio.cotizacionPdf',
-//         compact('orden', 'cotizacion')
-//     )->setPaper('a4', 'portrait');
-
-//     return $pdf->stream(
-//         'cotizacion-orden-' . $orden->id . '.pdf'
-//     );
-// }
-
-
 public function pdf($id)
 {
     $orden = OrdenServicio::with([
@@ -322,10 +289,7 @@ public function pdf($id)
     );
 }
 
-/**
- * Genera y guarda el PDF, y devuelve un enlace temporal
- * para compartirlo por WhatsApp.
- */
+
 public function prepararWhatsApp($id)
 {
     $orden = OrdenServicio::with([
@@ -348,7 +312,7 @@ public function prepararWhatsApp($id)
         compact('orden', 'cotizacion')
     )->setPaper('a4', 'portrait');
 
-    // Guardar en almacenamiento privado.
+    
     $rutaArchivo = "cotizaciones/{$orden->id}/cotizacion-{$cotizacion->id}.pdf";
 
     Storage::disk('local')->put(
@@ -356,7 +320,7 @@ public function prepararWhatsApp($id)
         $pdf->output()
     );
 
-    // Enlace válido durante 7 días.
+   
     $urlPdf = URL::temporarySignedRoute(
         'ordenServicio.cotizacion.compartida',
         now()->addDays(7),
@@ -372,17 +336,11 @@ public function prepararWhatsApp($id)
     ]);
 }
 
-/**
- * Permite al cliente consultar el PDF sin iniciar sesión,
- * siempre que el enlace firmado siga vigente.
- */
+
 public function pdfCompartido($id, $cotizacion)
 {
-    $orden = OrdenServicio::with('cotizacionActual')
-        ->findOrFail($id);
-
+    $orden = OrdenServicio::with('cotizacionActual')->findOrFail($id);
     $cotizacionActual = $orden->cotizacionActual;
-
     abort_unless(
         $cotizacionActual &&
         (int) $cotizacionActual->id === (int) $cotizacion,
@@ -390,13 +348,11 @@ public function pdfCompartido($id, $cotizacion)
     );
 
     $rutaArchivo = "cotizaciones/{$orden->id}/cotizacion-{$cotizacion}.pdf";
-
     abort_unless(
         Storage::disk('local')->exists($rutaArchivo),
         404,
         'El PDF de la cotización no está disponible.'
     );
-
     return response()->file(
         Storage::disk('local')->path($rutaArchivo),
         [
@@ -406,6 +362,5 @@ public function pdfCompartido($id, $cotizacion)
         ]
     );
 }
-
 
 }

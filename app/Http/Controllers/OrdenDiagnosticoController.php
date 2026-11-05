@@ -18,7 +18,6 @@ use Illuminate\Validation\Rule;
 
 class OrdenDiagnosticoController extends Controller
 {
-   
     public function crear($id)
         {
             $orden = OrdenServicio::with([
@@ -56,7 +55,6 @@ class OrdenDiagnosticoController extends Controller
             return view('ordenServicio.diagnostico', compact('orden', 'tecnicos'));
         }
 
-
     
 public function guardar(Request $request, $id)
 {
@@ -64,16 +62,12 @@ public function guardar(Request $request, $id)
     $request->validate([
         'descripcion' => 'required|string|max:10000',
         'observaciones' => 'nullable|string|max:10000',
-
         'detalles' => 'required|array|min:1',
         'detalles.*.id' => 'nullable|integer',
         'detalles.*.descripcion' => 'nullable|string|max:1000',
         'detalles.*.observacion' => 'nullable|string|max:1000',
-       
         'detalles.*.tipo' => 'required|in:HALLAZGO,RECOMENDACION',
         'detalles.*.prioridad' => 'required|in:BAJA,MEDIA,ALTA,CRITICA',
-       
-
         'tecnico_id' => [
             'required',
             'integer',
@@ -123,8 +117,6 @@ public function guardar(Request $request, $id)
             );
         }
 
-        // Si la orden ya está en cotización, no editar
-        // un diagnóstico que tenga una cotización aprobada.
         if ($orden->estado === 'EN_COTIZACION') {
             $cotizacion = OrdenCotizacion::where(
                 'orden_servicio_id',
@@ -164,7 +156,6 @@ public function guardar(Request $request, $id)
             $detalleId = $datos['id'] ?? null;
 
             if ($detalleId) {
-                // Solo se permite actualizar detalles del diagnóstico actual.
                 $detalleDiagnostico = OrdenDiagnosticoDetalle::where(
                     'orden_diagnostico_id',
                     $diagnostico->id
@@ -182,19 +173,13 @@ public function guardar(Request $request, $id)
                 $detalleDiagnostico->usuario_creador_id = Auth::id();
             }
 
-            $detalleDiagnostico->descripcion =
-                $datos['descripcion'] ?? null;
-
+            $detalleDiagnostico->descripcion = $datos['descripcion'] ?? null;
             $detalleDiagnostico->tipo = $datos['tipo'];
             $detalleDiagnostico->prioridad = $datos['prioridad'];
-
-            $detalleDiagnostico->observacion =
-                $datos['observacion'] ?? null;
+            $detalleDiagnostico->observacion = $datos['observacion'] ?? null;
             $detalleDiagnostico->usuario_modificador_id = Auth::id();
             $detalleDiagnostico->save();
-
-           
-                // Agregar fotografías nuevas sin eliminar las anteriores.
+        
             $fotos = $request->file("detalles.$indice.fotos", []);
 
             if (!is_array($fotos)) {
@@ -253,12 +238,12 @@ public function guardar(Request $request, $id)
         }
 
         logger()->info('Verificando avance de diagnóstico', [
-    'orden_id' => $orden->id,
-    'estado_actual' => $orden->estado,
-    'diagnostico_id' => $diagnostico->id,
-    'tecnico_id' => $diagnostico->tecnico_id,
-]);
-        // Solo el registro inicial del diagnóstico avanza de etapa.
+            'orden_id' => $orden->id,
+            'estado_actual' => $orden->estado,
+            'diagnostico_id' => $diagnostico->id,
+            'tecnico_id' => $diagnostico->tecnico_id,
+        ]);
+        
         if ($orden->estado === 'EN_DIAGNOSTICO') {
             $orden->estado = 'EN_COTIZACION';
             $orden->save();
@@ -266,9 +251,7 @@ public function guardar(Request $request, $id)
 
         $orden->usuario_modificador_id = Auth::id();
         $orden->save();
-
         DB::commit();
-
         return redirect()
             ->route('ordenServicio.detalle', $orden->id)
             ->with(
@@ -278,31 +261,31 @@ public function guardar(Request $request, $id)
                     : 'Diagnóstico actualizado correctamente.'
             );
 
-    } catch (\Throwable $e) {
-    DB::rollBack();
+        } catch (\Throwable $e) {
+        DB::rollBack();
 
-    if (!empty($archivosGuardados)) {
-        Storage::disk('public')->delete($archivosGuardados);
+        if (!empty($archivosGuardados)) {
+            Storage::disk('public')->delete($archivosGuardados);
+        }
+
+        logger()->error('Error al guardar diagnóstico', [
+            'orden_id' => $id,
+            'usuario_id' => Auth::id(),
+            'mensaje' => $e->getMessage(),
+            'archivo' => $e->getFile(),
+            'linea' => $e->getLine(),
+            'excepcion' => get_class($e),
+        ]);
+
+        report($e);
+
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'No se pudo guardar el diagnóstico: ' . $e->getMessage()
+            );
     }
-
-    logger()->error('Error al guardar diagnóstico', [
-        'orden_id' => $id,
-        'usuario_id' => Auth::id(),
-        'mensaje' => $e->getMessage(),
-        'archivo' => $e->getFile(),
-        'linea' => $e->getLine(),
-        'excepcion' => get_class($e),
-    ]);
-
-    report($e);
-
-    return back()
-        ->withInput()
-        ->with(
-            'error',
-            'No se pudo guardar el diagnóstico: ' . $e->getMessage()
-        );
-}
-}
+    }
 
 }

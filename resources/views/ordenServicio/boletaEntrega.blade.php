@@ -56,34 +56,34 @@
         }
 
         .fotos-diagnostico {
-    margin-top: 10px;
-    width: 100%;
-}
+            margin-top: 10px;
+            width: 100%;
+        }
 
-.fotos-diagnostico table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-}
+        .fotos-diagnostico table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
 
-.fotos-diagnostico td {
-    width: 50%;
-    padding: 5px;
-    vertical-align: top;
-    text-align: center;
-}
+        .fotos-diagnostico td {
+            width: 50%;
+            padding: 5px;
+            vertical-align: top;
+            text-align: center;
+        }
 
-.foto-diagnostico {
-    width: 100%;
-    height: 150px;
-    object-fit: contain;
-}
+        .foto-diagnostico {
+            width: 100%;
+            height: 150px;
+            object-fit: contain;
+        }
 
-.foto-descripcion {
-    font-size: 9px;
-    color: #555;
-    margin-top: 4px;
-}
+        .foto-descripcion {
+            font-size: 9px;
+            color: #555;
+            margin-top: 4px;
+        }
 
     </style>
 </head>

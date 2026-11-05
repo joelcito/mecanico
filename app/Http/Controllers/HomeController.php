@@ -17,13 +17,8 @@ class HomeController extends Controller
         $hoy = Carbon::today();
         $inicioMes = $hoy->copy()->startOfMonth();
         $finMes = $hoy->copy()->endOfMonth();
-
-        // 1. MÉTRICAS GENERALES
         $totalVehiculos = Vehiculo::count();
-
         $totalClientes = Cliente::count();
-
-        // Órdenes que tienen una reparación todavía activa.
         $vehiculosEnReparacion = OrdenServicio::whereHas(
             'reparacion',
             function ($query) {
@@ -39,8 +34,6 @@ class HomeController extends Controller
         )
         ->whereNotIn('estado', ['CANCELADA', 'ANULADA'])
         ->count();
-
-        // 2. INGRESOS REALES: PAGOS ACTIVOS
         $ingresosHoy = Pago::where('estado', 'ACTIVO')
             ->whereDate('fecha', $hoy)
             ->sum('monto');
@@ -51,8 +44,6 @@ class HomeController extends Controller
                 $finMes,
             ])
             ->sum('monto');
-
-        // 3. TRABAJOS ACTIVOS DEL TALLER
         $trabajosEnTaller = OrdenServicio::with([
             'vehiculo.marca',
             'vehiculo.cliente.user',
@@ -94,7 +85,6 @@ class HomeController extends Controller
             ];
         });
 
-        // 4. PRODUCTOS CON STOCK BAJO
         $repuestosStockBajo = Producto::whereColumn(
             'cantidad',
             '<=',
@@ -105,7 +95,6 @@ class HomeController extends Controller
         ->take(8)
         ->get();
 
-        // 5. SERVICIOS FINALIZADOS HOY
         $serviciosHoy = Reparacion::where(
             'estado',
             'FINALIZADA'
@@ -113,7 +102,6 @@ class HomeController extends Controller
         ->whereDate('fecha_fin', $hoy)
         ->count();
 
-        // 6. INGRESOS ASOCIADOS A ÓRDENES CON REPARACIÓN
         $ingresosServicios = Pago::where('estado', 'ACTIVO')
             ->whereBetween('fecha', [
                 $inicioMes,
@@ -122,7 +110,6 @@ class HomeController extends Controller
             ->whereHas('ordenServicio.reparacion')
             ->sum('monto');
 
-        // 7. ÚLTIMAS ÓRDENES
         $ultimasOrdenes = OrdenServicio::with([
             'vehiculo.marca',
             'vehiculo.cliente.user',
@@ -156,7 +143,6 @@ class HomeController extends Controller
             ];
         });
 
-        // 8. INGRESOS DE LOS ÚLTIMOS 12 MESES
         $inicioGrafico = $hoy->copy()
             ->startOfMonth()
             ->subMonths(11);
@@ -212,11 +198,7 @@ class HomeController extends Controller
             ]);
         }
 
-        // 9. CITAS
-        // Pendiente de conectar cuando identifiquemos
-        // el modelo y la tabla real de citas.
         $proximasCitas = collect();
-
         return view('home.inicio', compact(
             'totalVehiculos',
             'totalClientes',
